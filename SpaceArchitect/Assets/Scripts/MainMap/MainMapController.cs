@@ -13,6 +13,12 @@ namespace SpaceArchitect.MainMap
             Cinematic
         }
 
+        private enum CameraMode
+        {
+            Map,        // 大地图模式：透视，相机可旋转/缩放/平移
+            Planet      // 行星模式：俯视正交，只围绕单个行星
+        }
+
         [Header("Camera")]
         [SerializeField] private Camera mainCamera;
         [SerializeField] private Transform cameraPivot;
@@ -21,19 +27,20 @@ namespace SpaceArchitect.MainMap
         [SerializeField] private float rotationSpeed = 90f;
         [SerializeField] private float panSpeed = 50f;
 
-        [Header("Cinematic")]
-        [SerializeField] private Transform launchStation;
-        [SerializeField] private float cinematicHeight = 40f;
-        [SerializeField] private float cinematicDuration = 2.5f;
-        [SerializeField] private AnimationCurve cinematicCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        [Header("Planet View")]
+        [SerializeField] private float planetViewHeight = 40f;
+        [SerializeField] private float transitionDuration = 1.5f;
+        [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        [SerializeField] private PlanetCameraController planetCameraController;
 
         private UIManager uiManager;
         private PlanetSelector currentSelection;
         private CameraState cameraState = CameraState.Free;
-        private Vector3 focusPoint;
-        private float yaw = 45f;
-        private float pitch = 45f;
-        private float distance = 80f;
+        private CameraMode cameraMode = CameraMode.Map;
+        private Vector3 focusPoint = new Vector3(15f, 0f, 7.5f);  // 地图中心点（根据行星分布计算）
+        private float yaw = 45f;      // 水平旋转：45度斜视角，能看到左右两侧
+        private float pitch = 50f;    // 垂直旋转：50度俯视，保持透视感
+        private float distance = 160f; // 距离：足够远能看到所有行星
         private Coroutine cinematicRoutine;
         private bool inputLockedByUI;
 
@@ -47,12 +54,29 @@ namespace SpaceArchitect.MainMap
             if (cameraPivot == null && mainCamera != null)
             {
                 cameraPivot = new GameObject("CameraPivot").transform;
-                cameraPivot.position = mainCamera.transform.position;
-                cameraPivot.rotation = mainCamera.transform.rotation;
+                // 使用预设的 focusPoint 作为 pivot 位置，而不是相机当前位置
+                cameraPivot.position = focusPoint;
+                cameraPivot.rotation = Quaternion.Euler(pitch, yaw, 0f);
+            }
+            else if (cameraPivot != null)
+            {
+                // 如果 pivot 已存在，使用它的位置作为 focusPoint
+                focusPoint = cameraPivot.position;
             }
 
             uiManager = FindAnyObjectByType<UIManager>();
-            focusPoint = cameraPivot != null ? cameraPivot.position : Vector3.zero;
+
+            // 如果 planetCameraController 引用丢失，尝试自动查找
+            if (planetCameraController == null)
+            {
+                var foundPlanetCam = FindAnyObjectByType<PlanetCameraController>();
+                if (foundPlanetCam != null)
+                {
+                    planetCameraController = foundPlanetCam;
+                }
+            }
+
+            cameraMode = CameraMode.Map;
         }
 
         private void OnEnable()
@@ -66,11 +90,15 @@ namespace SpaceArchitect.MainMap
             {
                 return;
             }
-
-            HandleZoom();
-            HandleRotation();
-            HandlePan();
-            UpdateCameraTransform();
+            
+            // 仅在大地图模式下响应输入；行星视角由 PlanetCameraController 控制
+            if (cameraMode == CameraMode.Map)
+            {
+                HandleZoom();
+                HandleRotation();
+                HandlePan();
+                UpdateCameraTransform();
+            }
         }
 
         public void HandlePlanetClicked(PlanetSelector selector)
@@ -85,24 +113,28 @@ namespace SpaceArchitect.MainMap
 
             if (uiManager == null)
             {
-                BeginTravelCinematic(selector);
+                BeginTravelToPlanetView(selector);
                 return;
             }
 
             uiManager.ShowPlanetInfo(
                 selector.Data,
-                () => BeginTravelCinematic(selector),
+                () => BeginTravelToPlanetView(selector),
                 ClearSelection);
         }
 
         public void ClearSelection()
         {
             currentSelection = null;
-            cameraState = CameraState.Free;
             inputLockedByUI = false;
+            cameraState = CameraState.Free;
+            cameraMode = CameraMode.Map;
         }
 
-        private void BeginTravelCinematic(PlanetSelector selector)
+        /// <summary>
+        /// 从大地图视角切换到某颗行星的俯视正交视角。
+        /// </summary>
+        private void BeginTravelToPlanetView(PlanetSelector selector)
         {
             if (selector == null || mainCamera == null)
             {
@@ -114,26 +146,29 @@ namespace SpaceArchitect.MainMap
                 StopCoroutine(cinematicRoutine);
             }
 
-            cinematicRoutine = StartCoroutine(CinematicRoutine(selector));
+            cinematicRoutine = StartCoroutine(TravelToPlanetRoutine(selector));
         }
 
-        private IEnumerator CinematicRoutine(PlanetSelector selector)
+        /// <summary>
+        /// 协程：插值从大地图视角过渡到行星俯视视角。
+        /// </summary>
+        private IEnumerator TravelToPlanetRoutine(PlanetSelector selector)
         {
             cameraState = CameraState.Cinematic;
             uiManager?.HideAll();
 
             var startPosition = mainCamera.transform.position;
             var startRotation = mainCamera.transform.rotation;
-            var travelTarget = selector.FocusPoint.position;
-            var launchPosition = launchStation != null ? launchStation.position : Vector3.zero;
-            var midpoint = Vector3.Lerp(launchPosition, travelTarget, 0.5f);
-            var finalPosition = midpoint + Vector3.up * cinematicHeight;
-            var finalRotation = Quaternion.LookRotation((midpoint - finalPosition).normalized, Vector3.up);
+            var planetPosition = selector.FocusPoint.position;
+            // 最终位置：在行星正上方一定高度
+            var finalPosition = planetPosition + Vector3.up * planetViewHeight;
+            // 最终朝向：完全俯视
+            var finalRotation = Quaternion.Euler(90f, 0f, 0f);
 
             var elapsed = 0f;
-            while (elapsed < cinematicDuration)
+            while (elapsed < transitionDuration)
             {
-                var t = cinematicCurve.Evaluate(elapsed / cinematicDuration);
+                var t = transitionCurve.Evaluate(elapsed / transitionDuration);
                 mainCamera.transform.position = Vector3.Lerp(startPosition, finalPosition, t);
                 mainCamera.transform.rotation = Quaternion.Slerp(startRotation, finalRotation, t);
                 elapsed += Time.deltaTime;
@@ -143,8 +178,17 @@ namespace SpaceArchitect.MainMap
             mainCamera.transform.position = finalPosition;
             mainCamera.transform.rotation = finalRotation;
 
+            // 切换到行星相机视角
+            if (planetCameraController != null && mainCamera != null)
+            {
+                planetCameraController.ActivateFromCamera(mainCamera);
+                mainCamera.enabled = false;
+                cameraMode = CameraMode.Planet;
+            }
+
+            cameraState = CameraState.Free;
             inputLockedByUI = false;
-            GameManager.Instance?.EnterGameplay(selector.Data);
+            currentSelection = selector;
         }
 
         private void HandleZoom()
