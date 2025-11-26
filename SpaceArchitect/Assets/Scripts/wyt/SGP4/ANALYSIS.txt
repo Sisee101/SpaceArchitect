@@ -1,0 +1,41 @@
+ANALYSIS of SGP4 Code
+=====================
+
+These are notes from reading the code.
+
+Initialization
+==============
+Init sequence being with a TLE which encodes the classical orbital elements and current phase position of the object.
+
+Note that the original 2 line TLE (back from the days of 80 character punch cards) has precision limitation that impose 
+accuracy limitation on the actual position. Celestrak has moved on to more modern formats and support for these will
+eventually be added to GE. 
+
+In GE the init call with TLE goes through SGP4toGe and then into SGP4utils.readTLEandIniSGP4. 
+This fills in a data structure: SGP4SatData satrec (defined in SGP4SatData.cs)
+This object defines the state of the satellite as loaded from the TLE data.
+
+The init sequence fills in the following fields in SGP4SatData:
+no, nddot, bstar, a, ndot, inclo, nodeo, argpo, alta, altp
+epochyr, year, month, day, jdsatepoch
+
+This satrec is then used to call sgp4init. This inits MANY more field in the satrec that describe the time
+evolution of orbital elements based on drag, J2, radiation etc. 
+
+Q: There is a satrec.omegao. Where is this initialized??
+In sgp4 there is a 
+            satrec.omegap = omegam;
+        with 
+            omegam = omegadf + satrec.nevalues.omegacf * t2;
+
+Propagation
+===========
+OrbitU calls sgpForTLE.SGP4toRVatTime(time);
+ - this massages time data into units SGP4 handles and then calls
+         bool result = SGP4unit.sgp4(sgp4Data, minutesSinceEpoch, pos, vel);
+   where sgpData is a SGP4SatData. 
+   * this does secular updates to orbit elements (e.g. argpdf ), then various other periodics, lunar etc. 
+   * solves Kepler's eqn starting with 
+               xl = mp + argpp + nodep + temp * satrec.xlcof * axnl;
+            u = ((xl - nodep) % twopi);
+
