@@ -1,0 +1,79 @@
+文件目录建议（均在Assets下建立）
+1. Art（美术相关，供三维美术及UI美术）
+Models/            // 3D模型
+Textures/          // 贴图
+Materials/         // 材质球
+VFX/               // 特效资源
+Animation/         // 动画
+2. UI（美术UI与程序UI混合，按类型细分）
+Prefabs/           // UI预制体
+Sprites/           // UI界面图片
+Scenes/            // 扩展的UI场景分片
+3. Scripts（主业务代码，分为交互逻辑子目录）
+MainMap/           // 大地图与选关/摄像机逻辑（一位程序负责）
+Gameplay/          // 一局游戏流程与飞船相关内容（一位程序负责）
+CelestialObjects/  // 行星、障碍物等天体交互内容（一位程序负责）
+UI/                // UI控制器及界面逻辑（一位UI程序负责）
+Core/              // 公用基础模块、工具、单例等
+Data/              // 静态数据、ScriptableObject、配置
+4. Scenes
+01_MainMap.unity   // 大地图与选关
+02_Gameplay.unity  // 一局游戏主场景
+5. Resources
+用于动态加载的通用资源预制体等
+6. Audio
+BGM/
+SFX/
+7. Plugins
+第三方Unity插件与Asset包
+---
+
+团队成员对应的责任分工
+三位主程序：Scripts/MainMap, Scripts/Gameplay, Scripts/CelestialObjects 分别负责目录下代码
+UI程序和UI美术主要关注 Scripts/UI 与 UI文件夹（逻辑+资源分离）
+三维美术负责Art下全部内容
+
+
+一、整体开发流程建议
+核心数据结构和基础脚本搭建（所有代码都在Scripts下细分目录）
+场景/对象管理与事件系统（便于解耦）
+占位物体和基础组件（可直接在编辑器里复用和拓展）
+基础UI/交互原型（UI程序和UI美术能协同推进）
+
+二、基础代码建议结构
+1. Scripts/Core（核心、基础、公用）
+GameManager.cs（全局状态及流程控制，单例模式）
+EventManager.cs（游戏内事件，如发射、捕获、成功/失败判定）
+Utils.cs 或 MathHelper.cs（引力、轨迹等通用数学/工具函数）
+2. Scripts/Data（配置、资源数据）
+GameConfig.cs（全局配置，如飞船参数、引力常数、资源等，ScriptableObject）
+PlanetData.cs（行星静态数据，ScriptableObject）
+LevelData.cs（关卡/地图配置数据，ScriptableObject）
+3. Scripts/MainMap（大地图与选关）
+MainMapController.cs（主摄像机、缩放/平移/点击逻辑）
+PlanetSelector.cs（行星/目标的选中，弹出UI交互）
+4. Scripts/Gameplay（一局游戏内主控）
+LaunchStation.cs（发射台组件、负责发射操作及UI）
+ShipController.cs（飞船行为、状态机、输入响应）
+GravityField.cs（人工引力装置、影响引力场的核心逻辑）
+TrajectoryPredictor.cs（轨迹计算与可视化）
+5. Scripts/CelestialObjects（天体、障碍物）
+Planet.cs（行星行为、捕获判定、资源逻辑）
+Obstacle.cs（障碍物模板）
+6. Scripts/UI（UI逻辑，与美术资源分离）
+UIManager.cs（全局UI控制）
+GameResultPanel.cs（胜负弹窗、按钮回调）
+LevelSelectPanel.cs（关卡选择相关UI）
+
+三、启动推荐步骤（高优先级建议）
+搭建GameManager单例，管理全局流程：选关、进入游戏、结算
+定义ShipController与状态机：明确“发射前/飞行/被捕获/坠毁/逃逸”等状态及切换逻辑
+GravityField（人工引力装置）和Planet基础类：优先实现引力和捕获的物理模拟骨架方法
+MainMapController与简单关卡数据：保证大地图可拖拽、缩放、选行星
+简单UI占位：比如发射、重新开始、胜负弹窗，便于联调
+
+五、分工建议（结合你的组织）
+MainMap和地图交互相关：Scripts/MainMap 下脚本和场景管理
+飞船、引力、内局流程：Scripts/Gameplay、Scripts/CelestialObjects
+UI开发（所有UI脚本+面板模板）：Scripts/UI 目录下所有与界面相关类
+美术可先制作占位模型、行星和场景
