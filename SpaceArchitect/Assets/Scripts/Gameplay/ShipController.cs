@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using SpaceArchitect.Core;
+using SpaceArchitect.CelestialObjects;
 
 namespace SpaceArchitect.Gameplay
 {
@@ -56,6 +57,13 @@ namespace SpaceArchitect.Gameplay
         /// 当前速度属性（公开只读）
         /// </summary>
         public Vector3 Velocity => _velocity;
+        
+        [Header("实时状态显示（只读）")]
+        [Tooltip("实时速度（在Inspector中显示，只读）")]
+        [SerializeField] private Vector3 _velocityDisplay;
+        
+        [Tooltip("实时速度大小（在Inspector中显示，只读）")]
+        [SerializeField] private float _speedDisplay;
         
         [Tooltip("锁定的Y坐标（水平面，默认0）")]
         [SerializeField] private float _horizontalPlaneHeight = 0f;
@@ -146,6 +154,32 @@ namespace SpaceArchitect.Gameplay
         [Tooltip("捕获触发器标签")]
         [SerializeField] private string _captureTriggerTag = "PlanetCapture";
         
+        [Tooltip("碰撞时的爆炸力倍数（用于产生物理效果）")]
+        [SerializeField] private float _crashForceMultiplier = 2f;
+        
+        [Tooltip("碰撞时的旋转力（用于产生翻滚效果）")]
+        [SerializeField] private float _crashTorqueMultiplier = 5f;
+        
+        /// <summary>
+        /// 场景中所有行星的缓存（用于距离检测）
+        /// </summary>
+        private Planet[] _planets;
+        
+        /// <summary>
+        /// 碰撞时的碰撞点（用于计算碰撞方向）
+        /// </summary>
+        private Vector3 _crashCollisionPoint;
+        
+        /// <summary>
+        /// 碰撞时的碰撞方向（从碰撞点指向飞船中心）
+        /// </summary>
+        private Vector3 _crashCollisionDirection;
+        
+        /// <summary>
+        /// 碰撞时的速度（用于计算碰撞力）
+        /// </summary>
+        private Vector3 _crashVelocity;
+        
         #endregion
 
         #region 边界检测变量
@@ -200,6 +234,9 @@ namespace SpaceArchitect.Gameplay
             // 查找场景中所有引力源
             RefreshGravitySources();
             
+            // 查找场景中所有行星（用于碰撞检测）
+            RefreshPlanets();
+            
             // 订阅捕获事件（使用MonoBehaviour作为参数类型，因为Planet可能还未定义）
             if (_eventManager != null)
             {
@@ -211,6 +248,8 @@ namespace SpaceArchitect.Gameplay
             {
                 _rigidbody.useGravity = false;
                 _rigidbody.isKinematic = true; // 使用自定义物理，不需要Unity物理引擎
+                // 注意：由于使用Kinematic Rigidbody，OnCollisionEnter不会被调用
+                // 因此需要使用距离检测来替代碰撞检测
             }
         }
         
@@ -225,8 +264,14 @@ namespace SpaceArchitect.Gameplay
             // 检查边界（逃逸判定）
             CheckBoundaries();
             
+            // 检查碰撞（距离检测，因为使用Kinematic Rigidbody）
+            CheckCollisions();
+            
             // 持续锁定Y坐标（防止其他因素影响位置）
             EnsureYPositionLocked();
+            
+            // 更新Inspector显示的速度值
+            UpdateVelocityDisplay();
         }
         
         private void FixedUpdate()
@@ -320,8 +365,8 @@ namespace SpaceArchitect.Gameplay
                     break;
                     
                 case ShipState.Crashed:
-                    // 坠毁：停止所有运动
-                    _velocity = Vector3.zero;
+                    // 坠毁：启用物理引擎，产生真实碰撞效果
+                    EnableCrashPhysics();
                     _canChangeState = false; // 锁定状态，无法再切换
                     break;
                     
@@ -755,7 +800,70 @@ namespace SpaceArchitect.Gameplay
         #region 碰撞检测系统
         
         /// <summary>
+        /// 刷新场景中所有行星（用于碰撞检测）
+        /// </summary>
+        private void RefreshPlanets()
+        {
+            _planets = FindObjectsOfType<Planet>();
+            Debug.Log($"找到 {_planets.Length} 个行星用于碰撞检测");
+        }
+        
+        /// <summary>
+        /// 检查碰撞（使用距离检测，因为Rigidbody是Kinematic的）
+        /// 在Update中调用，确保及时检测
+        /// </summary>
+        private void CheckCollisions()
+        {
+            // 只在飞行状态检测碰撞
+            if (_currentState != ShipState.Flying)
+            {
+                return;
+            }
+            
+            Vector3 shipPosition = _transform.position;
+            shipPosition.y = _lockedYPosition; // 投影到水平面
+            
+            // 检查与所有行星的距离
+            if (_planets != null)
+            {
+                foreach (var planet in _planets)
+                {
+                    if (planet == null)
+                        continue;
+                    
+                    Vector3 planetPosition = planet.Position;
+                    planetPosition.y = _lockedYPosition; // 投影到水平面
+                    
+                    float distance = Vector3.Distance(shipPosition, planetPosition);
+                    float collisionRadius = planet.CollisionRadius;
+                    
+                    // 如果飞船进入行星的碰撞范围，触发坠毁
+                    if (distance <= collisionRadius)
+                    {
+                        // 保存碰撞时的速度（在状态切换前）
+                        _crashVelocity = _velocity;
+                        
+                        // 计算碰撞点和方向（用于物理效果）
+                        Vector3 directionToPlanet = (planetPosition - shipPosition).normalized;
+                        _crashCollisionPoint = planetPosition - directionToPlanet * collisionRadius;
+                        _crashCollisionDirection = (shipPosition - _crashCollisionPoint).normalized;
+                        
+                        Debug.Log($"飞船与行星 {planet.gameObject.name} 碰撞！距离：{distance:F2}，碰撞半径：{collisionRadius:F2}，速度：{_crashVelocity.magnitude:F2}");
+                        Crash();
+                        return; // 只触发一次坠毁
+                    }
+                }
+            }
+            
+            // 检查与障碍物的碰撞（使用Unity碰撞检测，如果障碍物有Rigidbody）
+            // 注意：由于飞船是Kinematic，只有非Kinematic的障碍物才能触发OnCollisionEnter
+            // 如果障碍物也是Kinematic，需要使用类似的距离检测
+        }
+        
+        /// <summary>
         /// Unity碰撞检测（与障碍物或行星碰撞体）
+        /// 注意：由于飞船Rigidbody是Kinematic，此方法可能不会被调用
+        /// 主要依赖CheckCollisions()中的距离检测
         /// </summary>
         private void OnCollisionEnter(Collision collision)
         {
@@ -768,7 +876,25 @@ namespace SpaceArchitect.Gameplay
             // 检查碰撞标签
             if (collision.gameObject.CompareTag(_collisionTag))
             {
+                // 保存碰撞时的速度（在状态切换前）
+                _crashVelocity = _velocity;
+                
+                // 计算碰撞点和方向（用于物理效果）
+                if (collision.contactCount > 0)
+                {
+                    ContactPoint contact = collision.contacts[0];
+                    _crashCollisionPoint = contact.point;
+                    _crashCollisionDirection = (transform.position - _crashCollisionPoint).normalized;
+                }
+                else
+                {
+                    // 如果没有接触点，使用默认方向
+                    _crashCollisionPoint = transform.position;
+                    _crashCollisionDirection = -collision.relativeVelocity.normalized;
+                }
+                
                 // 与障碍物或行星碰撞，触发坠毁
+                Debug.Log($"OnCollisionEnter: 飞船与 {collision.gameObject.name} 碰撞，速度：{_crashVelocity.magnitude:F2}");
                 Crash();
             }
         }
@@ -810,6 +936,62 @@ namespace SpaceArchitect.Gameplay
         }
         
         /// <summary>
+        /// 启用坠毁时的物理效果
+        /// 将Rigidbody从Kinematic改为非Kinematic，应用碰撞力和旋转
+        /// </summary>
+        private void EnableCrashPhysics()
+        {
+            if (_rigidbody == null)
+            {
+                Debug.LogWarning("Rigidbody为空，无法启用碰撞物理效果");
+                return;
+            }
+            
+            // 将Rigidbody从Kinematic改为非Kinematic，让Unity物理引擎接管
+            _rigidbody.isKinematic = false;
+            
+            // 启用重力（可选，根据游戏需求）
+            // _rigidbody.useGravity = true;
+            
+            // 使用保存的碰撞速度（在状态切换前保存的）
+            float crashSpeed = _crashVelocity.magnitude;
+            
+            // 应用碰撞速度到Rigidbody（保持碰撞前的动量）
+            if (crashSpeed > 0.1f)
+            {
+                // 使用碰撞前的速度方向，但增加力度
+                Vector3 crashVelocity = _crashVelocity.normalized * crashSpeed * _crashForceMultiplier;
+                _rigidbody.velocity = crashVelocity;
+            }
+            else if (_crashCollisionDirection != Vector3.zero)
+            {
+                // 如果没有速度，使用碰撞方向施加力
+                _rigidbody.velocity = _crashCollisionDirection * 10f * _crashForceMultiplier;
+            }
+            
+            // 添加随机旋转力，产生翻滚效果
+            Vector3 randomTorque = new Vector3(
+                Random.Range(-1f, 1f),
+                Random.Range(-1f, 1f),
+                Random.Range(-1f, 1f)
+            ).normalized * _crashTorqueMultiplier * Mathf.Max(crashSpeed, 5f);
+            
+            _rigidbody.AddTorque(randomTorque, ForceMode.VelocityChange);
+            
+            // 在碰撞点添加爆炸力（产生更强烈的碰撞效果）
+            if (_crashCollisionDirection != Vector3.zero && crashSpeed > 0.1f)
+            {
+                Vector3 explosionForce = _crashCollisionDirection * crashSpeed * _crashForceMultiplier;
+                _rigidbody.AddForceAtPosition(explosionForce, _crashCollisionPoint, ForceMode.VelocityChange);
+            }
+            
+            // 清空自定义速度（不再使用自定义物理系统）
+            _velocity = Vector3.zero;
+            
+            Debug.Log($"启用碰撞物理效果：碰撞速度={crashSpeed:F2}，Rigidbody速度={_rigidbody.velocity.magnitude:F2}，角速度={_rigidbody.angularVelocity.magnitude:F2}");
+        }
+        
+        /// <summary>
         /// 抵达目的地处理
         /// </summary>
         private void ArriveAtDestination()
@@ -839,12 +1021,15 @@ namespace SpaceArchitect.Gameplay
         /// </summary>
         private void OnCapturedByPlanet(MonoBehaviour planetBehaviour)
         {
+            Debug.Log($"[飞船] {gameObject.name} 收到捕获事件，当前状态: {_currentState}，行星: {(planetBehaviour != null ? planetBehaviour.name : "null")}");
+            
             // 检查是否应该响应这个捕获事件
             // 注意：这里假设捕获事件会传递给所有飞船，可能需要添加飞船ID检查
             
             // 只在飞行状态才能被捕获
             if (_currentState != ShipState.Flying)
             {
+                Debug.Log($"[飞船] 当前状态 {_currentState} 不是Flying，无法被捕获");
                 return;
             }
             
@@ -938,9 +1123,16 @@ namespace SpaceArchitect.Gameplay
         /// <summary>
         /// 确保Y坐标锁定到水平面
         /// 在Update中调用，防止任何因素导致Y坐标偏移
+        /// 注意：坠毁状态下不锁定Y坐标，让物理引擎产生真实的3D碰撞效果
         /// </summary>
         private void EnsureYPositionLocked()
         {
+            // 坠毁状态下不锁定Y坐标，让物理引擎接管
+            if (_currentState == ShipState.Crashed)
+            {
+                return;
+            }
+            
             // 检查当前Y坐标是否偏离锁定位置
             if (Mathf.Abs(_transform.position.y - _lockedYPosition) > 0.01f)
             {
@@ -950,6 +1142,27 @@ namespace SpaceArchitect.Gameplay
                 
                 // 确保速度的Y分量为0
                 _velocity.y = 0f;
+            }
+        }
+        
+        /// <summary>
+        /// 更新Inspector中显示的速度值
+        /// 在Update中调用，确保实时更新
+        /// </summary>
+        private void UpdateVelocityDisplay()
+        {
+            // 根据当前状态显示不同的速度值
+            if (_currentState == ShipState.Crashed && _rigidbody != null && !_rigidbody.isKinematic)
+            {
+                // 坠毁状态：显示Rigidbody的物理速度
+                _velocityDisplay = _rigidbody.velocity;
+                _speedDisplay = _rigidbody.velocity.magnitude;
+            }
+            else
+            {
+                // 其他状态：显示自定义速度
+                _velocityDisplay = _velocity;
+                _speedDisplay = _velocity.magnitude;
             }
         }
         
