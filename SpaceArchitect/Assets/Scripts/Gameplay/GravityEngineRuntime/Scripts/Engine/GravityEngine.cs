@@ -1956,8 +1956,24 @@ public class GravityEngine : MonoBehaviour {
                         InactivateBody(gameNBodies[i].gameObject);
                         Debug.LogWarning("Position NaN - inactivated " + gameNBodies[i].name);
                     } else {
-                        position = physToWorldFactor * position;
-                        nbody.GEUpdate(position, GetVelocity(nbody), this);
+                        // If locked to XY plane, force Z to 0 after physics calculation
+                        // This allows gravity to calculate normally, but constrains movement to XY plane
+                        if (nbody.lockToXYPlane) {
+                            position.z = 0f;
+                            // Get velocity and also force Z to 0
+                            Vector3 velocity = GetVelocity(nbody);
+                            velocity.z = 0f;
+                            // Update physics state to maintain Z=0 constraint
+                            Vector3d pos3d = new Vector3d(position);
+                            worldState.SetPosition3d(nbody, pos3d);
+                            Vector3d vel3d = new Vector3d(velocity);
+                            worldState.SetVelocity3d(nbody, vel3d);
+                            position = physToWorldFactor * position;
+                            nbody.GEUpdate(position, velocity, this);
+                        } else {
+                            position = physToWorldFactor * position;
+                            nbody.GEUpdate(position, GetVelocity(nbody), this);
+                        }
                     }
                 } 
             }

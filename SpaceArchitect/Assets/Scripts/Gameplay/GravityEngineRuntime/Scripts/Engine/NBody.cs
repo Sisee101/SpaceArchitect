@@ -60,6 +60,12 @@ public class NBody : MonoBehaviour, IComparer<NBody> {
     //! Rotate the frame as the body moves. Used when objects are in orbit 
     public bool rotateFrame;
 
+    /// <summary>
+    /// Lock the object to XY plane (Z = 0). When enabled, the object's Z position and velocity Z component
+    /// will be forced to 0, keeping the object constrained to the XY plane.
+    /// </summary>
+    public bool lockToXYPlane = false;
+
     //! Track the depth of the object in an orbit heirarchy. Used to add objects in order of increasing orbit depth
     // Aside: Kepler depth of fixed bodies is a similar concept, but for a different purpose, it controls evolution
     // ordering, not ordering of adding at the start.
@@ -116,6 +122,12 @@ public class NBody : MonoBehaviour, IComparer<NBody> {
 	/// <param name="position">The position</param>
 	/// <param name="velocity">The velocity</param>
 	public void GEUpdate(Vector3 position, Vector3 velocity, GravityEngine ge) {
+		// If locked to XY plane, force Z to 0
+		if (lockToXYPlane) {
+			position.z = 0f;
+			velocity.z = 0f;
+		}
+		
 		transform.position = ge.MapToScene( position);
         vel_phys = velocity;
         if (rotateFrame)
@@ -201,6 +213,13 @@ public class NBody : MonoBehaviour, IComparer<NBody> {
                     // but will not have applied the map to scene. 
                     initialPhysPosition = transform.position;
                 }
+            }
+        }
+        // If locked to XY plane, force Z to 0
+        if (lockToXYPlane) {
+            initialPhysPosition.z = 0f;
+            if (initWithDouble) {
+                initialPhysPositionV3.z = 0.0;
             }
         }
 #pragma warning disable 162        // disable unreachable code warning

@@ -1,0 +1,245 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>
+/// 行星引力捕获脚本 - 放在行星上
+/// 当飞船进入捕获范围时，轻微调整飞船速度使其自然进入轨道
+/// </summary>
+public class PlanetGravityCapture : MonoBehaviour
+{
+    [Header("捕获范围设置")]
+    [Tooltip("飞船进入此距离时开始捕获引导")]
+    public float captureRadius = 15f;
+    [Tooltip("飞船离开此距离时释放捕获")]
+    public float releaseRadius = 30f;
+    
+    [Header("轨道引导强度")]
+    [Tooltip("轨道调整的强度，值越小越自然（0.01-0.1推荐）")]
+    [Range(0.001f, 0.5f)]
+    public float orbitGuidanceStrength = 0.05f;
+    [Tooltip("目标轨道半径（相对于行星中心）")]
+    public float targetOrbitRadius = 12f;
+    
+    [Header("捕获检测")]
+    [Tooltip("检测飞船的标签")]
+    public string spaceshipTag = "Spaceship";
+    [Tooltip("检测间隔（秒），降低性能消耗")]
+    public float detectionInterval = 0.1f;
+    
+    private NBody planetNBody;
+    private GravityEngine ge;
+    private float lastDetectionTime;
+    private readonly List<SpaceshipCaptureInfo> capturedSpaceships = new List<SpaceshipCaptureInfo>();
+    
+    private class SpaceshipCaptureInfo
+    {
+        public Transform spaceship;
+        public NBody nbody;
+        public float captureTime;
+        
+        public SpaceshipCaptureInfo(Transform ship, NBody nb)
+        {
+            spaceship = ship;
+            nbody = nb;
+            captureTime = Time.time;
+        }
+    }
+    
+    void Start()
+    {
+        planetNBody = GetComponent<NBody>();
+        if (planetNBody == null)
+        {
+            Debug.LogWarning($"行星 {gameObject.name} 没有 NBody 组件，无法进行引力捕获");
+        }
+        
+        ge = GravityEngine.Instance();
+    }
+    
+    void Update()
+    {
+        if (Time.time - lastDetectionTime < detectionInterval)
+            return;
+            
+        lastDetectionTime = Time.time;
+        
+        // 检测附近的飞船
+        DetectNearbySpaceships();
+        
+        // 对已捕获的飞船进行轨道引导
+        GuideCapturedSpaceships();
+    }
+    
+    void DetectNearbySpaceships()
+    {
+        // 查找所有飞船
+        GameObject[] spaceships = GameObject.FindGameObjectsWithTag(spaceshipTag);
+        
+        foreach (GameObject ship in spaceships)
+        {
+            if (ship == null) continue;
+            
+            float distance = Vector2.Distance(
+                new Vector2(transform.position.x, transform.position.y),
+                new Vector2(ship.transform.position.x, ship.transform.position.y)
+            );
+            
+            // 检查是否在捕获范围内
+            if (distance <= captureRadius)
+            {
+                // 检查是否已经在捕获列表中
+                bool alreadyCaptured = false;
+                foreach (var info in capturedSpaceships)
+                {
+                    if (info.spaceship == ship.transform)
+                    {
+                        alreadyCaptured = true;
+                        break;
+                    }
+                }
+                
+                if (!alreadyCaptured)
+                {
+                    NBody shipNBody = ship.GetComponent<NBody>();
+                    if (shipNBody != null)
+                    {
+                        capturedSpaceships.Add(new SpaceshipCaptureInfo(ship.transform, shipNBody));
+                        Debug.Log($"飞船 {ship.name} 进入 {gameObject.name} 的捕获范围");
+                    }
+                }
+            }
+            else if (distance > releaseRadius)
+            {
+                // 移除捕获
+                for (int i = capturedSpaceships.Count - 1; i >= 0; i--)
+                {
+                    if (capturedSpaceships[i].spaceship == ship.transform)
+                    {
+                        capturedSpaceships.RemoveAt(i);
+                        Debug.Log($"飞船 {ship.name} 离开 {gameObject.name} 的捕获范围");
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // 清理无效的捕获信息
+        for (int i = capturedSpaceships.Count - 1; i >= 0; i--)
+        {
+            if (capturedSpaceships[i].spaceship == null)
+            {
+                capturedSpaceships.RemoveAt(i);
+            }
+        }
+    }
+    
+    void GuideCapturedSpaceships()
+    {
+        if (planetNBody == null || ge == null) return;
+        
+        float planetMass = GetPlanetMass();
+        
+        foreach (var info in capturedSpaceships)
+        {
+            if (info.spaceship == null || info.nbody == null) continue;
+            
+            Vector3 relativePos = info.spaceship.position - transform.position;
+            float currentRadius = Mathf.Max(relativePos.magnitude, 0.1f);
+            
+            // 如果距离太远，释放捕获
+            if (currentRadius > releaseRadius)
+            {
+                continue;
+            }
+            
+            // 获取当前速度
+            Vector3 currentVelocity = ge.GetVelocity(info.nbody);
+            
+            // 计算理想的轨道速度（圆形轨道）
+            Vector3 radialDir = relativePos.normalized;
+            Vector3 tangent = GetOrbitTangent(radialDir);
+            
+            // 计算圆形轨道速度: v = √(GM/r)
+            float idealOrbitSpeed = Mathf.Sqrt(planetMass / Mathf.Max(currentRadius, 0.1f));
+            
+            // 将当前速度分解为径向和切向分量
+            float radialSpeed = Vector3.Dot(currentVelocity, radialDir);
+            Vector3 radialVel = radialDir * radialSpeed;
+            Vector3 tangentialVel = currentVelocity - radialVel;
+            
+            // 计算理想切向速度
+            Vector3 idealTangentialVel = tangent * idealOrbitSpeed;
+            
+            // 轻微调整速度，使其逐渐接近理想轨道
+            // 只调整切向速度，让径向速度自然衰减
+            Vector3 adjustedTangentialVel = Vector3.Lerp(
+                tangentialVel.normalized * Mathf.Max(tangentialVel.magnitude, 0.1f),
+                idealTangentialVel,
+                orbitGuidanceStrength
+            );
+            
+            // 轻微衰减径向速度
+            Vector3 adjustedRadialVel = Vector3.Lerp(radialVel, Vector3.zero, orbitGuidanceStrength * 0.5f);
+            
+            // 组合新速度
+            Vector3 newVelocity = adjustedRadialVel + adjustedTangentialVel;
+            
+            // 应用速度调整（只在速度有效时）
+            if (IsVelocityValid(newVelocity))
+            {
+                ge.SetVelocity(info.nbody, newVelocity);
+            }
+        }
+    }
+    
+    Vector3 GetOrbitTangent(Vector3 radialDir)
+    {
+        // 计算垂直于径向的切向向量（2D平面）
+        Vector3 tangent = Vector3.Cross(Vector3.forward, radialDir).normalized;
+        
+        // 如果切向向量无效，使用默认方向
+        if (float.IsNaN(tangent.x) || tangent.magnitude < 0.1f)
+        {
+            tangent = new Vector3(-radialDir.y, radialDir.x, 0f).normalized;
+            if (tangent.magnitude < 0.1f)
+            {
+                tangent = Vector3.up;
+            }
+        }
+        
+        return tangent;
+    }
+    
+    float GetPlanetMass()
+    {
+        if (planetNBody != null)
+        {
+            return Mathf.Max(planetNBody.mass, 0.1f);
+        }
+        return Mathf.Max(transform.localScale.x, 0.1f) * 100f;
+    }
+    
+    bool IsVelocityValid(Vector3 velocity)
+    {
+        return !float.IsNaN(velocity.x) && !float.IsNaN(velocity.y) &&
+               !float.IsInfinity(velocity.x) && !float.IsInfinity(velocity.y) &&
+               velocity.magnitude < 1000f;
+    }
+    
+    void OnDrawGizmosSelected()
+    {
+        // 在编辑器中显示捕获范围
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, captureRadius);
+        
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, releaseRadius);
+        
+        if (targetOrbitRadius > 0)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(transform.position, targetOrbitRadius);
+        }
+    }
+}
+
