@@ -10,6 +10,7 @@ TagManager:
   - Obstacle
   - PlanetCapture
   - Destination
+  - Core
   layers:
   - Default
   - TransparentFX
