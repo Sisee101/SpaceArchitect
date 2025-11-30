@@ -6,6 +6,10 @@ TagManager:
   tags:
   - Planet
   - Spaceship
+  - Ship
+  - Obstacle
+  - PlanetCapture
+  - Destination
   layers:
   - Default
   - TransparentFX
