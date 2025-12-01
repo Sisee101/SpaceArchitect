@@ -105,12 +105,29 @@ public class ShipLauncher : MonoBehaviour
             new Vector2(shipScreenPosition.x, shipScreenPosition.y)
         );
 
+        // 如果鼠标在飞船附近，开始拖拽
         if (distanceToShip < 100f) // 100像素范围内
         {
+            // 检查是否有Core物体在鼠标位置（防止冲突）
+            // 只有当鼠标明确点击在Core上时，才跳过飞船拖拽
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            
+            if (Physics.Raycast(ray, out hit))
+            {
+                // 如果击中的是Core，并且鼠标不在飞船很近的地方，跳过飞船拖拽
+                if (hit.collider != null && hit.collider.CompareTag("Core") && distanceToShip > 50f)
+                {
+                    Debug.Log("鼠标点击在Core上，跳过飞船拖拽");
+                    return;
+                }
+            }
+
+            // 开始飞船拖拽
             isDragging = true;
             dragStartPosition = mousePosition;
             ShowArrow(true);
-            Debug.Log("开始拖拽");
+            Debug.Log($"开始拖拽飞船，距离: {distanceToShip}");
         }
     }
 

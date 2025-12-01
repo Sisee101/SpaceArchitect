@@ -19,6 +19,8 @@ public class PlanetGravityCapture : MonoBehaviour
     public float orbitGuidanceStrength = 0.05f;
     [Tooltip("目标轨道半径（相对于行星中心）")]
     public float targetOrbitRadius = 12f;
+    [Tooltip("是否强制逆时针旋转（如果为false，会根据飞船当前速度方向自动选择）")]
+    public bool forceCounterClockwise = false;
     
     [Header("捕获检测")]
     [Tooltip("检测飞船的标签")]
@@ -157,7 +159,7 @@ public class PlanetGravityCapture : MonoBehaviour
             
             // 计算理想的轨道速度（圆形轨道）
             Vector3 radialDir = relativePos.normalized;
-            Vector3 tangent = GetOrbitTangent(radialDir);
+            Vector3 tangent = GetOrbitTangent(radialDir, currentVelocity);
             
             // 计算圆形轨道速度: v = √(GM/r)
             float idealOrbitSpeed = Mathf.Sqrt(planetMass / Mathf.Max(currentRadius, 0.1f));
@@ -192,22 +194,48 @@ public class PlanetGravityCapture : MonoBehaviour
         }
     }
     
-    Vector3 GetOrbitTangent(Vector3 radialDir)
+    Vector3 GetOrbitTangent(Vector3 radialDir, Vector3 currentVelocity)
     {
-        // 计算垂直于径向的切向向量（2D平面）
-        Vector3 tangent = Vector3.Cross(Vector3.forward, radialDir).normalized;
+        // 计算两个可能的切向方向（顺时针和逆时针）
+        Vector3 counterClockwise = Vector3.Cross(Vector3.forward, radialDir).normalized;
+        Vector3 clockwise = -counterClockwise;
         
-        // 如果切向向量无效，使用默认方向
-        if (float.IsNaN(tangent.x) || tangent.magnitude < 0.1f)
+        // 如果强制逆时针，直接返回
+        if (forceCounterClockwise)
         {
-            tangent = new Vector3(-radialDir.y, radialDir.x, 0f).normalized;
-            if (tangent.magnitude < 0.1f)
-            {
-                tangent = Vector3.up;
-            }
+            return counterClockwise;
         }
         
-        return tangent;
+        // 根据当前速度方向选择切向方向
+        // 如果速度很小或为零，默认使用逆时针
+        if (currentVelocity.magnitude < 0.1f)
+        {
+            return counterClockwise;
+        }
+        
+        // 计算当前速度的切向分量方向
+        float radialSpeed = Vector3.Dot(currentVelocity, radialDir);
+        Vector3 currentTangential = (currentVelocity - radialDir * radialSpeed).normalized;
+        
+        // 如果切向速度太小，无法判断方向，使用逆时针
+        if (currentTangential.magnitude < 0.1f)
+        {
+            return counterClockwise;
+        }
+        
+        // 计算当前切向方向与两个可能方向的点积
+        float dotCounterClockwise = Vector3.Dot(currentTangential, counterClockwise);
+        float dotClockwise = Vector3.Dot(currentTangential, clockwise);
+        
+        // 选择与当前速度方向更接近的方向
+        if (dotCounterClockwise > dotClockwise)
+        {
+            return counterClockwise;
+        }
+        else
+        {
+            return clockwise;
+        }
     }
     
     float GetPlanetMass()

@@ -278,15 +278,20 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3147027896048681571, guid: ba90dae8d4997d0499c5b6702c17fff0,
+        type: 3}
+      propertyPath: mass
+      value: 350
+      objectReference: {fileID: 0}
     - target: {fileID: 3771761296962058406, guid: ba90dae8d4997d0499c5b6702c17fff0,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -20.8
+      value: -0.2
       objectReference: {fileID: 0}
     - target: {fileID: 3771761296962058406, guid: ba90dae8d4997d0499c5b6702c17fff0,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -10.81
+      value: -26.7
       objectReference: {fileID: 0}
     - target: {fileID: 3771761296962058406, guid: ba90dae8d4997d0499c5b6702c17fff0,
         type: 3}
@@ -356,12 +361,12 @@ PrefabInstance:
     - target: {fileID: 9047906318277174802, guid: ba90dae8d4997d0499c5b6702c17fff0,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.19
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9047906318277174802, guid: ba90dae8d4997d0499c5b6702c17fff0,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.29
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1080,7 +1085,7 @@ Rigidbody:
   serializedVersion: 4
   m_Mass: 1
   m_Drag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 0
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -1109,10 +1114,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcf4e23f479a86f4098cd7c7aa5c22c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  captureRadius: 15
-  releaseRadius: 30
-  orbitGuidanceStrength: 0.001
-  targetOrbitRadius: 12
+  captureRadius: 13.6
+  releaseRadius: 16.2
+  orbitGuidanceStrength: 0.15
+  targetOrbitRadius: 10.59
+  forceCounterClockwise: 0
   spaceshipTag: Spaceship
   detectionInterval: 0.1
 --- !u!1001 &1538513383
@@ -1123,15 +1129,20 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3147027896048681571, guid: ba90dae8d4997d0499c5b6702c17fff0,
+        type: 3}
+      propertyPath: mass
+      value: 350
+      objectReference: {fileID: 0}
     - target: {fileID: 3771761296962058406, guid: ba90dae8d4997d0499c5b6702c17fff0,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -33.38
+      value: -26.1
       objectReference: {fileID: 0}
     - target: {fileID: 3771761296962058406, guid: ba90dae8d4997d0499c5b6702c17fff0,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 9.69
+      value: 8.5
       objectReference: {fileID: 0}
     - target: {fileID: 3771761296962058406, guid: ba90dae8d4997d0499c5b6702c17fff0,
         type: 3}
@@ -1201,12 +1212,12 @@ PrefabInstance:
     - target: {fileID: 9047906318277174802, guid: ba90dae8d4997d0499c5b6702c17fff0,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.19
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9047906318277174802, guid: ba90dae8d4997d0499c5b6702c17fff0,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.29
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1231,7 +1242,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8838d515d29034ef69c77eaae0a888f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mass: 0
+  mass: 1
   vel: {x: 0, y: 0, z: 0}
   vel_phys: {x: 0, y: 0, z: 0}
   initialPos: {x: 0, y: 0, z: 0}
@@ -1239,7 +1250,7 @@ MonoBehaviour:
   initWithDouble: 0
   automaticParticleCapture: 1
   size: 0.1
-  rotateFrame: 0
+  rotateFrame: 1
   lockToXYPlane: 0
 --- !u!114 &1966355603
 MonoBehaviour:
@@ -1266,7 +1277,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1966355597}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a10f8fad6f946554bbf25dc69fdbf08f, type: 3}
   m_Name: 
@@ -1322,7 +1333,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c468f5ddf57abc4d9e464349acff0f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boostForce: 5
+  boostForce: 15
   boostDuration: 0.5
   cooldownTime: 2
   minVelocityForBoost: 0.5
@@ -1416,7 +1427,7 @@ PrefabInstance:
     - target: {fileID: 6526543464557689961, guid: 3d0ce7c263056a94b9790a76be549dc9,
         type: 3}
       propertyPath: mass
-      value: 200
+      value: 350
       objectReference: {fileID: 0}
     - target: {fileID: 7114403920178354736, guid: 3d0ce7c263056a94b9790a76be549dc9,
         type: 3}
@@ -1656,6 +1667,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Ship
+      objectReference: {fileID: 0}
+    - target: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}

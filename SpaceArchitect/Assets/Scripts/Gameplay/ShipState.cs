@@ -102,17 +102,16 @@ public class ShipState : MonoBehaviour
         // 在PreLaunch状态下，强制保持位置不变
         if (hasInitialized && currentState == State.PreLaunch)
         {
-            // 确保飞船不会因为任何原因移动
-            if (Vector3.Distance(transform.position, initialPosition) > 0.01f)
+            // 确保飞船不会因为任何原因移动（包括重力）
+            // 每帧都重置到初始位置，确保完全固定
+            transform.position = initialPosition;
+            
+            // 如果有Rigidbody，重置其速度
+            if (rb != null)
             {
-                transform.position = initialPosition;
-                
-                // 如果有Rigidbody，重置其速度
-                if (rb != null)
-                {
-                    rb.velocity = Vector3.zero;
-                    rb.angularVelocity = Vector3.zero;
-                }
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.isKinematic = true; // 设置为运动学，完全由脚本控制
             }
 
             // 持续检查是否被意外添加到引擎
@@ -242,10 +241,23 @@ public class ShipState : MonoBehaviour
             return;
         }
 
-        if (nBody == null || gravityEngine == null)
+        if (nBody == null)
         {
-            Debug.LogError("飞船发射失败：缺少必要组件！");
+            Debug.LogError($"飞船发射失败：缺少 NBody 组件！飞船: {gameObject.name}");
             return;
+        }
+        
+        if (gravityEngine == null)
+        {
+            Debug.LogError($"飞船发射失败：GravityEngine 为 null！飞船: {gameObject.name}");
+            // 尝试重新获取 GravityEngine
+            gravityEngine = GravityEngine.instance;
+            if (gravityEngine == null)
+            {
+                Debug.LogError("无法找到 GravityEngine 实例！");
+                return;
+            }
+            Debug.Log("已重新获取 GravityEngine 实例");
         }
 
         // 先设置NBody的初始速度（在添加到引擎之前）
