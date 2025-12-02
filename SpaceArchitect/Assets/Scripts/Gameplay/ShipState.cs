@@ -13,17 +13,30 @@ public class ShipState : MonoBehaviour
     {
         PreLaunch,  // 发射前状态（不受引力影响）
         Flying,     // 飞行状态（受引力影响）
-        Crashed     // 碰撞状态（已坠毁，不受引力影响）
+        Captured,   // 被行星捕获状态（受引力影响，处于轨道引导中）
+        Crashed,    // 碰撞状态（已坠毁，不受引力影响）
+        Escaped     // 逃离状态（离开摄像机视野，不受引力影响）
     }
 
     [Header("当前状态")]
     [SerializeField] private State currentState = State.PreLaunch;
+
+    [Header("逃离检测设置")]
+    [Tooltip("用于检测视野的摄像机（如果为空，使用主摄像机）")]
+    [SerializeField] private Camera targetCamera;
+    
+    [Tooltip("检测间隔（秒），降低性能消耗")]
+    [SerializeField] private float escapeCheckInterval = 0.5f;
+    
+    [Tooltip("视野边界扩展（0-1），值越大越容易触发逃离（例如0.1表示在视野外10%时触发）")]
+    [SerializeField] private float viewportMargin = 0.1f;
 
     private NBody nBody;
     private GravityEngine gravityEngine;
     private bool hasInitialized = false;
     private Vector3 initialPosition;
     private Rigidbody rb;
+    private float lastEscapeCheckTime = 0f;
 
     /// <summary>
     /// 获取当前状态
@@ -68,6 +81,16 @@ public class ShipState : MonoBehaviour
         {
             Debug.LogError("ShipState: 场景中没有找到 GravityEngine！");
             return;
+        }
+
+        // 获取摄像机引用
+        if (targetCamera == null)
+        {
+            targetCamera = Camera.main;
+            if (targetCamera == null)
+            {
+                Debug.LogWarning("ShipState: 未找到主摄像机，逃离检测功能将不可用");
+            }
         }
 
         // 初始化为PreLaunch状态
@@ -122,6 +145,24 @@ public class ShipState : MonoBehaviour
                 nBody.engineRef = null;
             }
         }
+        
+        // 在Flying或Captured状态下，同步Rigidbody位置以便碰撞检测
+        if (hasInitialized && (currentState == State.Flying || currentState == State.Captured))
+        {
+            // 同步Rigidbody位置（GravityEngine控制transform.position，但需要同步到Rigidbody才能检测碰撞）
+            if (rb != null && !rb.isKinematic)
+            {
+                // 将transform的位置同步到Rigidbody，这样Unity物理引擎才能检测到碰撞
+                // 使用MovePosition而不是直接设置position，这样Unity会进行碰撞检测
+                rb.MovePosition(transform.position);
+                
+                // 同步旋转（如果需要）
+                // rb.MoveRotation(transform.rotation);
+            }
+            
+            // 检测飞船是否离开摄像机视野
+            CheckForEscape();
+        }
     }
 
     /// <summary>
@@ -139,8 +180,20 @@ public class ShipState : MonoBehaviour
         // 根据状态处理引力影响
         HandleGravityForState(newState);
 
-        // 触发状态改变事件
+        // 触发本地状态改变事件（保持向后兼容）
         OnStateChanged?.Invoke(newState);
+
+        // 通过EventManager触发全局事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.TriggerShipStateChanged(oldState, newState, gameObject);
+            
+            // 如果切换到Crashed或Escaped状态，触发失败事件
+            if (newState == State.Crashed || newState == State.Escaped)
+            {
+                EventManager.Instance.TriggerShipFailed(newState, gameObject);
+            }
+        }
 
         Debug.Log($"飞船状态改变: {oldState} -> {newState}");
     }
@@ -188,6 +241,35 @@ public class ShipState : MonoBehaviour
                 {
                     Debug.LogWarning("飞船已经在引力引擎中");
                 }
+                
+                // 确保Rigidbody配置正确，以便碰撞检测
+                if (rb != null)
+                {
+                    // 不是Kinematic，但也不使用Unity重力
+                    rb.isKinematic = false;
+                    rb.useGravity = false;
+                    rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+                    // 注意：位置由GravityEngine控制，但Rigidbody需要非Kinematic才能检测碰撞
+                }
+                break;
+
+            case State.Captured:
+                // Captured状态：保持在引力引擎中（与Flying状态类似，但表示被行星捕获）
+                if (nBody.engineRef == null)
+                {
+                    // 添加到引力引擎
+                    gravityEngine.AddBody(gameObject);
+                    Debug.Log($"飞船已添加到引力引擎（Captured状态），engineRef: {nBody.engineRef != null}");
+                }
+                
+                // 确保Rigidbody配置正确，以便碰撞检测
+                if (rb != null)
+                {
+                    rb.isKinematic = false;
+                    rb.useGravity = false;
+                    rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+                }
+                // Captured状态下，飞船仍然受引力影响，但会被PlanetGravityCapture引导
                 break;
 
             case State.Crashed:
@@ -225,6 +307,32 @@ public class ShipState : MonoBehaviour
 
                 // 销毁飞船模型（禁用所有渲染器组件）
                 DestroyShipModel();
+                break;
+
+            case State.Escaped:
+                // Escaped状态：从引力引擎移除，停止物理模拟
+                if (nBody.engineRef != null)
+                {
+                    gravityEngine.RemoveBody(gameObject);
+                    nBody.engineRef = null;
+                    Debug.Log("飞船已从引力引擎移除（Escaped状态）");
+                }
+
+                // 禁用NBody组件，停止GravityEngine控制
+                if (nBody != null)
+                {
+                    nBody.enabled = false;
+                }
+
+                // 如果有Rigidbody，停止物理模拟
+                if (rb != null)
+                {
+                    rb.isKinematic = true;
+                    rb.useGravity = false;
+                    rb.velocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                    Debug.Log("Rigidbody已停止（Escaped状态）");
+                }
                 break;
         }
     }
@@ -266,6 +374,12 @@ public class ShipState : MonoBehaviour
 
         // 切换到Flying状态（这会自动添加到引力引擎）
         SetState(State.Flying);
+
+        // 通过EventManager触发发射事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.TriggerShipLaunched(initialVelocity, gameObject);
+        }
 
         // 确保速度正确应用到GravityEngine内部
         // 延迟一帧执行，确保AddBody完成
@@ -332,6 +446,70 @@ public class ShipState : MonoBehaviour
     public bool CanLaunch()
     {
         return currentState == State.PreLaunch;
+    }
+
+    /// <summary>
+    /// 检测飞船是否离开摄像机视野
+    /// </summary>
+    private void CheckForEscape()
+    {
+        // 检查时间间隔，降低性能消耗
+        if (Time.time - lastEscapeCheckTime < escapeCheckInterval)
+        {
+            return;
+        }
+        lastEscapeCheckTime = Time.time;
+
+        // 检查摄像机是否可用
+        if (targetCamera == null)
+        {
+            return;
+        }
+
+        // 检查飞船是否在摄像机视野外
+        if (!IsVisibleToCamera())
+        {
+            // 切换到Escaped状态
+            if (currentState != State.Escaped)
+            {
+                SetState(State.Escaped);
+                Debug.Log($"飞船已离开摄像机视野，切换到Escaped状态");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 检查飞船是否在摄像机视野内
+    /// </summary>
+    /// <returns>如果飞船在视野内返回true，否则返回false</returns>
+    private bool IsVisibleToCamera()
+    {
+        if (targetCamera == null)
+        {
+            return true; // 如果没有摄像机，假设可见
+        }
+
+        // 将世界坐标转换为视口坐标
+        Vector3 viewportPoint = targetCamera.WorldToViewportPoint(transform.position);
+
+        // 检查是否在视口范围内（考虑边界扩展）
+        // viewportPoint.x 和 viewportPoint.y 在 [0, 1] 范围内表示在视野内
+        // viewportPoint.z > 0 表示在摄像机前方
+        bool isInViewport = viewportPoint.z > 0 && 
+                           viewportPoint.x >= -viewportMargin && 
+                           viewportPoint.x <= 1 + viewportMargin &&
+                           viewportPoint.y >= -viewportMargin && 
+                           viewportPoint.y <= 1 + viewportMargin;
+
+        return isInViewport;
+    }
+
+    /// <summary>
+    /// 检查飞船是否在Escaped状态
+    /// </summary>
+    public bool IsEscaped()
+    {
+        return currentState == State.Escaped;
     }
 }
 

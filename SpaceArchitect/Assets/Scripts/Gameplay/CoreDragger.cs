@@ -175,6 +175,12 @@ public class CoreDragger : MonoBehaviour
             coreRb.velocity = Vector3.zero;
             coreRb.angularVelocity = Vector3.zero;
         }
+
+        // 通过EventManager触发拖拽开始事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.TriggerCoreDragStart(gameObject);
+        }
     }
     
     /// <summary>
@@ -202,6 +208,12 @@ public class CoreDragger : MonoBehaviour
         else if (!produceGravity)
         {
             RemoveFromGravityEngine();
+        }
+
+        // 通过EventManager触发拖拽结束事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.TriggerCoreDragEnd(gameObject, transform.position);
         }
     }
 
@@ -278,6 +290,12 @@ public class CoreDragger : MonoBehaviour
         if (produceGravity && nBody != null && nBody.engineRef != null)
         {
             UpdateGravityEnginePosition();
+        }
+
+        // 通过EventManager触发拖拽中事件（每帧触发，但可以限制频率）
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.TriggerCoreDrag(gameObject, newPosition);
         }
     }
 

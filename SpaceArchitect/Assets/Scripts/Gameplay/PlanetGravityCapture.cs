@@ -107,6 +107,13 @@ public class PlanetGravityCapture : MonoBehaviour
                     {
                         capturedSpaceships.Add(new SpaceshipCaptureInfo(ship.transform, shipNBody));
                         Debug.Log($"飞船 {ship.name} 进入 {gameObject.name} 的捕获范围");
+                        
+                        // 通过EventManager触发捕获事件
+                        if (EventManager.Instance != null)
+                        {
+                            EventManager.Instance.TriggerPlanetCaptureStart(gameObject, ship);
+                            EventManager.Instance.TriggerShipCaptured(gameObject, ship);
+                        }
                     }
                 }
             }
@@ -119,6 +126,13 @@ public class PlanetGravityCapture : MonoBehaviour
                     {
                         capturedSpaceships.RemoveAt(i);
                         Debug.Log($"飞船 {ship.name} 离开 {gameObject.name} 的捕获范围");
+                        
+                        // 通过EventManager触发释放事件
+                        if (EventManager.Instance != null)
+                        {
+                            EventManager.Instance.TriggerPlanetCaptureEnd(gameObject, ship);
+                            EventManager.Instance.TriggerShipReleased(gameObject, ship);
+                        }
                         break;
                     }
                 }

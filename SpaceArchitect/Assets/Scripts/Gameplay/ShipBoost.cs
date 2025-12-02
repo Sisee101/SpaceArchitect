@@ -27,6 +27,13 @@ public class ShipBoost : MonoBehaviour
     [Tooltip("加速时的音效")]
     [SerializeField] private AudioSource boostSound;
 
+    [Header("捕获脱离设置")]
+    [Tooltip("在Captured状态下，加速方向是否远离最近的捕获行星（如果为false，使用速度方向）")]
+    [SerializeField] private bool escapeFromPlanetInCaptured = true;
+    
+    [Tooltip("捕获脱离时的加速力度倍数（相对于正常加速）")]
+    [SerializeField] private float escapeBoostMultiplier = 1.5f;
+
     // 内部状态
     private ShipState shipState;
     private NBody nBody;
@@ -34,6 +41,7 @@ public class ShipBoost : MonoBehaviour
     private bool isBoosting = false;
     private bool isOnCooldown = false;
     private float cooldownTimer = 0f;
+    private PlanetGravityCapture currentCapturingPlanet = null;
 
     void Awake()
     {
@@ -86,10 +94,12 @@ public class ShipBoost : MonoBehaviour
     /// </summary>
     private void TryBoost()
     {
-        // 检查是否在Flying状态
-        if (shipState == null || shipState.CurrentState != ShipState.State.Flying)
+        // 检查是否在Flying或Captured状态
+        if (shipState == null || 
+            (shipState.CurrentState != ShipState.State.Flying && 
+             shipState.CurrentState != ShipState.State.Captured))
         {
-            Debug.Log("加速失败：飞船不在Flying状态");
+            Debug.Log($"加速失败：飞船不在Flying或Captured状态，当前状态: {shipState?.CurrentState}");
             return;
         }
 
@@ -124,34 +134,66 @@ public class ShipBoost : MonoBehaviour
         // 获取当前速度
         Vector3 currentVelocity = gravityEngine.GetVelocity(nBody);
 
-        // 检查速度是否足够大
-        if (currentVelocity.magnitude < minVelocityForBoost)
+        // 在Captured状态下，如果速度太小，也允许加速（用于脱离捕获）
+        bool isCaptured = shipState.CurrentState == ShipState.State.Captured;
+        if (!isCaptured && currentVelocity.magnitude < minVelocityForBoost)
         {
             Debug.Log($"加速失败：速度过小（{currentVelocity.magnitude:F2} < {minVelocityForBoost}）");
             return;
         }
 
         // 执行加速
-        StartBoost(currentVelocity);
+        StartBoost(currentVelocity, isCaptured);
     }
 
     /// <summary>
     /// 开始加速
     /// </summary>
     /// <param name="currentVelocity">当前速度</param>
-    private void StartBoost(Vector3 currentVelocity)
+    /// <param name="isCaptured">是否在捕获状态</param>
+    private void StartBoost(Vector3 currentVelocity, bool isCaptured = false)
     {
         isBoosting = true;
 
-        // 计算速度方向（归一化）
-        Vector3 velocityDirection = currentVelocity.normalized;
-        velocityDirection.z = 0f; // 确保在XY平面
+        Vector3 boostDirection;
+        
+        // 在Captured状态下，如果启用逃离行星，计算远离行星的方向
+        if (isCaptured && escapeFromPlanetInCaptured && currentCapturingPlanet != null)
+        {
+            // 计算从行星到飞船的方向（径向向外）
+            Vector3 toShip = transform.position - currentCapturingPlanet.transform.position;
+            toShip.z = 0f; // 确保在XY平面
+            
+            if (toShip.magnitude > 0.01f)
+            {
+                boostDirection = toShip.normalized;
+                Debug.Log($"捕获状态加速：使用远离行星方向 {boostDirection}");
+            }
+            else
+            {
+                // 如果距离太近，使用速度方向
+                boostDirection = currentVelocity.magnitude > 0.01f ? currentVelocity.normalized : Vector3.up;
+            }
+        }
+        else
+        {
+            // 正常情况：使用速度方向
+            boostDirection = currentVelocity.magnitude > 0.01f ? currentVelocity.normalized : Vector3.up;
+            boostDirection.z = 0f; // 确保在XY平面
+        }
 
-        // 计算加速增量
-        Vector3 boostVelocity = velocityDirection * boostForce;
+        // 计算加速增量（在Captured状态下使用倍数）
+        float actualBoostForce = isCaptured ? boostForce * escapeBoostMultiplier : boostForce;
+        Vector3 boostVelocity = boostDirection * actualBoostForce;
 
         // 应用加速
         ApplyBoost(boostVelocity);
+
+        // 通过EventManager触发加速事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.TriggerShipBoosted(boostDirection, actualBoostForce, gameObject);
+        }
 
         // 启动加速协程
         StartCoroutine(BoostCoroutine());
@@ -266,11 +308,29 @@ public class ShipBoost : MonoBehaviour
     }
 
     /// <summary>
+    /// 设置当前捕获的行星（由PlanetGravityCapture调用）
+    /// </summary>
+    public void SetCapturingPlanet(PlanetGravityCapture planet)
+    {
+        currentCapturingPlanet = planet;
+    }
+
+    /// <summary>
+    /// 清除捕获行星引用
+    /// </summary>
+    public void ClearCapturingPlanet()
+    {
+        currentCapturingPlanet = null;
+    }
+
+    /// <summary>
     /// 检查是否可以加速
     /// </summary>
     public bool CanBoost()
     {
-        if (shipState == null || shipState.CurrentState != ShipState.State.Flying)
+        if (shipState == null || 
+            (shipState.CurrentState != ShipState.State.Flying && 
+             shipState.CurrentState != ShipState.State.Captured))
         {
             return false;
         }
@@ -283,6 +343,13 @@ public class ShipBoost : MonoBehaviour
         if (nBody == null || gravityEngine == null || nBody.engineRef == null)
         {
             return false;
+        }
+
+        // 在Captured状态下，即使速度很小也允许加速（用于脱离）
+        bool isCaptured = shipState.CurrentState == ShipState.State.Captured;
+        if (isCaptured)
+        {
+            return true; // Captured状态下总是可以尝试加速脱离
         }
 
         Vector3 currentVelocity = gravityEngine.GetVelocity(nBody);
