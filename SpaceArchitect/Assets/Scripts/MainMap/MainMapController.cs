@@ -146,6 +146,10 @@ namespace SpaceArchitect.MainMap
                 StopCoroutine(cinematicRoutine);
             }
 
+            // 步骤一：通知GameManager进入正交状态（开启状态、监听）
+            SpaceArchitect.Core.GameManager.Instance.EnterOrthographicMode();
+            SpaceArchitect.Core.GameManager.Instance.RegisterPlanet2DClickHandler();
+
             cinematicRoutine = StartCoroutine(TravelToPlanetRoutine(selector));
         }
 
@@ -189,6 +193,28 @@ namespace SpaceArchitect.MainMap
             cameraState = CameraState.Free;
             inputLockedByUI = false;
             currentSelection = selector;
+        }
+
+        /// <summary>
+        /// 提供外部主动恢复主视角摄像机的接口（供GameManager OnBackToMainMap调用）
+        /// </summary>
+        public void RestoreToMainMapCamera()
+        {
+            if (mainCamera != null) mainCamera.enabled = true;
+            if (planetCameraController != null) planetCameraController.Deactivate();
+            
+            // 隐藏所有UI
+            if (uiManager != null)
+            {
+                uiManager.HideAll();
+            }
+            
+            // 还原相关变量和输入
+            cameraMode = CameraMode.Map;
+            cameraState = CameraState.Free;
+            inputLockedByUI = false;
+            currentSelection = null;
+            UpdateCameraTransform();
         }
 
         private void HandleZoom()

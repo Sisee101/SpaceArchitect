@@ -19,6 +19,8 @@ namespace SpaceArchitect.MainMap
         public Camera Camera => planetCamera;
         public bool IsActive => isActive;
 
+        public event System.Action<PlanetSelector> OnPlanetClicked2D;
+
         private void Awake()
         {
             if (planetCamera == null)
@@ -72,6 +74,21 @@ namespace SpaceArchitect.MainMap
             }
 
             HandleZoom();
+
+            // 检测鼠标左键点击时的2D星球点击（只响应在正交模式激活时）
+            if (Input.GetMouseButtonDown(0))
+            {
+                Ray ray = planetCamera.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit, 1000f))
+                {
+                    var selector = hit.collider.GetComponent<PlanetSelector>();
+                    if (selector != null)
+                    {
+                        OnPlanetClicked2D?.Invoke(selector);
+                    }
+                }
+            }
         }
 
         private void HandleZoom()
