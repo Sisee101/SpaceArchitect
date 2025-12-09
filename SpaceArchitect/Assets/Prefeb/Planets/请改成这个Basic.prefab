@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3207354579680729255}
   - component: {fileID: 5722095303427330858}
   - component: {fileID: 5260748377606796824}
+  - component: {fileID: 8722015001284631859}
   m_Layer: 0
   m_Name: "\u8BF7\u6539\u6210\u8FD9\u4E2ABasic"
   m_TagString: Untagged
@@ -83,3 +84,25 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8722015001284631859
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7100396484571836419}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8838d515d29034ef69c77eaae0a888f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mass: 0
+  vel: {x: 0, y: 0, z: 0}
+  vel_phys: {x: 0, y: 0, z: 0}
+  initialPos: {x: 0, y: 0, z: 0}
+  initialPhysPosition: {x: 0, y: 0, z: 0}
+  initWithDouble: 0
+  automaticParticleCapture: 1
+  size: 0.1
+  rotateFrame: 0
+  lockToXYPlane: 0
