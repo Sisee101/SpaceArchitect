@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8705099459209121898}
   - component: {fileID: 6526543464557689961}
   m_Layer: 0
-  m_Name: Planet
+  m_Name: "\u8BF7\u4E0D\u8981\u7528\u8FD9\u4E2APlanet"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
