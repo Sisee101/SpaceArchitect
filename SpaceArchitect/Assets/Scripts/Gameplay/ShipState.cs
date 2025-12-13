@@ -63,20 +63,31 @@ public class ShipState : MonoBehaviour
         // 保存初始位置
         initialPosition = transform.position;
 
-        // 临时禁用GameObject，防止被GravityEngine自动检测
-        gameObject.SetActive(false);
+        // 尝试获取GravityEngine实例（可能还未初始化）
+        gravityEngine = GravityEngine.instance;
+        
+        // 如果GravityEngine已存在，注册回调确保飞船不被自动添加
+        // 这个回调会在GravityEngine初始化完成后执行，确保即使飞船被检测到也会被移除
+        if (gravityEngine != null)
+        {
+            // 使用AddGEStartCallback确保在GravityEngine初始化完成后立即移除飞船
+            gravityEngine.AddGEStartCallback(OnGravityEngineInitialized);
+        }
     }
 
     void Start()
     {
-        // 重新激活GameObject
-        if (!gameObject.activeSelf)
+        // 获取GravityEngine实例（如果之前在Awake中未获取到）
+        if (gravityEngine == null)
         {
-            gameObject.SetActive(true);
+            gravityEngine = GravityEngine.instance;
+            if (gravityEngine != null)
+            {
+                // AddGEStartCallback会自动处理：如果已初始化完成则立即执行回调，否则在初始化完成后执行
+                gravityEngine.AddGEStartCallback(OnGravityEngineInitialized);
+            }
         }
 
-        // 获取GravityEngine实例
-        gravityEngine = GravityEngine.instance;
         if (gravityEngine == null)
         {
             Debug.LogError("ShipState: 场景中没有找到 GravityEngine！");
@@ -93,9 +104,30 @@ public class ShipState : MonoBehaviour
             }
         }
 
-        // 初始化为PreLaunch状态
+        // 初始化为PreLaunch状态（这会检查并移除如果已被添加）
         InitializePreLaunchState();
         hasInitialized = true;
+    }
+
+    /// <summary>
+    /// GravityEngine初始化完成后的回调
+    /// 确保飞船不会被自动添加到引力引擎中
+    /// </summary>
+    private void OnGravityEngineInitialized()
+    {
+        // 检查飞船是否被意外添加到GravityEngine
+        if (nBody != null && nBody.engineRef != null && gravityEngine != null)
+        {
+            Debug.Log($"检测到飞船在GravityEngine初始化时被自动添加，正在移除...");
+            gravityEngine.RemoveBody(gameObject);
+            nBody.engineRef = null;
+        }
+
+        // 确保飞船处于PreLaunch状态
+        if (currentState == State.PreLaunch)
+        {
+            InitializePreLaunchState();
+        }
     }
 
     /// <summary>
@@ -230,7 +262,12 @@ public class ShipState : MonoBehaviour
                 break;
 
             case State.Flying:
-                // Flying状态：添加到引力引擎
+                // Flying状态：确保NBody组件启用，然后添加到引力引擎
+                if (nBody != null && !nBody.enabled)
+                {
+                    nBody.enabled = true;
+                }
+
                 if (nBody.engineRef == null)
                 {
                     // 添加到引力引擎
@@ -254,7 +291,12 @@ public class ShipState : MonoBehaviour
                 break;
 
             case State.Captured:
-                // Captured状态：保持在引力引擎中（与Flying状态类似，但表示被行星捕获）
+                // Captured状态：确保NBody组件启用，保持在引力引擎中（与Flying状态类似，但表示被行星捕获）
+                if (nBody != null && !nBody.enabled)
+                {
+                    nBody.enabled = true;
+                }
+
                 if (nBody.engineRef == null)
                 {
                     // 添加到引力引擎
