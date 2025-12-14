@@ -31,12 +31,23 @@ public class ShipState : MonoBehaviour
     [Tooltip("视野边界扩展（0-1），值越大越容易触发逃离（例如0.1表示在视野外10%时触发）")]
     [SerializeField] private float viewportMargin = 0.1f;
 
+    [Header("速度调整")]
+    [Tooltip("飞行速度缩放系数（例如：1.5 = 速度提升50%，2.0 = 速度提升100%）")]
+    [SerializeField] private float speedMultiplier = 1.0f;
+
     private NBody nBody;
     private GravityEngine gravityEngine;
     private bool hasInitialized = false;
     private Vector3 initialPosition;
+    private Quaternion initialRotation; // 保存初始旋转
     private Rigidbody rb;
     private float lastEscapeCheckTime = 0f;
+    
+    // 保存飞船模型子对象的引用，用于重置时恢复
+    private Transform shipModelTransform;
+    
+    // 用于速度缩放的上一帧速度，避免重复缩放
+    private Vector3 lastScaledVelocity = Vector3.zero;
 
     /// <summary>
     /// 获取当前状态
@@ -60,8 +71,9 @@ public class ShipState : MonoBehaviour
 
         rb = GetComponent<Rigidbody>();
 
-        // 保存初始位置
+        // 保存初始位置和旋转
         initialPosition = transform.position;
+        initialRotation = transform.rotation;
 
         // 尝试获取GravityEngine实例（可能还未初始化）
         gravityEngine = GravityEngine.instance;
@@ -158,8 +170,9 @@ public class ShipState : MonoBehaviour
         if (hasInitialized && currentState == State.PreLaunch)
         {
             // 确保飞船不会因为任何原因移动（包括重力）
-            // 每帧都重置到初始位置，确保完全固定
+            // 每帧都重置到初始位置和旋转，确保完全固定
             transform.position = initialPosition;
+            transform.rotation = initialRotation;
             
             // 如果有Rigidbody，重置其速度
             if (rb != null)
@@ -178,9 +191,31 @@ public class ShipState : MonoBehaviour
             }
         }
         
-        // 在Flying或Captured状态下，同步Rigidbody位置以便碰撞检测
+        // 在Flying或Captured状态下，同步Rigidbody位置以便碰撞检测，并应用速度缩放
         if (hasInitialized && (currentState == State.Flying || currentState == State.Captured))
         {
+            // 应用速度缩放（如果系数不为1.0）
+            // 每帧获取GravityEngine计算出的速度，应用缩放后重新设置
+            // 这样可以保持速度相对于引力计算结果的倍数关系，而不会指数增长
+            if (speedMultiplier != 1.0f && nBody != null && nBody.engineRef != null && gravityEngine != null)
+            {
+                Vector3 currentVelocity = gravityEngine.GetVelocity(nBody);
+                // 只有当速度与上一帧缩放后的速度不同时，才重新应用缩放
+                // 这样可以避免在同一物理帧内多次缩放
+                float velocityDiff = Vector3.Distance(currentVelocity, lastScaledVelocity);
+                if (velocityDiff > 0.01f) // 速度已被GravityEngine更新
+                {
+                    Vector3 scaledVelocity = currentVelocity * speedMultiplier;
+                    gravityEngine.SetVelocity(nBody, scaledVelocity);
+                    lastScaledVelocity = scaledVelocity;
+                }
+            }
+            else if (speedMultiplier == 1.0f)
+            {
+                // 如果速度缩放系数为1.0，重置追踪
+                lastScaledVelocity = Vector3.zero;
+            }
+
             // 同步Rigidbody位置（GravityEngine控制transform.position，但需要同步到Rigidbody才能检测碰撞）
             if (rb != null && !rb.isKinematic)
             {
@@ -250,8 +285,9 @@ public class ShipState : MonoBehaviour
                     Debug.Log("飞船已从引力引擎移除（PreLaunch状态）");
                 }
                 
-                // 重置到初始位置
+                // 重置到初始位置和旋转
                 transform.position = initialPosition;
+                transform.rotation = initialRotation;
                 
                 // 如果有Rigidbody，重置速度
                 if (rb != null)
@@ -413,6 +449,9 @@ public class ShipState : MonoBehaviour
         // 先设置NBody的初始速度（在添加到引擎之前）
         nBody.vel = initialVelocity;
         Debug.Log($"飞船发射速度设置: {initialVelocity}");
+        
+        // 重置速度追踪，准备应用速度缩放
+        lastScaledVelocity = Vector3.zero;
 
         // 切换到Flying状态（这会自动添加到引力引擎）
         SetState(State.Flying);
@@ -449,7 +488,7 @@ public class ShipState : MonoBehaviour
 
     /// <summary>
     /// 销毁飞船模型
-    /// 禁用所有渲染器组件，使模型不可见
+    /// 禁用所有渲染器组件和子对象，使模型不可见（但不真正销毁，以便重置时恢复）
     /// </summary>
     private void DestroyShipModel()
     {
@@ -465,12 +504,15 @@ public class ShipState : MonoBehaviour
             }
         }
 
-        // 也可以尝试查找并销毁名为 "Ship" 的子对象（如果存在）
+        // 查找名为 "Ship" 的子对象（如果存在），禁用而不是销毁，以便重置时恢复
         Transform shipModel = transform.Find("Ship");
         if (shipModel != null)
         {
-            Destroy(shipModel.gameObject);
-            Debug.Log("已销毁飞船模型子对象");
+            // 保存引用以便重置时恢复
+            shipModelTransform = shipModel;
+            // 禁用子对象而不是销毁
+            shipModel.gameObject.SetActive(false);
+            Debug.Log("已禁用飞船模型子对象（保留以便重置）");
         }
         else if (renderers.Length > 0)
         {
@@ -552,6 +594,102 @@ public class ShipState : MonoBehaviour
     public bool IsEscaped()
     {
         return currentState == State.Escaped;
+    }
+
+    /// <summary>
+    /// 重置飞船到初始状态（PreLaunch状态）
+    /// 用于游戏重启功能
+    /// </summary>
+    public void ResetShip()
+    {
+        // 如果已经在PreLaunch状态，直接返回
+        if (currentState == State.PreLaunch)
+        {
+            return;
+        }
+
+        Debug.Log("重置飞船到初始状态...");
+
+        // 如果之前是Crashed状态，需要恢复飞船模型的渲染
+        if (currentState == State.Crashed)
+        {
+            RestoreShipModel();
+        }
+
+        // 切换到PreLaunch状态（这会处理所有必要的清理工作）
+        SetState(State.PreLaunch);
+
+        // 确保位置和旋转正确
+        transform.position = initialPosition;
+        transform.rotation = initialRotation; // 恢复到初始旋转，而不是重置为identity
+
+        // 重置Rigidbody
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+
+        // 确保NBody组件启用（如果之前被禁用了）
+        if (nBody != null && !nBody.enabled)
+        {
+            nBody.enabled = true;
+        }
+
+        // 重置NBody的速度
+        if (nBody != null)
+        {
+            nBody.vel = Vector3.zero;
+            nBody.vel_phys = Vector3.zero;
+        }
+        
+        // 重置速度追踪
+        lastScaledVelocity = Vector3.zero;
+
+        // 重置Crash脚本的状态（重要：否则碰撞检测会被忽略）
+        Crash crashScript = GetComponent<Crash>();
+        if (crashScript != null)
+        {
+            crashScript.ResetCrashState();
+        }
+
+        Debug.Log("飞船已重置到初始状态（PreLaunch）");
+    }
+
+    /// <summary>
+    /// 恢复飞船模型（恢复所有被禁用的渲染器和子对象）
+    /// </summary>
+    private void RestoreShipModel()
+    {
+        // 先恢复被禁用的子对象（如果存在）
+        if (shipModelTransform != null && !shipModelTransform.gameObject.activeSelf)
+        {
+            shipModelTransform.gameObject.SetActive(true);
+            Debug.Log("已恢复飞船模型子对象");
+        }
+
+        // 获取所有渲染器组件（包括被禁用的子对象中的）
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+
+        foreach (Renderer renderer in renderers)
+        {
+            if (renderer != null)
+            {
+                // 启用渲染器，使模型可见
+                renderer.enabled = true;
+            }
+        }
+
+        if (renderers.Length > 0)
+        {
+            Debug.Log($"已恢复 {renderers.Length} 个渲染器组件，飞船模型已重新显示");
+        }
+        else
+        {
+            Debug.LogWarning("未找到飞船模型渲染器组件");
+        }
     }
 }
 

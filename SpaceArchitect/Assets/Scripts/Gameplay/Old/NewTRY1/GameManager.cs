@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // °´ÏÂQ¼üÖØÖÃ·É´¬
+        // ï¿½ï¿½ï¿½ï¿½Qï¿½ï¿½ï¿½ï¿½ï¿½Ã·É´ï¿½
         if (Input.GetKeyDown(KeyCode.Q))
         {
             ResetSpaceship();
