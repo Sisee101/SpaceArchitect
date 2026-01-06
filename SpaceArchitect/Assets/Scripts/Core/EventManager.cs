@@ -73,6 +73,18 @@ public class EventManager : MonoBehaviour
     public event Action<Vector3, float, GameObject> OnShipBoosted;
     
     /// <summary>
+    /// 时停开始事件
+    /// 参数：飞船GameObject，时停时间缩放
+    /// </summary>
+    public event Action<GameObject, float> OnTimeStopStart;
+    
+    /// <summary>
+    /// 时停结束事件
+    /// 参数：飞船GameObject
+    /// </summary>
+    public event Action<GameObject> OnTimeStopEnd;
+    
+    /// <summary>
     /// 飞船成功事件（到达目的地）
     /// 参数：目的地GameObject，飞船GameObject
     /// </summary>
@@ -194,6 +206,22 @@ public class EventManager : MonoBehaviour
     public void TriggerShipBoosted(Vector3 boostDirection, float boostForce, GameObject ship)
     {
         OnShipBoosted?.Invoke(boostDirection, boostForce, ship);
+    }
+    
+    /// <summary>
+    /// 触发时停开始事件
+    /// </summary>
+    public void TriggerTimeStopStart(GameObject ship, float timeScale)
+    {
+        OnTimeStopStart?.Invoke(ship, timeScale);
+    }
+    
+    /// <summary>
+    /// 触发时停结束事件
+    /// </summary>
+    public void TriggerTimeStopEnd(GameObject ship)
+    {
+        OnTimeStopEnd?.Invoke(ship);
     }
     
     /// <summary>
@@ -324,6 +352,8 @@ public class EventManager : MonoBehaviour
         OnShipCaptured = null;
         OnShipReleased = null;
         OnShipBoosted = null;
+        OnTimeStopStart = null;
+        OnTimeStopEnd = null;
         OnShipSucceed = null;
         OnShipFailed = null;
         OnPlanetCaptureStart = null;
@@ -349,6 +379,8 @@ public class EventManager : MonoBehaviour
         Debug.Log($"OnShipCaptured: {GetSubscriberCount(OnShipCaptured)}");
         Debug.Log($"OnShipReleased: {GetSubscriberCount(OnShipReleased)}");
         Debug.Log($"OnShipBoosted: {GetSubscriberCount(OnShipBoosted)}");
+        Debug.Log($"OnTimeStopStart: {GetSubscriberCount(OnTimeStopStart)}");
+        Debug.Log($"OnTimeStopEnd: {GetSubscriberCount(OnTimeStopEnd)}");
         Debug.Log($"OnShipSucceed: {GetSubscriberCount(OnShipSucceed)}");
         Debug.Log($"OnShipFailed: {GetSubscriberCount(OnShipFailed)}");
         Debug.Log($"OnPlanetCaptureStart: {GetSubscriberCount(OnPlanetCaptureStart)}");

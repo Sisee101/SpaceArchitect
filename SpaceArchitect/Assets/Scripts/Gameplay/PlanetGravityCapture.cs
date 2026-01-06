@@ -159,6 +159,9 @@ public class PlanetGravityCapture : MonoBehaviour
         {
             if (info.spaceship == null || info.nbody == null) continue;
             
+            // 如果NBody还未加入GravityEngine（例如飞船重置/坠毁后被移除），跳过
+            if (info.nbody.engineRef == null) continue;
+            
             Vector3 relativePos = info.spaceship.position - transform.position;
             float currentRadius = Mathf.Max(relativePos.magnitude, 0.1f);
             

@@ -84,7 +84,7 @@ public class CoreDeflector : MonoBehaviour
         }
         
         GameObject shipRoot = shipNBody.gameObject;
-        shipsInTrigger[shipRoot] = Time.time;
+        shipsInTrigger[shipRoot] = Time.unscaledTime; // 使用未缩放时间，避免时停影响
         
         if (showDebugLogs)
         {
@@ -110,7 +110,7 @@ public class CoreDeflector : MonoBehaviour
         GameObject shipRoot = shipNBody.gameObject;
         if (!shipsInTrigger.ContainsKey(shipRoot))
         {
-            shipsInTrigger[shipRoot] = Time.time;
+            shipsInTrigger[shipRoot] = Time.unscaledTime; // 使用未缩放时间，避免时停影响
         }
     }
     
@@ -157,9 +157,9 @@ public class CoreDeflector : MonoBehaviour
                 continue;
             }
             
-            // 检查更新间隔
+            // 检查更新间隔（使用未缩放时间，避免时停影响）
             float lastUpdateTime = shipsInTrigger[shipRoot];
-            if (Time.time - lastUpdateTime < physicsUpdateInterval)
+            if (Time.unscaledTime - lastUpdateTime < physicsUpdateInterval)
             {
                 continue;
             }
@@ -180,7 +180,7 @@ public class CoreDeflector : MonoBehaviour
             
             // 应用引力加速度
             ApplyGravityAcceleration(shipRoot, shipNBody);
-            shipsInTrigger[shipRoot] = Time.time;
+            shipsInTrigger[shipRoot] = Time.unscaledTime; // 使用未缩放时间，避免时停影响
         }
     }
     
@@ -231,6 +231,9 @@ public class CoreDeflector : MonoBehaviour
         Vector3 tangentialDirection = GetTangentialDirection(radialDirection, velocityDirection);
         Vector3 guidanceAcceleration = Vector3.zero;
         
+        // 使用未缩放固定时间步长，避免时停影响
+        float deltaTime = Time.fixedUnscaledDeltaTime;
+        
         if (guidanceStrength > 0f)
         {
             // 计算理想切向速度（垂直于径向）
@@ -238,7 +241,7 @@ public class CoreDeflector : MonoBehaviour
             
             // 计算需要转向切向的加速度
             Vector3 velocityToTangential = idealTangentialVel - shipVelocity;
-            guidanceAcceleration = velocityToTangential * guidanceStrength / physicsUpdateInterval;
+            guidanceAcceleration = velocityToTangential * guidanceStrength / deltaTime;
             
             // 如果有目标轨道半径，添加径向调整
             if (targetOrbitRadius > 0f)
@@ -252,8 +255,8 @@ public class CoreDeflector : MonoBehaviour
         // 3. 混合引力和引导：最终加速度 = 引力 * (1-引导强度) + 引导 * 引导强度
         Vector3 totalAcceleration = radialGravity * (1f - guidanceStrength) + guidanceAcceleration * guidanceStrength;
         
-        // 4. 应用加速度
-        Vector3 velocityChange = totalAcceleration * physicsUpdateInterval;
+        // 4. 应用加速度（使用未缩放时间步长）
+        Vector3 velocityChange = totalAcceleration * deltaTime;
         Vector3 newVelocity = shipVelocity + velocityChange;
         newVelocity.z = 0f;
         
@@ -261,7 +264,7 @@ public class CoreDeflector : MonoBehaviour
         if (maxAngularVelocity > 0f)
         {
             float currentSpeed = shipVelocity.magnitude;
-            float maxRotationPerFrame = maxAngularVelocity * Mathf.Deg2Rad * physicsUpdateInterval; // 转换为弧度
+            float maxRotationPerFrame = maxAngularVelocity * Mathf.Deg2Rad * deltaTime; // 转换为弧度（使用已声明的deltaTime）
             
             Vector3 currentDir = velocityDirection;
             Vector3 targetDir = newVelocity.normalized;
@@ -278,7 +281,7 @@ public class CoreDeflector : MonoBehaviour
                 }
                 rotationAxis = rotationAxis.normalized;
                 
-                Quaternion limitedRotation = Quaternion.AngleAxis(maxAngularVelocity * physicsUpdateInterval, rotationAxis);
+                Quaternion limitedRotation = Quaternion.AngleAxis(maxAngularVelocity * deltaTime, rotationAxis); // 使用已声明的deltaTime
                 Vector3 limitedDir = limitedRotation * currentDir;
                 newVelocity = limitedDir * currentSpeed;
             }

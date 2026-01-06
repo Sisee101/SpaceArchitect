@@ -368,3 +368,9 @@ lockToXYPlane = true;      // 限制在 XY 平面
 2. **`initialPhysPosition`**：物理位置（由引擎管理）
 3. **`engineRef`**：引擎引用（由引擎管理）
 
+
+
+
+
+
+
