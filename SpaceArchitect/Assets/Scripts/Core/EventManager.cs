@@ -9,6 +9,7 @@ using UnityEngine;
 public class EventManager : MonoBehaviour
 {
     private static EventManager _instance;
+    private static bool _isQuitting = false;
     
     /// <summary>
     /// 获取EventManager单例
@@ -17,11 +18,17 @@ public class EventManager : MonoBehaviour
     {
         get
         {
+            // 如果应用正在退出或场景正在卸载，不要创建新实例
+            if (_isQuitting)
+            {
+                return null;
+            }
+            
             if (_instance == null)
             {
                 _instance = FindObjectOfType<EventManager>();
                 
-                if (_instance == null)
+                if (_instance == null && !_isQuitting)
                 {
                     GameObject go = new GameObject("EventManager");
                     _instance = go.AddComponent<EventManager>();
@@ -71,6 +78,18 @@ public class EventManager : MonoBehaviour
     /// 参数：加速方向，加速力度，飞船GameObject
     /// </summary>
     public event Action<Vector3, float, GameObject> OnShipBoosted;
+    
+    /// <summary>
+    /// 时停开始事件
+    /// 参数：飞船GameObject，时停时间缩放
+    /// </summary>
+    public event Action<GameObject, float> OnTimeStopStart;
+    
+    /// <summary>
+    /// 时停结束事件
+    /// 参数：飞船GameObject
+    /// </summary>
+    public event Action<GameObject> OnTimeStopEnd;
     
     /// <summary>
     /// 飞船成功事件（到达目的地）
@@ -197,6 +216,22 @@ public class EventManager : MonoBehaviour
     }
     
     /// <summary>
+    /// 触发时停开始事件
+    /// </summary>
+    public void TriggerTimeStopStart(GameObject ship, float timeScale)
+    {
+        OnTimeStopStart?.Invoke(ship, timeScale);
+    }
+    
+    /// <summary>
+    /// 触发时停结束事件
+    /// </summary>
+    public void TriggerTimeStopEnd(GameObject ship)
+    {
+        OnTimeStopEnd?.Invoke(ship);
+    }
+    
+    /// <summary>
     /// 触发飞船成功事件
     /// </summary>
     public void TriggerShipSucceed(GameObject destination, GameObject ship)
@@ -309,8 +344,21 @@ public class EventManager : MonoBehaviour
     
     void OnDestroy()
     {
+        // 标记正在销毁，防止在OnDestroy期间重新创建实例
+        if (_instance == this)
+        {
+            _isQuitting = true;
+            _instance = null;
+        }
+        
         // 清理所有事件订阅（防止内存泄漏）
         ClearAllEvents();
+    }
+    
+    void OnApplicationQuit()
+    {
+        // 应用退出时标记，防止创建新实例
+        _isQuitting = true;
     }
     
     /// <summary>
@@ -324,6 +372,8 @@ public class EventManager : MonoBehaviour
         OnShipCaptured = null;
         OnShipReleased = null;
         OnShipBoosted = null;
+        OnTimeStopStart = null;
+        OnTimeStopEnd = null;
         OnShipSucceed = null;
         OnShipFailed = null;
         OnPlanetCaptureStart = null;
@@ -349,6 +399,8 @@ public class EventManager : MonoBehaviour
         Debug.Log($"OnShipCaptured: {GetSubscriberCount(OnShipCaptured)}");
         Debug.Log($"OnShipReleased: {GetSubscriberCount(OnShipReleased)}");
         Debug.Log($"OnShipBoosted: {GetSubscriberCount(OnShipBoosted)}");
+        Debug.Log($"OnTimeStopStart: {GetSubscriberCount(OnTimeStopStart)}");
+        Debug.Log($"OnTimeStopEnd: {GetSubscriberCount(OnTimeStopEnd)}");
         Debug.Log($"OnShipSucceed: {GetSubscriberCount(OnShipSucceed)}");
         Debug.Log($"OnShipFailed: {GetSubscriberCount(OnShipFailed)}");
         Debug.Log($"OnPlanetCaptureStart: {GetSubscriberCount(OnPlanetCaptureStart)}");

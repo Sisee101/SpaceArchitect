@@ -1,0 +1,198 @@
+========================
+轨迹预测器使用说明
+========================
+
+## 功能介绍
+
+TrajectoryPredictor 组件可以实时预测并显示飞船在引力场中的飞行轨迹。
+它会考虑场景中所有引力源（行星、人工引力装置等）的影响，绘制出飞船的预测飞行路径。
+
+## 🎯 两种预测模式
+
+### 模式1：Preview（预览模式）⭐ 推荐用于规划
+**特点：**
+- ✅ 发射前显示**固定的完整轨道**
+- ✅ 轨迹**不会变化**，用于规划发射参数
+- ✅ 可以调整发射角度和速度，实时看到不同的轨道
+- ⏸️ 发射后轨迹消失（因为已经沿着规划的路径飞行）
+
+**适用场景：** 策略规划、精确发射
+
+### 模式2：RealTimeTrack（实时追踪模式）
+**特点：**
+- 🔄 飞行中**实时更新**轨迹
+- 🎯 显示从当前位置出发的**接下来的路径**
+- 📍 轨迹起点随飞船移动而移动（就像GPS导航）
+- ⚡ 使用 boost 后轨迹会立即变化
+
+**适用场景：** 实时监控、动态调整
+
+## 💡 为什么轨迹会变化？
+
+**Preview 模式：** 轨迹固定不变 ✓
+- 从发射点预测
+- 使用设定的发射速度
+- 轨迹保持不变
+
+**RealTimeTrack 模式：** 轨迹实时变化 ✓
+- 从**当前位置**预测
+- 使用**当前速度**
+- 飞船移动 → 起点变化 → 轨迹更新
+
+这就像汽车导航：你在移动，导航的路线图也在更新！
+
+## 如何使用
+
+### 1. 添加组件
+将 TrajectoryPredictor 脚本添加到飞船 GameObject 上。
+组件会自动添加一个 LineRenderer 组件（如果没有的话）。
+
+### 2. 配置参数
+
+【模式设置】⭐ 重要
+- Prediction Mode: 选择预测模式
+  - Preview: 发射前固定轨迹（推荐用于规划）
+  - RealTimeTrack: 飞行中实时更新
+
+【预测设置】
+- Prediction Time Step（预测时间步长）：默认 0.02 秒
+  - 值越小，轨迹越精确，但性能消耗越大
+  - 推荐范围：0.01 - 0.05
+  
+- Prediction Steps（预测步数）：默认 500 步
+  - 决定轨迹的长度（总长度 = 时间步长 × 步数）
+  - 推荐范围：300 - 1000
+  
+- Max Prediction Time（最大预测时间）：默认 10 秒
+  - 防止轨迹过长影响性能
+
+【显示设置】
+- Line Width（轨迹线宽度）：默认 0.1
+- Line Color（轨迹线颜色）：默认半透明青绿色
+- Line Material（轨迹线材质）：可选，留空则使用默认材质
+- Show On Start（默认显示）：是否在游戏开始时显示轨迹
+
+【控制设置】
+- Toggle Key（切换按键）：默认 Q 键
+- Update Interval（更新间隔）：默认 0.1 秒
+  - 降低更新频率可以提升性能
+
+【性能优化】
+- Only Show When Flying（仅飞行时显示）：默认开启
+- Min Speed Threshold（最小速度阈值）：默认 0.1
+  - 速度低于此值时不显示轨迹
+
+### 3. 运行时操作
+
+- 按 Q 键：切换轨迹显示/隐藏
+- 轨迹会自动根据飞船的位置和速度实时更新
+
+## 代码接口
+
+### 基础控制
+```csharp
+// 显示轨迹
+trajectoryPredictor.ShowTrajectory();
+
+// 隐藏轨迹
+trajectoryPredictor.HideTrajectory();
+
+// 切换显示
+trajectoryPredictor.ToggleTrajectory();
+
+// 刷新引力源（当场景中添加/删除物体时）
+trajectoryPredictor.RefreshGravitySources();
+
+// 设置轨迹颜色
+trajectoryPredictor.SetTrajectoryColor(Color.red);
+
+// 设置轨迹宽度
+trajectoryPredictor.SetTrajectoryWidth(0.2f);
+```
+
+### 模式控制 ⭐ 新增
+```csharp
+// 设置预览轨迹（发射器调用）
+// 用于发射前显示固定的完整轨道
+Vector3 launchPos = transform.position;
+Vector3 launchVel = launchDirection * launchSpeed;
+trajectoryPredictor.SetPreviewTrajectory(launchPos, launchVel);
+
+// 清除预览轨迹（发射后调用）
+trajectoryPredictor.ClearPreviewTrajectory();
+
+// 切换预测模式
+trajectoryPredictor.SetPredictionMode(TrajectoryPredictor.PredictionMode.Preview);
+trajectoryPredictor.SetPredictionMode(TrajectoryPredictor.PredictionMode.RealTimeTrack);
+
+// 获取当前模式
+var currentMode = trajectoryPredictor.GetPredictionMode();
+```
+
+### 典型使用流程（发射器脚本）
+```csharp
+// 发射前：显示预览轨迹
+void OnLaunchParametersChanged(Vector3 direction, float speed)
+{
+    Vector3 velocity = direction * speed;
+    trajectoryPredictor.SetPreviewTrajectory(transform.position, velocity);
+}
+
+// 发射时：清除预览，可选切换到实时追踪
+void OnLaunch()
+{
+    trajectoryPredictor.ClearPreviewTrajectory();
+    
+    // 如果想在飞行中继续显示轨迹（实时更新）
+    trajectoryPredictor.SetPredictionMode(TrajectoryPredictor.PredictionMode.RealTimeTrack);
+}
+```
+
+## 材质设置（推荐）
+
+为了获得更好的视觉效果，建议创建一个专用材质：
+
+1. 在 Project 窗口右键 → Create → Material
+2. 命名为 "TrajectoryLineMaterial"
+3. Shader 选择：
+   - "Sprites/Default" 或
+   - "Unlit/Color" 或
+   - "Particles/Standard Unlit"
+4. 设置颜色和透明度
+5. 将材质拖到 TrajectoryPredictor 的 Line Material 字段
+
+## 性能优化建议
+
+1. 如果游戏卡顿，可以：
+   - 增加 Update Interval（例如 0.2 秒）
+   - 减少 Prediction Steps（例如 300 步）
+   - 增加 Prediction Time Step（例如 0.03 秒）
+
+2. 如果轨迹不够平滑：
+   - 减少 Prediction Time Step（例如 0.01 秒）
+   - 增加 Prediction Steps
+
+3. 如果轨迹太短/太长：
+   - 调整 Prediction Steps 或 Max Prediction Time
+
+## 注意事项
+
+1. TrajectoryPredictor 需要以下组件：
+   - ShipState（飞船状态管理）
+   - NBody（引力物理组件）
+   - LineRenderer（自动添加）
+
+2. 场景中必须有 GravityEngine 实例
+
+3. 轨迹预测使用简化的物理模拟（欧拉方法），可能与实际飞行略有偏差
+
+4. 每 60 帧会自动刷新一次引力源列表，以检测场景变化
+
+5. 轨迹只在飞船处于 Flying 状态且有足够速度时显示（可配置）
+
+## 调试
+
+在 Scene 视图中选中飞船，会显示所有引力源的位置（黄色线框球）。
+
+========================
+
