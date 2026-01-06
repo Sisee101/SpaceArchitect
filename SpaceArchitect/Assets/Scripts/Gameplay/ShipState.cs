@@ -177,8 +177,12 @@ public class ShipState : MonoBehaviour
             // 如果有Rigidbody，重置其速度
             if (rb != null)
             {
-                rb.velocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
+                // 先设置为 kinematic 之前重置速度
+                if (!rb.isKinematic)
+                {
+                    rb.velocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                }
                 rb.isKinematic = true; // 设置为运动学，完全由脚本控制
             }
 
