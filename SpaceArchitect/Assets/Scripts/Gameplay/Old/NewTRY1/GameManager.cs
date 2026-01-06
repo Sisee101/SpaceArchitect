@@ -1,6 +1,10 @@
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+/// <summary>
+/// 旧版游戏管理器（已弃用，保留用于兼容）
+/// 新的GameManager位于 Scripts/Core/GameManager.cs
+/// </summary>
+public class LegacyGameManager : MonoBehaviour
 {
     public GameObject spaceship;
     public Vector3 spaceshipStartPosition = new Vector3(0, 1, 0);
@@ -16,7 +20,7 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // ����Q�����÷ɴ�
+        // ����Q�����÷ɴ�
         if (Input.GetKeyDown(KeyCode.Q))
         {
             ResetSpaceship();
