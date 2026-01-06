@@ -1,1 +1,222 @@
-﻿
+﻿using UnityEngine;
+
+/// <summary>
+/// 游戏重启管理器（单例）
+/// 管理游戏重启功能，监听失败事件并处理R键重启
+/// </summary>
+public class GameRestartManager : MonoBehaviour
+{
+    private static GameRestartManager _instance;
+
+    /// <summary>
+    /// 获取GameRestartManager单例
+    /// </summary>
+    public static GameRestartManager Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindObjectOfType<GameRestartManager>();
+
+                if (_instance == null)
+                {
+                    GameObject go = new GameObject("GameRestartManager");
+                    _instance = go.AddComponent<GameRestartManager>();
+                    DontDestroyOnLoad(go);
+                }
+            }
+            return _instance;
+        }
+    }
+
+    [Header("重启设置")]
+    [Tooltip("重启游戏按键（当前为R键）")]
+    [SerializeField] private KeyCode restartKey = KeyCode.R;
+
+    [Tooltip("飞船GameObject（如果为空，将自动查找场景中的飞船）")]
+    [SerializeField] private GameObject shipGameObject;
+
+    private ShipState shipState;
+    private bool canRestart = false; // 是否允许重启（只有在失败后才能重启）
+
+    void Awake()
+    {
+        // 确保单例
+        if (_instance == null)
+        {
+            _instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else if (_instance != this)
+        {
+            Debug.LogWarning("检测到多个GameRestartManager实例，销毁重复的实例");
+            Destroy(gameObject);
+            return;
+        }
+    }
+
+    void Start()
+    {
+        // 初始化飞船引用
+        InitializeShipReference();
+
+        // 订阅事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnShipFailed += OnShipFailed;
+            EventManager.Instance.OnShipSucceed += OnShipSucceed;
+        }
+    }
+
+    void Update()
+    {
+        // 检查重启按键
+        if (canRestart && Input.GetKeyDown(restartKey))
+        {
+            RestartGame();
+        }
+    }
+
+    void OnDestroy()
+    {
+        // 取消订阅事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnShipFailed -= OnShipFailed;
+            EventManager.Instance.OnShipSucceed -= OnShipSucceed;
+        }
+    }
+
+    /// <summary>
+    /// 初始化飞船引用
+    /// </summary>
+    private void InitializeShipReference()
+    {
+        // 如果已经在Inspector中设置了飞船引用，直接使用
+        if (shipGameObject != null)
+        {
+            shipState = shipGameObject.GetComponent<ShipState>();
+            if (shipState == null)
+            {
+                Debug.LogWarning("GameRestartManager: 指定的飞船GameObject没有ShipState组件");
+            }
+            return;
+        }
+
+        // 否则尝试自动查找场景中的飞船
+        // 方法1：通过Tag查找
+        GameObject shipByTag = GameObject.FindGameObjectWithTag("Spaceship");
+        if (shipByTag != null)
+        {
+            shipGameObject = shipByTag;
+            shipState = shipByTag.GetComponent<ShipState>();
+            if (shipState != null)
+            {
+                Debug.Log("GameRestartManager: 通过Tag找到了飞船");
+                return;
+            }
+        }
+
+        // 方法2：通过ShipState组件查找
+        ShipState foundShipState = FindObjectOfType<ShipState>();
+        if (foundShipState != null)
+        {
+            shipGameObject = foundShipState.gameObject;
+            shipState = foundShipState;
+            Debug.Log("GameRestartManager: 通过ShipState组件找到了飞船");
+            return;
+        }
+
+        Debug.LogWarning("GameRestartManager: 未找到飞船，重启功能将不可用。请确保场景中有飞船对象，或者在Inspector中手动指定飞船引用。");
+    }
+
+    /// <summary>
+    /// 飞船失败事件回调
+    /// </summary>
+    private void OnShipFailed(ShipState.State failureReason, GameObject ship)
+    {
+        // 飞船失败后允许重启
+        canRestart = true;
+        Debug.Log($"游戏失败（原因: {failureReason}），按 {restartKey} 键重启游戏");
+    }
+
+    /// <summary>
+    /// 飞船成功事件回调
+    /// </summary>
+    private void OnShipSucceed(GameObject destination, GameObject ship)
+    {
+        // 成功后也可以重启（可选，根据需求决定）
+        // canRestart = true;
+    }
+
+    /// <summary>
+    /// 重启游戏
+    /// 重置飞船到初始状态
+    /// </summary>
+    public void RestartGame()
+    {
+        if (shipState == null)
+        {
+            Debug.LogError("GameRestartManager: 无法重启游戏，飞船引用为空！");
+            return;
+        }
+
+        Debug.Log("=== 游戏重启 ===");
+
+        // 重置飞船
+        shipState.ResetShip();
+
+        // 重置重启标志
+        canRestart = false;
+
+        // 触发游戏重置事件（允许其他系统响应重置）
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.TriggerGameReset();
+        }
+
+        Debug.Log("游戏已重启，飞船已重置到初始位置");
+    }
+
+    /// <summary>
+    /// 手动设置飞船引用（用于运行时动态设置）
+    /// </summary>
+    public void SetShipReference(GameObject ship)
+    {
+        if (ship == null)
+        {
+            Debug.LogError("GameRestartManager: 设置的飞船引用不能为空");
+            return;
+        }
+
+        shipGameObject = ship;
+        shipState = ship.GetComponent<ShipState>();
+
+        if (shipState == null)
+        {
+            Debug.LogError("GameRestartManager: 指定的GameObject没有ShipState组件");
+        }
+        else
+        {
+            Debug.Log($"GameRestartManager: 已设置飞船引用: {ship.name}");
+        }
+    }
+
+    /// <summary>
+    /// 设置重启按键（用于后续扩展，支持自定义按键）
+    /// </summary>
+    public void SetRestartKey(KeyCode key)
+    {
+        restartKey = key;
+        Debug.Log($"GameRestartManager: 重启按键已设置为 {key}");
+    }
+
+    /// <summary>
+    /// 获取当前是否可以重启
+    /// </summary>
+    public bool CanRestart()
+    {
+        return canRestart;
+    }
+}

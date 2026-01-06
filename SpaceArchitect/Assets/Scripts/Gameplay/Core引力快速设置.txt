@@ -1,0 +1,325 @@
+========================
+Core 引力快速设置指南
+========================
+
+## ✅ 确保 Core 产生引力的两种方法
+
+### 方法1：手动配置（简单）⭐
+
+**步骤：**
+
+1. 选中 Core GameObject
+2. 在 Inspector 中：
+   - Add Component → NBody
+3. 配置 NBody：
+   ```
+   mass: 1000 (引力强度)
+   vel: (0, 0, 0)
+   isFixed: true (可选)
+   ```
+4. 完成！
+
+### 方法2：使用辅助脚本（推荐）⭐⭐
+
+**步骤：**
+
+1. 选中 Core GameObject
+2. Add Component → CoreGravitySetup
+3. 配置参数：
+   ```
+   Gravity Mass: 1000 (引力强度)
+   Is Fixed: true
+   Show Gravity Range: true (显示范围)
+   ```
+4. 运行游戏，检查 Console：
+   ```
+   ✅ "Core_01 配置完成 - mass: 1000"
+   ✅ "✓ Core_01 已被 GravityEngine 识别，正在产生引力"
+   ```
+
+**优点：**
+- 自动添加和配置 NBody
+- 验证是否被 GravityEngine 识别
+- 显示引力范围（调试用）
+- 运行时可调整参数
+
+========================
+
+## 🔍 验证 Core 是否产生引力
+
+### 检查清单：
+
+1. **Core 有 NBody 组件？**
+   ```
+   Inspector → 查看组件列表
+   应该看到：NBody (Script)
+   ```
+
+2. **NBody.mass > 0？**
+   ```
+   展开 NBody 组件
+   mass: 应该 > 0（例如 1000）
+   ```
+
+3. **GravityEngine 识别了 Core？**
+   ```
+   运行游戏后，Console 应该显示：
+   "✓ Core_XX 已被 GravityEngine 识别"
+   ```
+
+4. **飞船受到 Core 引力影响？**
+   ```
+   - 拖拽发射飞船
+   - 观察轨迹预测线
+   - 轨迹应该弯曲经过 Core
+   ```
+
+========================
+
+## 🎮 测试步骤
+
+### 测试1：轨迹预测
+
+```
+1. 运行游戏
+2. 拖拽飞船
+3. 观察预测轨迹：
+   - 轨迹应该弯曲靠近 Core ✓
+   - Core 附近引力作用明显 ✓
+```
+
+### 测试2：实际飞行
+
+```
+1. 发射飞船
+2. 观察飞船路径：
+   - 飞船受 Core 引力影响 ✓
+   - 轨迹与预测一致 ✓
+```
+
+### 测试3：Console 日志
+
+```
+运行游戏后应该看到：
+
+✅ "[CoreGravitySetup] Core_01 配置完成 - mass: 1000"
+✅ "[CoreGravitySetup] ✓ Core_01 已被 GravityEngine 识别"
+✅ "TrajectoryPredictor: 已缓存 5 个引力源"
+   （包括 Core）
+```
+
+========================
+
+## ⚙️ Core 组件配置示例
+
+### 完整的 Core GameObject：
+
+```yaml
+Core_01:
+  Transform:
+    Position: (10, 5, 0)
+    Scale: (1, 1, 1)
+  
+  NBody: ⭐ 产生引力
+    mass: 1000
+    vel: (0, 0, 0)
+    isFixed: true
+  
+  CoreGravitySetup: ⭐ 辅助脚本（推荐）
+    Gravity Mass: 1000
+    Is Fixed: true
+    Show Gravity Range: true
+  
+  SphereCollider:
+    radius: 1.0
+    isTrigger: false
+  
+  CoreDragger:
+    enabled: true
+  
+  MeshRenderer:
+    Material: CoreMaterial
+```
+
+========================
+
+## 🔧 调试工具
+
+### 1. 显示引力信息
+
+```
+1. 选中 Core GameObject
+2. 右键 CoreGravitySetup 组件
+3. 选择 "显示引力信息"
+4. 查看 Console 输出：
+   - 质量
+   - 速度
+   - 是否注册到引擎
+   - 有效质量
+```
+
+### 2. 可视化引力范围
+
+```
+1. CoreGravitySetup 组件中：
+   Show Gravity Range: ✓ true
+2. 在 Scene 视图中选中 Core
+3. 应该看到：
+   - 青绿色引力范围圈
+   - 青色核心点
+```
+
+### 3. 运行时调整
+
+```
+在游戏运行时：
+1. 选中 Core
+2. 在 CoreGravitySetup 中调整 Gravity Mass
+3. 引力强度立即生效
+4. 可以实时观察效果
+```
+
+========================
+
+## 📊 引力强度参考
+
+### NBody.mass 推荐值：
+
+```
+微弱：    50 - 200
+弱：     200 - 500
+中等：   500 - 1500  ⭐ 推荐大多数情况
+强：    1500 - 3000
+超强：  3000 - 5000+
+```
+
+### 与 Planet 对比：
+
+```
+Small Planet:   1000 - 2000
+Medium Planet:  2000 - 5000
+Large Planet:   5000 - 10000
+
+Core (推荐):    500 - 2000
+→ 略小于行星，便于控制
+```
+
+========================
+
+## ❗ 常见问题
+
+### Q1: Core 不产生引力？
+
+**检查：**
+1. Core 有 NBody 组件吗？
+2. NBody.mass > 0 吗？
+3. Core GameObject 是激活的吗？
+4. Console 有错误信息吗？
+
+**解决：**
+- 添加 CoreGravitySetup 组件
+- 查看 Console 日志
+- 检查 GravityEngine 是否存在
+
+### Q2: 轨迹不经过 Core？
+
+**原因：**
+- Core 的 mass 太小
+- Core 离飞船太远
+- Gravity Multiplier 设置不当
+
+**解决：**
+- 增大 Core 的 mass
+- 调整 Core 位置
+- 检查 TrajectoryPredictor 配置
+
+### Q3: 引力太强/太弱？
+
+**调整：**
+```
+太强 → 减小 NBody.mass
+太弱 → 增大 NBody.mass
+
+或调整：
+TrajectoryPredictor.Gravity Multiplier
+```
+
+### Q4: Console 显示"未被识别"？
+
+**检查：**
+1. GravityEngine 是否在场景中？
+2. GravityEngine 是否激活？
+3. Core 是否在 GravityEngine 初始化后才创建？
+
+**解决：**
+- 确保 GravityEngine 存在
+- 重启游戏
+- 检查执行顺序
+
+========================
+
+## 💡 最佳实践
+
+### 1. 使用 CoreGravitySetup
+
+```
+✅ 推荐：给所有 Core 添加 CoreGravitySetup
+→ 自动配置
+→ 自动验证
+→ 方便调试
+```
+
+### 2. 合理设置质量
+
+```
+✅ 从中等值开始：mass = 1000
+→ 观察效果
+→ 根据需要调整
+→ 避免极端值
+```
+
+### 3. 验证配置
+
+```
+✅ 每次修改后运行游戏
+→ 检查 Console 日志
+→ 观察轨迹预测
+→ 测试实际飞行
+```
+
+### 4. 可视化调试
+
+```
+✅ 开启 Show Gravity Range
+→ 在 Scene 视图中查看范围
+→ 帮助理解引力影响区域
+→ 辅助 Core 摆放
+```
+
+========================
+
+## 🎯 快速开始流程
+
+### 30秒完成配置：
+
+```
+1. 选中 Core GameObject
+2. Add Component → CoreGravitySetup
+3. 设置 Gravity Mass = 1000
+4. 运行游戏
+5. 检查 Console：看到 ✓ 表示成功
+6. 完成！
+```
+
+### 验证：
+
+```
+拖拽飞船 → 看到轨迹弯曲 → 成功！ ✓
+```
+
+========================
+
+祝你的 Core 引力系统运行顺利！🚀✨
+
+有问题随时查看 Console 日志或使用"显示引力信息"功能。
+
