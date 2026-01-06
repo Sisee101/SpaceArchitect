@@ -28,6 +28,7 @@ public class ShipLauncher : MonoBehaviour
 
     // 内部状态
     private ShipState shipState;
+    private TrajectoryPredictor trajectoryPredictor;
     private Camera mainCamera;
     private bool isDragging = false;
     private Vector3 dragStartPosition;
@@ -39,6 +40,12 @@ public class ShipLauncher : MonoBehaviour
         if (shipState == null)
         {
             Debug.LogError("ShipLauncher: 缺少 ShipState 组件！");
+        }
+
+        trajectoryPredictor = GetComponent<TrajectoryPredictor>();
+        if (trajectoryPredictor == null)
+        {
+            Debug.LogWarning("ShipLauncher: 没有找到 TrajectoryPredictor 组件，轨迹预览功能将不可用");
         }
 
         mainCamera = Camera.main;
@@ -148,6 +155,9 @@ public class ShipLauncher : MonoBehaviour
 
         // 更新箭头显示
         UpdateArrowVisual(dragVector);
+        
+        // 更新轨迹预览
+        UpdateTrajectoryPreview(dragVector);
     }
 
     /// <summary>
@@ -173,6 +183,12 @@ public class ShipLauncher : MonoBehaviour
         {
             shipState.Launch(launchVelocity);
             Debug.Log($"飞船发射！速度: {launchVelocity}");
+            
+            // 清除轨迹预览
+            if (trajectoryPredictor != null)
+            {
+                trajectoryPredictor.ClearPreviewTrajectory();
+            }
         }
 
         // 清理
@@ -187,6 +203,38 @@ public class ShipLauncher : MonoBehaviour
     {
         isDragging = false;
         ShowArrow(false);
+        
+        // 清除轨迹预览
+        if (trajectoryPredictor != null)
+        {
+            trajectoryPredictor.HideTrajectory();
+        }
+    }
+    
+    /// <summary>
+    /// 更新轨迹预览
+    /// </summary>
+    /// <param name="dragVector">拖拽向量</param>
+    private void UpdateTrajectoryPreview(Vector3 dragVector)
+    {
+        if (trajectoryPredictor == null)
+            return;
+        
+        // 计算发射速度
+        Vector3 launchVelocity = CalculateLaunchVelocity(dragVector);
+        
+        // 如果速度太小，隐藏轨迹
+        if (launchVelocity.magnitude < 0.1f)
+        {
+            trajectoryPredictor.HideTrajectory();
+            return;
+        }
+        
+        // 更新预览轨迹
+        trajectoryPredictor.SetPreviewTrajectory(transform.position, launchVelocity);
+        
+        // 确保轨迹可见
+        trajectoryPredictor.ShowTrajectory();
     }
 
     /// <summary>

@@ -7,6 +7,10 @@ using UnityEngine;
 /// </summary>
 public class PlanetGravityCapture : MonoBehaviour
 {
+    [Header("全局设置")]
+    [Tooltip("是否启用捕获系统（关闭后可用于测试轨迹预测准确性）")]
+    public bool enableCapture = true;
+    
     [Header("捕获范围设置")]
     [Tooltip("飞船进入此距离时开始捕获引导")]
     public float captureRadius = 15f;
@@ -60,6 +64,12 @@ public class PlanetGravityCapture : MonoBehaviour
     
     void Update()
     {
+        // 如果捕获系统被禁用，直接返回
+        if (!enableCapture)
+        {
+            return;
+        }
+        
         if (Time.time - lastDetectionTime < detectionInterval)
             return;
             
@@ -139,10 +149,12 @@ public class PlanetGravityCapture : MonoBehaviour
             }
         }
         
-        // 清理无效的捕获信息
+        // 清理无效的捕获信息（包括飞船被销毁、NBody失效或engineRef为null的情况）
         for (int i = capturedSpaceships.Count - 1; i >= 0; i--)
         {
-            if (capturedSpaceships[i].spaceship == null)
+            if (capturedSpaceships[i].spaceship == null || 
+                capturedSpaceships[i].nbody == null || 
+                capturedSpaceships[i].nbody.engineRef == null)
             {
                 capturedSpaceships.RemoveAt(i);
             }
@@ -157,7 +169,8 @@ public class PlanetGravityCapture : MonoBehaviour
         
         foreach (var info in capturedSpaceships)
         {
-            if (info.spaceship == null || info.nbody == null) continue;
+            // 检查飞船、NBody及其engineRef是否有效（飞船坠毁后engineRef会变为null）
+            if (info.spaceship == null || info.nbody == null || info.nbody.engineRef == null) continue;
             
             // 如果NBody还未加入GravityEngine（例如飞船重置/坠毁后被移除），跳过
             if (info.nbody.engineRef == null) continue;

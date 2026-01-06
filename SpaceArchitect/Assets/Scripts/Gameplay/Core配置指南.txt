@@ -1,0 +1,319 @@
+========================
+Core（引力核心）配置指南
+========================
+
+## 🎯 设计理念
+
+Core = 可移动的星球
+- 与 Planet 使用完全相同的引力计算
+- 通过 NBody.mass 产生全局引力
+- 游戏开始前可以拖拽移动位置
+- 轨迹预测准确度：100%
+
+========================
+
+## ⚙️ Core GameObject 配置
+
+### 必需组件：
+
+1. **Transform**
+   - Position: 初始位置
+   - Scale: 显示大小
+
+2. **NBody** ⭐ 核心组件
+   - mass: 引力强度（见下方推荐值）
+   - vel: (0, 0, 0) - 静止
+   - isFixed: true - 固定（不会被其他引力移动）
+
+3. **Collider**
+   - 用于碰撞检测
+   - isTrigger: false（实体碰撞）
+   - 推荐：SphereCollider，radius = 0.5 - 2.0
+
+4. **CoreDragger**（可选）
+   - 用于游戏开始前拖拽移动
+   - 发射后禁用拖拽
+
+5. **渲染组件**
+   - MeshRenderer + MeshFilter
+   - 或 SpriteRenderer（2D）
+   - 显示 Core 的外观
+
+### 移除的组件：
+
+❌ **CoreDeflector** - 不再需要
+❌ **GravityHubDeflector** - 不再需要
+
+这些组件会导致预测不准确，请删除或禁用。
+
+========================
+
+## 📊 引力强度推荐
+
+### NBody.mass 参考值：
+
+**微弱引力：**
+```
+mass = 50 - 200
+效果: 轻微改变飞船轨迹
+适用: 微调轨道，细微引导
+```
+
+**弱引力：**
+```
+mass = 200 - 500
+效果: 明显但温和的引力弯曲
+适用: 辅助引导，改变方向
+```
+
+**中等引力：**
+```
+mass = 500 - 1500
+效果: 显著的轨迹弯曲
+适用: 主要引力枢纽，关键路径点
+推荐: ⭐ 大多数情况使用
+```
+
+**强引力：**
+```
+mass = 1500 - 3000
+效果: 强烈的引力作用
+适用: 引力弹弓，大幅改变轨道
+```
+
+**超强引力：**
+```
+mass = 3000 - 5000+
+效果: 极强的引力，类似行星
+适用: 特殊关卡，主要引力体
+注意: 容易导致飞船坠毁
+```
+
+### 与 Planet 对比：
+
+```
+Small Planet:    mass = 1000 - 2000
+Medium Planet:   mass = 2000 - 5000
+Large Planet:    mass = 5000 - 10000
+
+Core (推荐):     mass = 500 - 2000
+→ 略小于行星，方便控制
+```
+
+========================
+
+## 🎮 完整示例配置
+
+### Core_01（中等引力）：
+
+```yaml
+GameObject: Core_01
+Components:
+  Transform:
+    Position: (10, 5, 0)
+    Rotation: (0, 0, 0)
+    Scale: (1, 1, 1)
+  
+  NBody:
+    mass: 1000          # ⭐ 中等引力
+    vel: (0, 0, 0)
+    isFixed: true
+  
+  SphereCollider:
+    radius: 1.0
+    isTrigger: false
+  
+  CoreDragger:
+    enabled: true       # 游戏开始前可拖拽
+    dragLayer: Default
+  
+  MeshRenderer:
+    Material: CoreMaterial
+  
+  MeshFilter:
+    Mesh: Sphere
+```
+
+### Core_02（强引力弹弓）：
+
+```yaml
+GameObject: Core_02
+Components:
+  NBody:
+    mass: 2500          # ⭐ 强引力
+    
+  SphereCollider:
+    radius: 1.5         # 更大的碰撞范围
+    
+  （其他同上）
+```
+
+========================
+
+## 🔧 TrajectoryPredictor 配置
+
+在飞船的 TrajectoryPredictor 组件中：
+
+```
+【模式设置】
+Prediction Mode: Preview
+
+【预测设置】
+Prediction Time Step: 0.02
+Prediction Steps: 500
+Max Prediction Time: 10
+
+【显示设置】
+Line Width: 0.1
+Line Color: (0, 1, 1, 0.8) - 青色
+Show On Start: false
+
+【性能优化】
+Only Show When Flying: false
+Min Speed Threshold: 0.1
+
+【物理匹配设置】
+✅ Use Speed Multiplier: true
+   Gravity Multiplier: 1.0
+
+【说明】
+Core 和 Planet 使用相同的引力计算
+预测准确度: 100%
+```
+
+========================
+
+## ✅ 验证清单
+
+完成配置后，请检查：
+
+1. **Core 配置**
+   - [ ] Core 有 NBody 组件
+   - [ ] NBody.mass > 0
+   - [ ] NBody.isFixed = true
+   - [ ] 有 Collider（isTrigger = false）
+   - [ ] **没有** CoreDeflector 组件
+   - [ ] **没有** GravityHubDeflector 组件
+
+2. **TrajectoryPredictor 配置**
+   - [ ] Prediction Mode = Preview
+   - [ ] Use Speed Multiplier = true
+   - [ ] Gravity Multiplier = 1.0
+
+3. **运行测试**
+   - [ ] Console 显示：已缓存 X 个引力源
+   - [ ] 拖拽飞船时显示轨迹
+   - [ ] 轨迹弯曲经过 Core
+   - [ ] 发射后飞船沿预测轨迹飞行 ⭐
+
+========================
+
+## 🎯 调优建议
+
+### 如果轨迹预测不准确：
+
+1. **检查 NBody.mass**
+   - Core 的质量是否合理？
+   - 是否与预期的引力强度匹配？
+
+2. **检查 Gravity Multiplier**
+   - 尝试微调：0.9 - 1.1
+   - 观察预测与实际的差异
+
+3. **检查 speedMultiplier**
+   - 在 ShipState 中检查
+   - 确保 Use Speed Multiplier = true
+
+4. **检查时间步长**
+   - Prediction Time Step: 默认 0.02
+   - 如果不准确，尝试 0.01（更精确）
+
+### 调整引力强度：
+
+**轨迹弯曲不够：**
+```
+→ 增加 Core 的 NBody.mass
+→ 或增加 Gravity Multiplier
+```
+
+**轨迹弯曲太多：**
+```
+→ 减小 Core 的 NBody.mass
+→ 或减小 Gravity Multiplier
+```
+
+**飞船容易坠毁：**
+```
+→ 减小 Core 的质量
+→ 或增大 Core 的 Collider radius
+→ 或减小 Core 的数量
+```
+
+========================
+
+## 💡 最佳实践
+
+1. **引力分布**
+   ```
+   - 使用 2-5 个 Core 即可
+   - 避免 Core 太密集
+   - 保持 Core 之间适当距离
+   ```
+
+2. **质量设置**
+   ```
+   - 大多数 Core: mass = 500 - 1500
+   - 关键路径点: mass = 1500 - 2500
+   - 避免超过 3000（除非特殊设计）
+   ```
+
+3. **位置摆放**
+   ```
+   - 在发射台和目标之间
+   - 形成引导路径
+   - 避免直接在发射台附近
+   ```
+
+4. **测试流程**
+   ```
+   1. 摆放 Core
+   2. 拖拽测试发射
+   3. 观察预测轨迹
+   4. 调整 Core 位置和质量
+   5. 重复直到满意
+   ```
+
+========================
+
+## 📝 示例关卡设计
+
+### 简单关卡：
+
+```
+[发射台] -----> Core_01(mass=1000) -----> [目标]
+                      ↓
+                  Planet_01
+```
+
+### 中等关卡：
+
+```
+[发射台] → Core_01 → Core_02 → [目标]
+             ↓          ↓
+          Planet_01  Planet_02
+```
+
+### 困难关卡：
+
+```
+              Core_02
+                ↓
+[发射台] → Core_01 → Core_03 → [目标]
+                ↓       ↓
+            Planet_01  Planet_02
+```
+
+========================
+
+祝你的轨迹预测系统运行顺利！🚀✨
+

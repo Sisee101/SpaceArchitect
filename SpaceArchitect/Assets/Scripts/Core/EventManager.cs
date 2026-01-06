@@ -9,6 +9,7 @@ using UnityEngine;
 public class EventManager : MonoBehaviour
 {
     private static EventManager _instance;
+    private static bool _isQuitting = false;
     
     /// <summary>
     /// 获取EventManager单例
@@ -17,11 +18,17 @@ public class EventManager : MonoBehaviour
     {
         get
         {
+            // 如果应用正在退出或场景正在卸载，不要创建新实例
+            if (_isQuitting)
+            {
+                return null;
+            }
+            
             if (_instance == null)
             {
                 _instance = FindObjectOfType<EventManager>();
                 
-                if (_instance == null)
+                if (_instance == null && !_isQuitting)
                 {
                     GameObject go = new GameObject("EventManager");
                     _instance = go.AddComponent<EventManager>();
@@ -337,8 +344,21 @@ public class EventManager : MonoBehaviour
     
     void OnDestroy()
     {
+        // 标记正在销毁，防止在OnDestroy期间重新创建实例
+        if (_instance == this)
+        {
+            _isQuitting = true;
+            _instance = null;
+        }
+        
         // 清理所有事件订阅（防止内存泄漏）
         ClearAllEvents();
+    }
+    
+    void OnApplicationQuit()
+    {
+        // 应用退出时标记，防止创建新实例
+        _isQuitting = true;
     }
     
     /// <summary>
