@@ -81,10 +81,28 @@ public class StationLevelPanel : MonoBehaviour
     /// </summary>
     public void Show()
     {
+        // 如果面板还没有初始化，先初始化（无论是否激活）
+        if (!isInitialized)
+        {
+            InitializePanel();
+            isInitialized = true;
+        }
+        
+        // 激活面板（如果已经是激活的，这不会触发OnEnable，但我们已经在上面初始化了）
         if (!gameObject.activeSelf)
         {
             gameObject.SetActive(true);
         }
+        else
+        {
+            // 如果面板已经是激活的，确保按钮事件已绑定
+            if (backButton != null)
+            {
+                backButton.onClick.RemoveListener(OnBackClicked);
+                backButton.onClick.AddListener(OnBackClicked);
+            }
+        }
+        
         UpdateLevelDisplay(); // 显示时更新等级信息
     }
     

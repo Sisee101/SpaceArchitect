@@ -60,8 +60,12 @@ public class UIManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-        
-        // 初始化：显示主菜单，隐藏其他面板
+    }
+    
+    void Start()
+    {
+        // 在Start中初始化面板，确保所有对象的Awake和OnEnable都已执行
+        // 这样可以避免在面板初始化完成之前就隐藏它们
         InitializePanels();
     }
     
@@ -90,23 +94,35 @@ public class UIManager : MonoBehaviour
             }
         }
         
+        // 使用协程延迟隐藏面板，确保所有对象的初始化都已完成
+        StartCoroutine(DelayedHidePanels());
+    }
+    
+    /// <summary>
+    /// 延迟隐藏面板，确保所有对象的初始化都已完成
+    /// </summary>
+    private System.Collections.IEnumerator DelayedHidePanels()
+    {
+        // 等待一帧，确保所有对象的Start()都已执行
+        yield return null;
+        
         // 隐藏所有子面板（由各自场景控制显示）
-        if (planetEncyclopediaPanel != null)
+        if (planetEncyclopediaPanel != null && planetEncyclopediaPanel.gameObject.activeSelf)
         {
             planetEncyclopediaPanel.Hide();
         }
         
-        if (settingsPanel != null)
+        if (settingsPanel != null && settingsPanel.gameObject.activeSelf)
         {
             settingsPanel.Hide();
         }
         
-        if (employeeHandbookPanel != null)
+        if (employeeHandbookPanel != null && employeeHandbookPanel.gameObject.activeSelf)
         {
             employeeHandbookPanel.Hide();
         }
         
-        if (stationLevelPanel != null)
+        if (stationLevelPanel != null && stationLevelPanel.gameObject.activeSelf)
         {
             stationLevelPanel.Hide();
         }
