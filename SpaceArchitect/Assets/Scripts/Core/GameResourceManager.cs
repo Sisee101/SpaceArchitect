@@ -9,6 +9,7 @@ using System;
 public class GameResourceManager : MonoBehaviour
 {
     private static GameResourceManager _instance;
+    private static bool _isQuitting = false;
     
     /// <summary>
     /// 获取GameResourceManager单例
@@ -17,11 +18,17 @@ public class GameResourceManager : MonoBehaviour
     {
         get
         {
+            // 如果应用正在退出或场景正在卸载，不要创建新实例
+            if (_isQuitting)
+            {
+                return null;
+            }
+            
             if (_instance == null)
             {
                 _instance = FindObjectOfType<GameResourceManager>();
                 
-                if (_instance == null)
+                if (_instance == null && !_isQuitting)
                 {
                     GameObject go = new GameObject("GameResourceManager");
                     _instance = go.AddComponent<GameResourceManager>();
@@ -88,6 +95,34 @@ public class GameResourceManager : MonoBehaviour
         // 初始化时触发一次事件，让UI更新显示
         OnGoldChanged?.Invoke(gold);
         OnFuelChanged?.Invoke(fuel);
+    }
+    
+    void OnDestroy()
+    {
+        // 标记正在销毁，防止在OnDestroy期间重新创建实例
+        if (_instance == this)
+        {
+            _isQuitting = true;
+            _instance = null;
+        }
+        
+        // 清理所有事件订阅（防止内存泄漏）
+        ClearAllEvents();
+    }
+    
+    void OnApplicationQuit()
+    {
+        // 应用退出时标记，防止创建新实例
+        _isQuitting = true;
+    }
+    
+    /// <summary>
+    /// 清理所有事件订阅
+    /// </summary>
+    private void ClearAllEvents()
+    {
+        OnGoldChanged = null;
+        OnFuelChanged = null;
     }
     
     /// <summary>
