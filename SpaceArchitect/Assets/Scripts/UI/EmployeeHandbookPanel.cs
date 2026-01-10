@@ -75,26 +75,26 @@ public class EmployeeHandbookPanel : MonoBehaviour
     /// </summary>
     public void Show()
     {
-        // 如果面板还没有初始化，先初始化（无论是否激活）
+        // 总是确保初始化完成
         if (!isInitialized)
         {
             InitializePanel();
             isInitialized = true;
         }
-        
-        // 激活面板（如果已经是激活的，这不会触发OnEnable，但我们已经在上面初始化了）
-        if (!gameObject.activeSelf)
-        {
-            gameObject.SetActive(true);
-        }
         else
         {
-            // 如果面板已经是激活的，确保按钮事件已绑定
+            // 即使已经初始化，也确保按钮事件已绑定（防止事件丢失）
             if (backButton != null)
             {
                 backButton.onClick.RemoveListener(OnBackClicked);
                 backButton.onClick.AddListener(OnBackClicked);
             }
+        }
+        
+        // 激活面板
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
         }
     }
     
