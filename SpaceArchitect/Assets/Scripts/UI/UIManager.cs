@@ -47,6 +47,9 @@ public class UIManager : MonoBehaviour
     [Header("基站等级面板")]
     [SerializeField] private StationLevelPanel stationLevelPanel;
     
+    [Header("订单面板")]
+    [SerializeField] private OrderPanel orderPanel;
+    
     // 初始化标志，用于防止初始化期间的时序冲突
     private bool isInitializationComplete = false;
     
@@ -145,6 +148,11 @@ public class UIManager : MonoBehaviour
             stationLevelPanel.Hide();
         }
         
+        if (orderPanel != null && orderPanel.gameObject.activeSelf && !userActivatedPanels.Contains(orderPanel))
+        {
+            orderPanel.Hide();
+        }
+        
         // 标记初始化完成（在这之后用户点击按钮，面板不会被延迟隐藏）
         isInitializationComplete = true;
         
@@ -228,6 +236,11 @@ public class UIManager : MonoBehaviour
         {
             stationLevelPanel.Hide();
         }
+        
+        if (orderPanel != null && orderPanel.gameObject.activeSelf)
+        {
+            orderPanel.Hide();
+        }
     }
     
     /// <summary>
@@ -258,6 +271,11 @@ public class UIManager : MonoBehaviour
         if (stationLevelPanel != null && stationLevelPanel != exceptPanel && stationLevelPanel.gameObject.activeSelf)
         {
             stationLevelPanel.Hide();
+        }
+        
+        if (orderPanel != null && orderPanel != exceptPanel && orderPanel.gameObject.activeSelf)
+        {
+            orderPanel.Hide();
         }
     }
     
@@ -375,6 +393,23 @@ public class UIManager : MonoBehaviour
     public void ReturnToMainMenu()
     {
         ShowMainMenu();
+    }
+    
+    /// <summary>
+    /// 显示订单面板
+    /// </summary>
+    public void ShowOrderPanel()
+    {
+        if (orderPanel != null)
+        {
+            // 初始化已完成，直接显示
+            HideAllPanelsExcept(orderPanel);
+            orderPanel.Show();
+        }
+        else
+        {
+            Debug.LogWarning("UIManager: OrderPanel未配置");
+        }
     }
     
     /// <summary>

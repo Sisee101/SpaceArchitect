@@ -2979,6 +2979,7 @@ MonoBehaviour:
   settingsPanel: {fileID: 1291739459}
   employeeHandbookPanel: {fileID: 0}
   stationLevelPanel: {fileID: 0}
+  orderPanel: {fileID: 0}
 --- !u!4 &2001402728
 Transform:
   m_ObjectHideFlags: 0
