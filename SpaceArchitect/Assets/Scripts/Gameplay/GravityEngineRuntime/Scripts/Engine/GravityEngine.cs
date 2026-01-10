@@ -561,6 +561,15 @@ public class GravityEngine : MonoBehaviour {
 	}
 
 	public void Setup() {
+        // 确保 worldState 已初始化
+        if (worldState == null)
+        {
+            // 初始化 worldState（使用一个临时大小，会在 InitArrays 中重新分配）
+            worldState = new GravityState(GROW_SIZE);
+            // 设置算法和力
+            worldState.SetAlgorithmAndForce(algorithm, null);
+        }
+        
         worldState.numBodies = 0;
 		massScale = (float) GravityScaler.UpdateMassScale(units, _timeScale, _lengthScale);
 		GravityScaler.ScaleScene(units,  _lengthScale);
@@ -1020,12 +1029,20 @@ public class GravityEngine : MonoBehaviour {
         // physTimeError records the amount the engine overshoots the requested physicsDeltaTime
         float deltaTime = Time.timeSinceLevelLoad - previousPhyLoopGameTime;
         double physicsDeltaTime = deltaTime * timeZoom - physTimeError; 
+        
+        // 检查worldState是否已初始化，如果未初始化则先调用Setup
+        if (worldState == null || !isSetup) {
+            Setup();
+            isSetup = true;
+        }
+        
+        // 再次检查worldState（防止Setup失败）
+        if (worldState == null) {
+            return; // worldState仍未初始化，跳过本次更新
+        }
+        
         double currentPhysTime = worldState.GetPhysicsTime();
         if (evolve) {
-            if (!isSetup) {
-                Setup();
-                isSetup = true;
-            }
 
             // support for GEconsole single step mode
             if (singleStep && stepHasRun) {

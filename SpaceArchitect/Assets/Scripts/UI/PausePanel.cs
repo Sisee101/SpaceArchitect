@@ -141,10 +141,10 @@ public class PausePanel : MonoBehaviour
         // 恢复时间，避免场景切换时时间仍为0
         Time.timeScale = 1f;
         
-        // 加载主界面场景（而非主菜单场景）
+        // 加载主菜单场景
         if (SceneTransitionManager.Instance != null)
         {
-            SceneTransitionManager.Instance.LoadMainHubScene();
+            SceneTransitionManager.Instance.LoadMainMenuScene();
         }
         else
         {
@@ -179,6 +179,4 @@ public class PausePanel : MonoBehaviour
         return isPaused;
     }
 }
-
-
 
