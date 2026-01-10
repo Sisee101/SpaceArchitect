@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 /// <summary>
 /// 订单面板控制器
@@ -11,24 +12,51 @@ public class OrderPanel : MonoBehaviour
     [SerializeField] private Button goToDeliveryButton;  // 前往配送按钮
     [SerializeField] private Button cancelButton;        // 取消配送按钮
     
-    [Header("订单内容显示")]
-    [SerializeField] private Text orderTitleText;        // 订单标题文本（可选）
-    [SerializeField] private Text orderContentText;      // 订单内容文本
-    [SerializeField] private Text orderDetailText;       // 订单详情文本（可选）
+    [Header("订单图片和盖章")]
+    [SerializeField] private Image orderImage;           // 订单图片（包含所有文字和内容）
+    [SerializeField] private GameObject stampOverlay;    // 盖章图层GameObject
+    [SerializeField] private Image stampImage;           // 盖章图片（可选，如果需要在代码中控制）
+    
+    [Header("其他组件")]
+    [SerializeField] private CanvasGroup canvasGroup;    // CanvasGroup组件（用于淡入淡出）
     
     private bool isInitialized = false;
     
+    /// <summary>
+    /// 获取CanvasGroup组件（供外部访问）
+    /// </summary>
+    public CanvasGroup CanvasGroupComponent
+    {
+        get
+        {
+            if (canvasGroup == null)
+            {
+                canvasGroup = GetComponent<CanvasGroup>();
+                if (canvasGroup == null)
+                {
+                    canvasGroup = gameObject.AddComponent<CanvasGroup>();
+                }
+            }
+            return canvasGroup;
+        }
+    }
+    
     void Awake()
     {
-        // 初始化订单内容（占位数据）
-        if (orderContentText != null)
+        // 确保CanvasGroup存在
+        if (canvasGroup == null)
         {
-            orderContentText.text = "订单详情功能开发中...\n\n这里将显示订单的相关信息\n配送地点：未指定\n配送时间：待定";
+            canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
         }
         
-        if (orderTitleText != null)
+        // 确保初始透明度正确
+        if (canvasGroup != null)
         {
-            orderTitleText.text = "订单详情";
+            canvasGroup.alpha = gameObject.activeSelf ? 1f : 0f;
         }
     }
     
@@ -53,9 +81,6 @@ public class OrderPanel : MonoBehaviour
             cancelButton.onClick.RemoveListener(OnCancelClicked);
             cancelButton.onClick.AddListener(OnCancelClicked);
         }
-        
-        // 每次显示时更新订单内容（如果有实际的订单数据）
-        UpdateOrderContent();
     }
     
     void Start()
@@ -125,9 +150,6 @@ public class OrderPanel : MonoBehaviour
         {
             gameObject.SetActive(true);
         }
-        
-        // 更新订单内容
-        UpdateOrderContent();
     }
     
     /// <summary>
@@ -139,17 +161,62 @@ public class OrderPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// 更新订单内容（供外部调用，用于显示实际订单信息）
+    /// 设置订单图片
     /// </summary>
-    private void UpdateOrderContent()
+    /// <param name="image">订单图片</param>
+    public void SetOrderImage(Sprite image)
     {
-        // TODO: 从订单系统获取实际订单数据
-        // 目前使用占位数据
-        if (orderContentText != null)
+        if (orderImage != null && image != null)
         {
-            // 这里可以替换为实际的订单数据
-            orderContentText.text = "订单详情功能开发中...\n\n这里将显示订单的相关信息\n配送地点：未指定\n配送时间：待定";
+            orderImage.sprite = image;
         }
+        else if (orderImage == null)
+        {
+            Debug.LogWarning("OrderPanel: orderImage引用为空，无法设置订单图片");
+        }
+    }
+    
+    /// <summary>
+    /// 显示盖章图层
+    /// </summary>
+    public void ShowStamp()
+    {
+        if (stampOverlay != null)
+        {
+            stampOverlay.SetActive(true);
+            
+            // 可选：添加淡入动画
+            if (stampImage != null)
+            {
+                stampImage.color = new Color(stampImage.color.r, stampImage.color.g, stampImage.color.b, 0f);
+                stampImage.DOFade(1f, 0.3f).SetEase(Ease.OutQuad);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("OrderPanel: stampOverlay引用为空，无法显示盖章");
+        }
+    }
+    
+    /// <summary>
+    /// 隐藏盖章图层
+    /// </summary>
+    public void HideStamp()
+    {
+        if (stampOverlay != null)
+        {
+            stampOverlay.SetActive(false);
+        }
+    }
+    
+    /// <summary>
+    /// 重置位置（用于准备下次切换）
+    /// </summary>
+    /// <param name="x">X坐标</param>
+    public void ResetPosition(float x)
+    {
+        Vector3 pos = transform.localPosition;
+        transform.localPosition = new Vector3(x, pos.y, pos.z);
     }
     
     /// <summary>
@@ -158,6 +225,13 @@ public class OrderPanel : MonoBehaviour
     private void OnGoToDeliveryClicked()
     {
         Debug.Log("前往配送 - 跳转到游戏场景");
+        
+        // 保存面板状态（面板是打开的）
+        OrderTransitionController transitionController = FindObjectOfType<OrderTransitionController>();
+        if (transitionController != null)
+        {
+            transitionController.SavePanelState();
+        }
         
         // 恢复时间，避免场景切换时时间仍为0
         Time.timeScale = 1f;
@@ -190,28 +264,5 @@ public class OrderPanel : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// 设置订单内容（供外部调用，用于更新订单信息）
-    /// </summary>
-    /// <param name="orderInfo">订单信息</param>
-    public void SetOrderContent(string orderInfo)
-    {
-        if (orderContentText != null)
-        {
-            orderContentText.text = orderInfo;
-        }
-    }
-    
-    /// <summary>
-    /// 设置订单标题（供外部调用）
-    /// </summary>
-    /// <param name="title">订单标题</param>
-    public void SetOrderTitle(string title)
-    {
-        if (orderTitleText != null)
-        {
-            orderTitleText.text = title;
-        }
-    }
 }
 
