@@ -49,10 +49,22 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
     /// </summary>
     private void OnBackClicked()
     {
-        Debug.Log("返回主菜单");
+        Debug.Log("返回主界面");
+        // 根据当前场景决定返回哪里
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ReturnToMainMenu();
+            if (currentSceneName == "01_MainHub")
+            {
+                // 在主界面场景中，返回主界面
+                UIManager.Instance.ReturnToMainHub();
+            }
+            else
+            {
+                // 在主菜单场景中，返回主菜单
+                UIManager.Instance.ReturnToMainMenu();
+            }
         }
     }
 }

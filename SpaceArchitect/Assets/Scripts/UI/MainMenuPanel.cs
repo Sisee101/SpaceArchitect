@@ -58,10 +58,10 @@ public class MainMenuPanel : MonoBehaviour
     /// </summary>
     private void OnStartGameClicked()
     {
-        Debug.Log("开始游戏");
+        Debug.Log("开始游戏 - 跳转到主界面");
         if (SceneTransitionManager.Instance != null)
         {
-            SceneTransitionManager.Instance.LoadGameScene();
+            SceneTransitionManager.Instance.LoadMainHubScene();
         }
         else
         {

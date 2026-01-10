@@ -37,7 +37,8 @@ public class SceneTransitionManager : MonoBehaviour
     /// </summary>
     public enum GameState
     {
-        MainMenu,    // 主菜单
+        MainMenu,    // 主菜单（开始页面）
+        MainHub,     // 主界面
         Playing,     // 游戏中
         Paused       // 暂停
     }
@@ -46,6 +47,7 @@ public class SceneTransitionManager : MonoBehaviour
     
     // 场景名称常量
     private const string MAIN_MENU_SCENE = "00_MainMenu";
+    private const string MAIN_HUB_SCENE = "01_MainHub";
     private const string GAMEPLAY_SCENE = "scene02";
     
     void Awake()
@@ -66,10 +68,19 @@ public class SceneTransitionManager : MonoBehaviour
     
     void Start()
     {
-        // 如果当前场景是主菜单，设置状态
-        if (SceneManager.GetActiveScene().name == MAIN_MENU_SCENE)
+        // 根据当前场景设置状态
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        if (currentSceneName == MAIN_MENU_SCENE)
         {
             currentState = GameState.MainMenu;
+        }
+        else if (currentSceneName == MAIN_HUB_SCENE)
+        {
+            currentState = GameState.MainHub;
+        }
+        else if (currentSceneName == GAMEPLAY_SCENE)
+        {
+            currentState = GameState.Playing;
         }
     }
     
@@ -84,7 +95,17 @@ public class SceneTransitionManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 加载游戏场景
+    /// 加载主界面场景
+    /// </summary>
+    public void LoadMainHubScene()
+    {
+        currentState = GameState.MainHub;
+        Time.timeScale = 1f; // 确保时间正常
+        SceneManager.LoadScene(MAIN_HUB_SCENE);
+    }
+    
+    /// <summary>
+    /// 加载游戏场景（Scene02）
     /// </summary>
     public void LoadGameScene()
     {
