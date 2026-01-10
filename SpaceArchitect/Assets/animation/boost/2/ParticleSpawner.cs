@@ -24,7 +24,7 @@ public class ParticleSpawner : MonoBehaviour
     void Update()
     {
         // 按下 P 键实例化粒子
-        if (Input.GetKeyDown(KeyCode.P))
+        if (Input.GetKeyDown(KeyCode.B))
         {
             SpawnParticleAtTarget();
         }
