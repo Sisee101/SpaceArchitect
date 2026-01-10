@@ -48,12 +48,8 @@ namespace SpaceArchitect.MainMap
 
         private void OnMouseUpAsButton()
         {
-            // 在正交游戏模式下，不响应主地图的点击逻辑
-            if (Core.GameManager.Instance != null && 
-                Core.GameManager.Instance.State == Core.GameManager.GameState.OrthographicGameplay)
-            {
-                return;
-            }
+            // TODO: 原分支的 Core.GameManager 已不存在
+            // 如需在正交游戏模式下禁用点击，请重新实现相关逻辑
             
             controller?.HandlePlanetClicked(this);
         }

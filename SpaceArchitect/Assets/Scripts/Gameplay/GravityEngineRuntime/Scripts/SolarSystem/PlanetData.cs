@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+namespace GravityEngineSolarSystem
+{
 public class PlanetData {
 
 	// PLANETS
@@ -276,6 +278,7 @@ public class PlanetData {
     }
 
 }
+} // namespace GravityEngineSolarSystem
 /*
 Code auto-generated from the data from JPL
 =====================================================================

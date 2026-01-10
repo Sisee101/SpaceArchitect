@@ -1,7 +1,5 @@
 ﻿using System.Collections;
 using UnityEngine;
-using SpaceArchitect.Core;
-using SpaceArchitect.UI;
 
 namespace SpaceArchitect.MainMap
 {
@@ -33,7 +31,6 @@ namespace SpaceArchitect.MainMap
         [SerializeField] private AnimationCurve transitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
         [SerializeField] private PlanetCameraController planetCameraController;
 
-        private UIManager uiManager;
         private PlanetSelector currentSelection;
         private CameraState cameraState = CameraState.Free;
         private CameraMode cameraMode = CameraMode.Map;
@@ -63,8 +60,6 @@ namespace SpaceArchitect.MainMap
                 // 如果 pivot 已存在，使用它的位置作为 focusPoint
                 focusPoint = cameraPivot.position;
             }
-
-            uiManager = FindAnyObjectByType<UIManager>();
 
             // 如果 planetCameraController 引用丢失，尝试自动查找
             if (planetCameraController == null)
@@ -111,16 +106,9 @@ namespace SpaceArchitect.MainMap
             currentSelection = selector;
             inputLockedByUI = true;
 
-            if (uiManager == null)
-            {
-                BeginTravelToPlanetView(selector);
-                return;
-            }
-
-            uiManager.ShowPlanetInfo(
-                selector.Data,
-                () => BeginTravelToPlanetView(selector),
-                ClearSelection);
+            // TODO: 原分支的 UIManager.ShowPlanetInfo() 已不存在，暂时直接进入行星视角
+            // 如需显示行星信息确认弹窗，请在 UIManager 中添加对应方法
+            BeginTravelToPlanetView(selector);
         }
 
         public void ClearSelection()
@@ -146,9 +134,8 @@ namespace SpaceArchitect.MainMap
                 StopCoroutine(cinematicRoutine);
             }
 
-            // 步骤一：通知GameManager进入正交状态（开启状态、监听）
-            SpaceArchitect.Core.GameManager.Instance.EnterOrthographicMode();
-            SpaceArchitect.Core.GameManager.Instance.RegisterPlanet2DClickHandler();
+            // TODO: 原分支的 GameManager.EnterOrthographicMode() 和 RegisterPlanet2DClickHandler() 已不存在
+            // 如需此功能，请在合并后重新实现
 
             cinematicRoutine = StartCoroutine(TravelToPlanetRoutine(selector));
         }
@@ -159,7 +146,7 @@ namespace SpaceArchitect.MainMap
         private IEnumerator TravelToPlanetRoutine(PlanetSelector selector)
         {
             cameraState = CameraState.Cinematic;
-            uiManager?.HideAll();
+            // uiManager?.HideAll() 方法已不存在，可根据需要调用 UIManager.Instance.ReturnToMainHub() 等
 
             var startPosition = mainCamera.transform.position;
             var startRotation = mainCamera.transform.rotation;
@@ -203,11 +190,8 @@ namespace SpaceArchitect.MainMap
             if (mainCamera != null) mainCamera.enabled = true;
             if (planetCameraController != null) planetCameraController.Deactivate();
             
-            // 隐藏所有UI
-            if (uiManager != null)
-            {
-                uiManager.HideAll();
-            }
+            // TODO: 原分支的 uiManager.HideAll() 已不存在
+            // 如需隐藏UI，请使用 UIManager.Instance 的对应方法
             
             // 还原相关变量和输入
             cameraMode = CameraMode.Map;
