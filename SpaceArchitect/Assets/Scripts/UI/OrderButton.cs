@@ -46,17 +46,18 @@ public class OrderButton : MonoBehaviour
     /// </summary>
     private void OnOrderButtonClicked()
     {
-        Debug.Log("点击订单 - 打开订单面板");
+        Debug.Log("点击订单 - 订单功能已暂时禁用");
         
+        // 订单功能已移除，暂时禁用
         // 显示订单面板
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ShowOrderPanel();
-        }
-        else
-        {
-            Debug.LogError("OrderButton: UIManager未找到！");
-        }
+        // if (UIManager.Instance != null)
+        // {
+        //     UIManager.Instance.ShowOrderPanel();
+        // }
+        // else
+        // {
+        //     Debug.LogError("OrderButton: UIManager未找到！");
+        // }
     }
     
     /// <summary>

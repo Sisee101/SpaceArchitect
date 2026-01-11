@@ -15,9 +15,6 @@ public class MainHubController : MonoBehaviour
     [Header("主界面面板（默认显示）")]
     [SerializeField] private GameObject mainHubPanel;
     
-    [Header("订单切换控制器")]
-    [SerializeField] private OrderTransitionController orderTransitionController;
-    
     void Start()
     {
         // 绑定按钮事件
@@ -103,23 +100,6 @@ public class MainHubController : MonoBehaviour
         }
         // 移除了对 UIManager.Instance.ReturnToMainHub() 的调用，避免无限递归
         // UIManager.ReturnToMainHub() 会调用这个方法，不应该反向调用
-    }
-    
-    void Update()
-    {
-        // 检测空格键按下，用于测试订单完成（临时方法，后续可替换为游戏成功事件）
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            if (orderTransitionController != null)
-            {
-                Debug.Log("MainHubController: 检测到空格键按下，触发订单切换");
-                orderTransitionController.CompleteCurrentOrderAndSwitch();
-            }
-            else
-            {
-                Debug.LogWarning("MainHubController: orderTransitionController未配置，无法切换订单！");
-            }
-        }
     }
 }
 
