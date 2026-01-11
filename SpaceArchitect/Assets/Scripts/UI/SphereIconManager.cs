@@ -36,6 +36,12 @@ public class SphereIconManager : MonoBehaviour
     [Header("图标朝向设置")]
     [SerializeField] private bool faceCamera = true; // 图标是否始终面向相机（Billboard效果）
     
+    [Header("订单数据配置")]
+    [SerializeField] private SphereOrderDataConfig orderDataConfig; // 订单数据集引用（必须配置）
+    
+    [Header("面板引用")]
+    [SerializeField] private SphereInfoPanel infoPanel; // 信息面板引用（必须配置）
+    
     // 私有变量
     private Dictionary<GameObject, GameObject> sphereIconMap; // Sphere到Icon的映射字典
     private bool iconsVisible = false; // 图标是否显示
@@ -66,6 +72,16 @@ public class SphereIconManager : MonoBehaviour
         if (sphere1 == null || sphere2 == null || sphere4 == null)
         {
             Debug.LogWarning("SphereIconManager: 部分Sphere引用未配置，请确保所有Sphere引用都已设置。");
+        }
+        
+        if (orderDataConfig == null)
+        {
+            Debug.LogWarning("SphereIconManager: orderDataConfig未配置！请在Inspector中指定SphereOrderDataConfig资源。");
+        }
+        
+        if (infoPanel == null)
+        {
+            Debug.LogWarning("SphereIconManager: infoPanel未配置！请在Inspector中指定SphereInfoPanel引用。");
         }
     }
     
@@ -394,10 +410,46 @@ public class SphereIconManager : MonoBehaviour
     /// </summary>
     private void OnIconClicked(GameObject sphere)
     {
-        Debug.Log($"SphereIconManager: 点击了Sphere {sphere.name} 的图标");
+        if (sphere == null)
+        {
+            Debug.LogWarning("SphereIconManager: 点击的Sphere为空！");
+            return;
+        }
         
-        // 在这里添加点击后的逻辑
-        // 例如：高亮Sphere、显示信息面板、执行特定操作等
+        string sphereName = sphere.name;
+        Debug.Log($"SphereIconManager: 点击了Sphere {sphereName} 的图标");
+        
+        // 检查数据配置和面板引用
+        if (orderDataConfig == null)
+        {
+            Debug.LogError("SphereIconManager: orderDataConfig未配置！无法显示订单面板。");
+            return;
+        }
+        
+        if (infoPanel == null)
+        {
+            Debug.LogError("SphereIconManager: infoPanel未配置！无法显示订单面板。");
+            return;
+        }
+        
+        // 从数据配置中获取订单信息
+        var orderInfo = orderDataConfig.GetOrderInfoBySphereName(sphereName);
+        
+        if (orderInfo != null)
+        {
+            // 如果面板已显示，先关闭（点击另一个图标时关闭当前面板）
+            if (infoPanel.IsVisible())
+            {
+                infoPanel.Hide();
+            }
+            
+            // 显示新面板
+            infoPanel.Show(orderInfo.orderImage, orderInfo.targetSceneName);
+        }
+        else
+        {
+            Debug.LogWarning($"SphereIconManager: 未找到 {sphereName} 的订单数据！请检查SphereOrderDataConfig配置。");
+        }
     }
     
     /// <summary>

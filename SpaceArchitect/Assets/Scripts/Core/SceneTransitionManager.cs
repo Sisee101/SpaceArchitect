@@ -151,5 +151,63 @@ public class SceneTransitionManager : MonoBehaviour
     {
         currentState = newState;
     }
+    
+    /// <summary>
+    /// 根据场景名称加载场景（通用方法）
+    /// </summary>
+    /// <param name="sceneName">场景名称（必须在Build Settings中）</param>
+    public void LoadSceneByName(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName))
+        {
+            Debug.LogError("SceneTransitionManager: 场景名称为空！");
+            return;
+        }
+        
+        // 检查场景是否存在
+        if (!SceneExists(sceneName))
+        {
+            Debug.LogError($"SceneTransitionManager: 场景 {sceneName} 不存在或未添加到Build Settings！");
+            return;
+        }
+        
+        Time.timeScale = 1f; // 确保时间正常
+        
+        // 根据场景名称更新状态（如果匹配已知场景）
+        if (sceneName == MAIN_MENU_SCENE)
+        {
+            currentState = GameState.MainMenu;
+        }
+        else if (sceneName == MAIN_HUB_SCENE)
+        {
+            currentState = GameState.MainHub;
+        }
+        else if (sceneName == GAMEPLAY_SCENE)
+        {
+            currentState = GameState.Playing;
+        }
+        // 其他场景保持当前状态或设置为Playing
+        
+        Debug.Log($"SceneTransitionManager: 加载场景 {sceneName}");
+        SceneManager.LoadScene(sceneName);
+    }
+    
+    /// <summary>
+    /// 检查场景是否存在
+    /// </summary>
+    private bool SceneExists(string sceneName)
+    {
+        for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+        {
+            string scenePath = SceneUtility.GetScenePathByBuildIndex(i);
+            string sceneNameInBuild = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+            
+            if (sceneNameInBuild == sceneName)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
