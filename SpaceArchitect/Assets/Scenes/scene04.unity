@@ -2583,6 +2583,92 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1404263059}
   m_Mesh: {fileID: 4662215854552279117, guid: 4e250adbb6ce0bf40ade16b645fce62a, type: 3}
+--- !u!1 &1419598748
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1419598750}
+  - component: {fileID: 1419598749}
+  m_Layer: 0
+  m_Name: StarSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1419598749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419598748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e917a316f53d5b4d8c645ab5299c050, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  areaSize: {x: 200, y: 100}
+  depthVariance: 5
+  corePlanets:
+  - label: 
+    prefab: {fileID: 100000, guid: c68eea21eab690a4e8b4b9155ed89b8b, type: 3}
+    count: 100
+    minScale: 0
+    maxScale: 0
+  - label: 
+    prefab: {fileID: 100000, guid: c62cd53d607e2fe458ae0df1a90cbfb8, type: 3}
+    count: 100
+    minScale: 0
+    maxScale: 0
+  - label: 
+    prefab: {fileID: 100000, guid: 49d7c47dc7cd57348a3e3c342b05f0c0, type: 3}
+    count: 100
+    minScale: 0
+    maxScale: 0
+  dustLayers:
+  - label: 
+    prefab: {fileID: 100000, guid: 8dacd5afb30e8b54d89cd16e368b1fe1, type: 3}
+    count: 2000
+    minScale: 0
+    maxScale: 0
+    clusterRadius: 8
+    minRadius: 0
+  - label: 
+    prefab: {fileID: 100000, guid: 6a7ea2163eb77c040b41f89ca9e897f9, type: 3}
+    count: 1600
+    minScale: 0
+    maxScale: 0
+    clusterRadius: 5
+    minRadius: 0
+  cometSetting:
+    enableComets: 1
+    prefab: {fileID: 0}
+    minSpawnInterval: 5
+    maxSpawnInterval: 15
+    minSpeed: 8
+    maxSpeed: 15
+    minScale: 0.5
+    maxScale: 1
+--- !u!4 &1419598750
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419598748}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -35.914997, y: 2.870428, z: -3.6032448}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1522146829 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5611113074984419665, guid: d4300625c6b81da4bb1c5641f8f3d962,
@@ -4107,3 +4193,4 @@ SceneRoots:
   - {fileID: 1140895838}
   - {fileID: 753033301}
   - {fileID: 665228332}
+  - {fileID: 1419598750}
