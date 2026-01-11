@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: New Material
-  m_Shader: {fileID: 4800000, guid: 2acfe3dc316942e4ca5d9ed4910ead14, type: 3}
+  m_Shader: {fileID: 4800000, guid: 1449c14746c0f884c86c2ae3dc00f4b7, type: 3}
   m_Parent: {fileID: 2100000, guid: f8219977e147f324ebce047ecfcfffec, type: 2}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -40,11 +40,15 @@ Material:
     m_Floats:
     - _ContourDensity: 6
     - _ContourWidth: 0.02
+    - _Falloff: 0.74
     - _GravityScale: 1
-    - _GridDensity: 1
-    - _LineThickness: 1
+    - _GridDensity: 0.16
+    - _LineThickness: 0.02
     - _MinGravity: 0.001
     - _ShowGrid: 0
+    - _WarpStrengthX: 0.4
+    - _WarpStrengthY: 0
     m_Colors:
+    - _BgColor: {r: 0.10798562, g: 0.04074203, b: 0.12578613, a: 1}
     - _ContourColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

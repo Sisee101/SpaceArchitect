@@ -20,6 +20,19 @@ public class CameraFollowShip : MonoBehaviour
     [Header("偏移设置")]
     [Tooltip("X轴偏移量（摄像机和飞船的X坐标差值）")]
     [SerializeField] private float xOffset = 0f;
+    
+    [Tooltip("Y轴偏移量（摄像机和飞船的Y坐标差值）")]
+    [SerializeField] private float yOffset = 0f;
+    
+    [Header("Y轴跟随边界设置")]
+    [Tooltip("是否启用Y轴跟随边界限制（飞行状态下）")]
+    [SerializeField] private bool enableYBoundary = true;
+    
+    [Tooltip("Y轴跟随的最小值（相机不会跟随到比这更低的Y坐标）")]
+    [SerializeField] private float minYBoundary = -50f;
+    
+    [Tooltip("Y轴跟随的最大值（相机不会跟随到比这更高的Y坐标）")]
+    [SerializeField] private float maxYBoundary = 50f;
 
     [Header("手动移动设置")]
     [Tooltip("是否启用A/D键手动移动摄像机")]
@@ -48,8 +61,33 @@ public class CameraFollowShip : MonoBehaviour
     [SerializeField] private float maxZoom = 0f; // 0表示使用自动计算
 
     [Header("READY按钮镜头动画设置")]
-    [Tooltip("总览全局时的缩放倍数（相对于初始大小，大于1表示缩小看全局）")]
+    [Tooltip("总览全局时的缩放倍数（相对于初始大小，大于1表示缩小看全局）\n如果指定了总览范围对象，此值将被忽略")]
     [SerializeField] private float overviewZoomScale = 3f;
+
+    [Tooltip("总览范围模式：\n- ManualObject: 使用手动指定的GameObject或Collider范围\n- AutoCalculate: 自动计算Station和Destination范围\n- FixedScale: 使用固定的缩放倍数")]
+    [SerializeField] private OverviewRangeMode overviewRangeMode = OverviewRangeMode.ManualObject;
+
+    [Tooltip("手动指定的总览范围对象（GameObject或Collider）\n如果指定了，相机将显示这个对象的范围\n优先级最高")]
+    [SerializeField] private GameObject overviewRangeObject;
+
+    [Tooltip("Station的Tag（用于自动计算模式）")]
+    [SerializeField] private string stationTag = "Station";
+
+    [Tooltip("Destination的Tag（用于自动计算模式）")]
+    [SerializeField] private string destinationTag = "Destination";
+
+    [Tooltip("总览时的边距（在计算出的范围基础上增加边距，确保不会贴边）")]
+    [SerializeField] private float overviewPadding = 2f;
+
+    /// <summary>
+    /// 总览范围模式枚举
+    /// </summary>
+    public enum OverviewRangeMode
+    {
+        ManualObject,    // 使用手动指定的GameObject或Collider
+        AutoCalculate,   // 自动计算Station和Destination
+        FixedScale       // 使用固定的缩放倍数
+    }
 
     [Tooltip("缩小到总览的动画时间（秒）")]
     [SerializeField] private float zoomOutDuration = 1f;
@@ -284,6 +322,12 @@ public class CameraFollowShip : MonoBehaviour
 
     void LateUpdate()
     {
+        // 重要：如果正在执行动画，不要干扰相机位置和缩放（让动画协程完全控制）
+        if (isAnimating)
+        {
+            return;
+        }
+
         // 状态检查：
         // 1. 如果已经点击过READY（hasReadyClicked = true）：禁用手动移动和缩放，开始跟随飞船
         // 2. 初始状态（hasReadyClicked = false）：允许手动移动和缩放，不跟随飞船（保持在当前位置）
@@ -304,26 +348,56 @@ public class CameraFollowShip : MonoBehaviour
         // READY后才开始跟随飞船
         if (hasReadyClicked && shipTransform != null)
         {
-            // 计算目标X坐标（飞船X坐标 + 偏移量）
-            // READY后不再使用手动移动偏移，只跟随飞船
+            // 检查飞船是否处于Flying状态
+            bool isFlying = IsShipFlying();
+            
+            // 计算目标位置
+            // 如果飞船在Flying状态，需要同时跟随X和Y轴（时停放大会导致飞船在Y轴上移动）
+            // 如果飞船不在Flying状态（PreLaunch等），只跟随X轴（保持Y轴不变）
             float targetX = shipTransform.position.x + xOffset;
+            float targetY;
+            
+            if (isFlying)
+            {
+                // Flying状态：跟随Y轴，但受边界限制
+                float shipYWithOffset = shipTransform.position.y + yOffset;
+                
+                if (enableYBoundary)
+                {
+                    // 应用Y轴边界限制
+                    targetY = Mathf.Clamp(shipYWithOffset, minYBoundary, maxYBoundary);
+                }
+                else
+                {
+                    // 不限制边界，直接跟随
+                    targetY = shipYWithOffset;
+                }
+            }
+            else
+            {
+                // 非Flying状态：保持初始Y
+                targetY = initialPosition.y;
+            }
+            
+            float targetZ = initialPosition.z; // Z轴始终保持初始值
 
             // 获取当前位置
             Vector3 currentPos = transform.position;
 
-            // 计算新位置（只改变X坐标）
+            // 计算新位置
             Vector3 newPosition;
 
             if (useSmoothing && followSpeed > 0f)
             {
                 // 平滑跟随：使用Lerp插值（使用未缩放时间，确保时停时也能平滑）
                 float smoothedX = Mathf.Lerp(currentPos.x, targetX, followSpeed * Time.unscaledDeltaTime);
-                newPosition = new Vector3(smoothedX, initialPosition.y, initialPosition.z);
+                float smoothedY = isFlying ? Mathf.Lerp(currentPos.y, targetY, followSpeed * Time.unscaledDeltaTime) : currentPos.y;
+                newPosition = new Vector3(smoothedX, smoothedY, targetZ);
             }
             else
             {
                 // 立即跟随
-                newPosition = new Vector3(targetX, initialPosition.y, initialPosition.z);
+                newPosition = new Vector3(targetX, targetY, targetZ);
             }
 
             // 应用新位置
@@ -331,7 +405,10 @@ public class CameraFollowShip : MonoBehaviour
 
             if (showDebugLogs)
             {
-                Debug.Log($"摄像机跟随：飞船X={shipTransform.position.x:F2}, 目标X={targetX:F2}, 当前X={transform.position.x:F2}, READY状态={hasReadyClicked}");
+                bool yClamped = isFlying && enableYBoundary && 
+                               (shipTransform.position.y + yOffset < minYBoundary || 
+                                shipTransform.position.y + yOffset > maxYBoundary);
+                Debug.Log($"摄像机跟随：飞船位置=({shipTransform.position.x:F2}, {shipTransform.position.y:F2}), 目标位置=({targetX:F2}, {targetY:F2}), 当前位置=({transform.position.x:F2}, {transform.position.y:F2}), 飞船状态={GetShipStateName()}, 跟随Y轴={isFlying}, Y轴边界限制={enableYBoundary}, Y轴被限制={yClamped}");
             }
         }
         else if (!hasReadyClicked)
@@ -353,19 +430,19 @@ public class CameraFollowShip : MonoBehaviour
             // 获取当前位置
             Vector3 currentPos = transform.position;
 
-            // 计算新位置（只改变X坐标）
+            // 计算新位置（只改变X坐标，Y和Z保持当前位置）
             Vector3 newPosition;
 
             if (useSmoothing && followSpeed > 0f)
             {
                 // 平滑移动：使用Lerp插值
                 float smoothedX = Mathf.Lerp(currentPos.x, targetX, followSpeed * Time.unscaledDeltaTime);
-                newPosition = new Vector3(smoothedX, initialPosition.y, initialPosition.z);
+                newPosition = new Vector3(smoothedX, currentPos.y, currentPos.z);
             }
             else
             {
-                // 立即移动
-                newPosition = new Vector3(targetX, initialPosition.y, initialPosition.z);
+                // 立即移动（保持Y和Z不变）
+                newPosition = new Vector3(targetX, currentPos.y, currentPos.z);
             }
 
             // 应用新位置
@@ -588,6 +665,298 @@ public class CameraFollowShip : MonoBehaviour
     }
 
     /// <summary>
+    /// 计算总览范围（优先使用手动指定的对象，否则使用自动计算）
+    /// </summary>
+    /// <param name="overviewPosition">输出的总览相机位置</param>
+    /// <param name="overviewZoom">输出的总览缩放值</param>
+    /// <returns>是否成功计算</returns>
+    private bool CalculateOverviewRange(out Vector3 overviewPosition, out float overviewZoom)
+    {
+        overviewPosition = transform.position;
+        overviewZoom = isOrthographic ? initialOrthographicSize * overviewZoomScale : initialFieldOfView * overviewZoomScale;
+
+        // 优先级1：使用手动指定的总览范围对象
+        if (overviewRangeMode == OverviewRangeMode.ManualObject && overviewRangeObject != null)
+        {
+            return CalculateRangeFromObject(overviewRangeObject, out overviewPosition, out overviewZoom);
+        }
+
+        // 优先级2：自动计算Station和Destination
+        if (overviewRangeMode == OverviewRangeMode.AutoCalculate)
+        {
+            return CalculateRangeFromStationAndDestination(out overviewPosition, out overviewZoom);
+        }
+
+        // 优先级3：使用固定缩放倍数
+        if (overviewRangeMode == OverviewRangeMode.FixedScale)
+        {
+            overviewPosition = transform.position;
+            overviewZoom = isOrthographic ? initialOrthographicSize * overviewZoomScale : initialFieldOfView * overviewZoomScale;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 从指定的GameObject或Collider计算总览范围
+    /// </summary>
+    private bool CalculateRangeFromObject(GameObject rangeObject, out Vector3 overviewPosition, out float overviewZoom)
+    {
+        overviewPosition = transform.position;
+        overviewZoom = isOrthographic ? initialOrthographicSize * overviewZoomScale : initialFieldOfView * overviewZoomScale;
+
+        if (rangeObject == null)
+        {
+            return false;
+        }
+
+        Bounds bounds;
+        Collider col = rangeObject.GetComponent<Collider>();
+        if (col != null)
+        {
+            // 使用Collider的bounds
+            bounds = col.bounds;
+        }
+        else
+        {
+            // 尝试从子对象获取Collider
+            col = rangeObject.GetComponentInChildren<Collider>();
+            if (col != null)
+            {
+                bounds = col.bounds;
+            }
+            else
+            {
+                // 如果没有Collider，使用Transform位置作为中心点，创建一个默认范围
+                Vector3 pos = rangeObject.transform.position;
+                bounds = new Bounds(pos, Vector3.one * 10f); // 默认10单位范围
+                
+                if (showDebugLogs)
+                {
+                    Debug.LogWarning($"CameraFollowShip: 总览范围对象 {rangeObject.name} 没有Collider，使用默认范围");
+                }
+            }
+        }
+
+        // 计算范围（只考虑XY平面）
+        float width = bounds.size.x + overviewPadding * 2f;
+        float height = bounds.size.y + overviewPadding * 2f;
+        Vector3 center = bounds.center;
+        // 总览时：相机移动到范围中心（包括X和Y），以便完整显示范围
+        overviewPosition = new Vector3(center.x, center.y, initialPosition.z);
+
+        if (showDebugLogs)
+        {
+            Debug.Log($"CameraFollowShip: 从对象计算总览范围 - 对象: {rangeObject.name}");
+            Debug.Log($"CameraFollowShip: Collider Bounds - 中心: {bounds.center}, 大小: {bounds.size}");
+            Debug.Log($"CameraFollowShip: 计算后的范围 - 宽度: {width:F2}, 高度: {height:F2}, 中心: {overviewPosition}");
+            Debug.Log($"CameraFollowShip: 总览位置允许Y轴移动: {overviewPosition.y} (初始Y: {initialPosition.y})");
+        }
+
+        // 计算缩放值
+        return CalculateZoomFromSize(width, height, overviewPosition, out overviewZoom);
+    }
+
+    /// <summary>
+    /// 根据宽度和高度计算缩放值（通用方法）
+    /// </summary>
+    private bool CalculateZoomFromSize(float width, float height, Vector3 centerPosition, out float overviewZoom)
+    {
+        overviewZoom = isOrthographic ? initialOrthographicSize * overviewZoomScale : initialFieldOfView * overviewZoomScale;
+
+        // 使用相机的实际宽高比（更准确）
+        float cameraAspect = cameraComponent.aspect;
+        
+        if (isOrthographic)
+        {
+            // 正交相机：orthographicSize是视口高度的一半
+            // 视口高度 = orthographicSize * 2
+            // 视口宽度 = orthographicSize * 2 * aspect
+            // 需要确保height和width都能被覆盖
+            float requiredSizeForHeight = height * 0.5f; // 高度需要：height <= orthographicSize * 2
+            float requiredSizeForWidth = (width * 0.5f) / cameraAspect; // 宽度需要：width <= orthographicSize * 2 * aspect
+            
+            // 取较大的值，确保两个方向都能覆盖
+            overviewZoom = Mathf.Max(requiredSizeForHeight, requiredSizeForWidth);
+            
+            // 限制在有效范围内
+            overviewZoom = Mathf.Clamp(overviewZoom, minZoom, maxZoom);
+            
+        if (showDebugLogs)
+        {
+            Debug.Log($"CameraFollowShip: 正交相机计算 - 相机宽高比={cameraAspect:F3}, 宽度={width:F2}, 高度={height:F2}");
+            Debug.Log($"CameraFollowShip: 高度需求={requiredSizeForHeight:F2}, 宽度需求={requiredSizeForWidth:F2}, 最终缩放={overviewZoom:F2}");
+            Debug.Log($"CameraFollowShip: 当前 orthographicSize={cameraComponent.orthographicSize:F2}, 初始值={initialOrthographicSize:F2}");
+            Debug.Log($"CameraFollowShip: 缩放限制范围: minZoom={minZoom:F2}, maxZoom={maxZoom:F2}");
+            
+            // 验证计算：orthographicSize * 2 应该 >= height，orthographicSize * 2 * aspect 应该 >= width
+            float actualHeight = overviewZoom * 2f;
+            float actualWidth = actualHeight * cameraAspect;
+            Debug.Log($"CameraFollowShip: 验证 - 实际显示高度={actualHeight:F2} (需要>={height:F2}), 实际显示宽度={actualWidth:F2} (需要>={width:F2})");
+        }
+        }
+        else
+        {
+            // 透视相机：需要根据距离和视野角度计算
+            // 使用相机的Z位置作为距离（相机通常朝向Z轴负方向）
+            float distance = Mathf.Abs(transform.position.z - centerPosition.y);
+            if (distance < 0.01f) 
+            {
+                // 如果距离太小，使用相机到中心点的实际距离
+                distance = Vector3.Distance(transform.position, centerPosition);
+                if (distance < 0.01f) distance = 10f; // 最后的默认值
+            }
+            
+            // 使用三角函数计算所需的fieldOfView
+            // tan(fov/2) = (height/2) / distance
+            float halfHeight = height * 0.5f;
+            float halfFOV = Mathf.Atan2(halfHeight, distance) * Mathf.Rad2Deg;
+            float requiredFOV = halfFOV * 2f;
+            
+            // 考虑相机宽高比，确保宽度也能覆盖
+            // 对于透视相机，水平FOV = 2 * atan(tan(垂直FOV/2) * aspect)
+            float halfWidth = width * 0.5f;
+            float halfFOVWidth = Mathf.Atan2(halfWidth / cameraAspect, distance) * Mathf.Rad2Deg;
+            float requiredFOVWidth = halfFOVWidth * 2f;
+            
+            overviewZoom = Mathf.Max(requiredFOV, requiredFOVWidth);
+            
+            // 限制在有效范围内
+            overviewZoom = Mathf.Clamp(overviewZoom, minZoom, maxZoom);
+            
+            if (showDebugLogs)
+            {
+                Debug.Log($"CameraFollowShip: 透视相机计算 - 相机宽高比={cameraAspect:F3}, 距离={distance:F2}, 宽度={width:F2}, 高度={height:F2}, 高度FOV需求={requiredFOV:F2}, 宽度FOV需求={requiredFOVWidth:F2}, 最终FOV={overviewZoom:F2}");
+            }
+        }
+
+        if (showDebugLogs)
+        {
+            Debug.Log($"CameraFollowShip: 总览范围 - 宽度={width:F2}, 高度={height:F2}, 中心位置={centerPosition}, 缩放值={overviewZoom:F2}");
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 从Station和Destination自动计算总览范围
+    /// </summary>
+    private bool CalculateRangeFromStationAndDestination(out Vector3 overviewPosition, out float overviewZoom)
+    {
+        overviewPosition = transform.position;
+        overviewZoom = isOrthographic ? initialOrthographicSize * overviewZoomScale : initialFieldOfView * overviewZoomScale;
+
+        // 查找Station和Destination
+        GameObject station = GameObject.FindGameObjectWithTag(stationTag);
+        GameObject destination = GameObject.FindGameObjectWithTag(destinationTag);
+
+        if (station == null || destination == null)
+        {
+            if (showDebugLogs)
+            {
+                if (station == null)
+                    Debug.LogWarning($"CameraFollowShip: 未找到Tag为 '{stationTag}' 的Station对象，将使用默认总览缩放");
+                if (destination == null)
+                    Debug.LogWarning($"CameraFollowShip: 未找到Tag为 '{destinationTag}' 的Destination对象，将使用默认总览缩放");
+            }
+            return false;
+        }
+
+        Vector3 stationPos = station.transform.position;
+        Vector3 destPos = destination.transform.position;
+
+        // 计算两个点的边界框
+        float minX = Mathf.Min(stationPos.x, destPos.x);
+        float maxX = Mathf.Max(stationPos.x, destPos.x);
+        float minY = Mathf.Min(stationPos.y, destPos.y);
+        float maxY = Mathf.Max(stationPos.y, destPos.y);
+
+        // 添加边距
+        float width = (maxX - minX) + overviewPadding * 2f;
+        float height = (maxY - minY) + overviewPadding * 2f;
+
+        // 计算中心位置
+        // 总览时：相机移动到Station和Destination的中心（包括X和Y），以便完整显示范围
+        float centerX = (minX + maxX) * 0.5f;
+        float centerY = (minY + maxY) * 0.5f;
+        overviewPosition = new Vector3(centerX, centerY, initialPosition.z);
+        
+        if (showDebugLogs)
+        {
+            Debug.Log($"CameraFollowShip: 自动计算总览位置 - Station: {stationPos}, Destination: {destPos}");
+            Debug.Log($"CameraFollowShip: 总览中心位置: {overviewPosition} (允许Y轴移动以完整显示范围)");
+        }
+
+        // 根据相机类型计算所需的缩放值
+        // 使用相机的实际宽高比（更准确）
+        float cameraAspect = cameraComponent.aspect;
+        
+        if (isOrthographic)
+        {
+            // 正交相机：orthographicSize是视口高度的一半
+            // 视口高度 = orthographicSize * 2
+            // 视口宽度 = orthographicSize * 2 * aspect
+            // 需要确保height和width都能被覆盖
+            float requiredSizeForHeight = height * 0.5f; // 高度需要：height <= orthographicSize * 2
+            float requiredSizeForWidth = (width * 0.5f) / cameraAspect; // 宽度需要：width <= orthographicSize * 2 * aspect
+            
+            // 取较大的值，确保两个方向都能覆盖
+            overviewZoom = Mathf.Max(requiredSizeForHeight, requiredSizeForWidth);
+            
+            // 限制在有效范围内
+            overviewZoom = Mathf.Clamp(overviewZoom, minZoom, maxZoom);
+            
+            if (showDebugLogs)
+            {
+                Debug.Log($"CameraFollowShip: 正交相机计算 - 相机宽高比={cameraAspect:F3}, 高度需求={requiredSizeForHeight:F2}, 宽度需求={requiredSizeForWidth:F2}, 最终缩放={overviewZoom:F2}");
+            }
+        }
+        else
+        {
+            // 透视相机：需要根据距离和视野角度计算
+            // 使用相机的Z位置作为距离（相机通常朝向Z轴负方向）
+            float distance = Mathf.Abs(transform.position.z - centerY);
+            if (distance < 0.01f) 
+            {
+                // 如果距离太小，使用相机到中心点的实际距离
+                distance = Vector3.Distance(transform.position, overviewPosition);
+                if (distance < 0.01f) distance = 10f; // 最后的默认值
+            }
+            
+            // 使用三角函数计算所需的fieldOfView
+            // tan(fov/2) = (height/2) / distance
+            float halfHeight = height * 0.5f;
+            float halfFOV = Mathf.Atan2(halfHeight, distance) * Mathf.Rad2Deg;
+            float requiredFOV = halfFOV * 2f;
+            
+            // 考虑相机宽高比，确保宽度也能覆盖
+            // 对于透视相机，水平FOV = 2 * atan(tan(垂直FOV/2) * aspect)
+            float halfWidth = width * 0.5f;
+            float halfFOVWidth = Mathf.Atan2(halfWidth / cameraAspect, distance) * Mathf.Rad2Deg;
+            float requiredFOVWidth = halfFOVWidth * 2f;
+            
+            overviewZoom = Mathf.Max(requiredFOV, requiredFOVWidth);
+            
+            // 限制在有效范围内
+            overviewZoom = Mathf.Clamp(overviewZoom, minZoom, maxZoom);
+            
+            if (showDebugLogs)
+            {
+                Debug.Log($"CameraFollowShip: 透视相机计算 - 相机宽高比={cameraAspect:F3}, 距离={distance:F2}, 高度FOV需求={requiredFOV:F2}, 宽度FOV需求={requiredFOVWidth:F2}, 最终FOV={overviewZoom:F2}");
+            }
+        }
+
+        if (showDebugLogs)
+        {
+            Debug.Log($"CameraFollowShip: 计算总览范围 - Station位置={stationPos}, Destination位置={destPos}");
+            Debug.Log($"CameraFollowShip: 总览范围 - 宽度={width:F2}, 高度={height:F2}, 中心位置={overviewPosition}, 缩放值={overviewZoom:F2}");
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// READY序列协程：缩小总览 -> 等待 -> 回到聚焦
     /// </summary>
     private IEnumerator ReadySequenceCoroutine()
@@ -601,22 +970,44 @@ public class CameraFollowShip : MonoBehaviour
             yield break;
         }
 
-        // 保存当前缩放值
+        // 保存当前缩放值和位置
         float startZoomValue;
         float overviewZoomValue;
         float targetZoomValue;
+        Vector3 startCameraPosition = transform.position;
+        Vector3 overviewCameraPosition;
         float elapsed = 0f; // 声明elapsed变量，在多个步骤中复用
 
+        // 计算总览范围
+        bool success = CalculateOverviewRange(out overviewCameraPosition, out overviewZoomValue);
+        if (!success)
+        {
+            // 如果计算失败，使用默认值
+            overviewCameraPosition = startCameraPosition;
+            if (isOrthographic)
+            {
+                overviewZoomValue = initialOrthographicSize * overviewZoomScale;
+            }
+            else
+            {
+                overviewZoomValue = initialFieldOfView * overviewZoomScale;
+            }
+            
+            if (showDebugLogs)
+            {
+                Debug.LogWarning("CameraFollowShip: 总览范围计算失败，使用默认值");
+            }
+        }
+
+        // 获取当前缩放值
         if (isOrthographic)
         {
             startZoomValue = cameraComponent.orthographicSize;
-            overviewZoomValue = initialOrthographicSize * overviewZoomScale;
             targetZoomValue = initialOrthographicSize;
         }
         else
         {
             startZoomValue = cameraComponent.fieldOfView;
-            overviewZoomValue = initialFieldOfView * overviewZoomScale;
             targetZoomValue = initialFieldOfView;
         }
 
@@ -633,36 +1024,37 @@ public class CameraFollowShip : MonoBehaviour
         if (showDebugLogs)
         {
             Debug.Log($"CameraFollowShip: 开始READY序列 - 当前缩放={startZoomValue:F2}, 总览缩放={overviewZoomValue:F2}, 目标缩放={targetZoomValue:F2}");
+            Debug.Log($"CameraFollowShip: 当前位置={startCameraPosition}, 总览位置={overviewCameraPosition}");
         }
 
-        // 第一步：缩小到总览全局
+        // 第一步：缩小到总览全局（同时移动相机到总览位置）
         // 如果当前已经在总览状态（或非常接近），跳过这一步，立即响应
         float zoomDifference = Mathf.Abs(startZoomValue - overviewZoomValue);
+        float positionDifference = Vector3.Distance(startCameraPosition, overviewCameraPosition);
         float zoomTolerance = overviewZoomValue * 0.05f; // 5%的容差，如果差异小于5%就认为已经在总览状态
+        float positionTolerance = 0.5f; // 位置容差
 
-        if (zoomDifference > zoomTolerance)
+        if (zoomDifference > zoomTolerance || positionDifference > positionTolerance)
         {
-            // 需要动画：从当前缩放值缩放到总览值
-            // 立即设置第一帧的值，让用户立即看到响应（而不是等到下一帧）
-            float firstFrameZoom = Mathf.Lerp(startZoomValue, overviewZoomValue, zoomCurve.Evaluate(0f));
-            if (isOrthographic)
-            {
-                cameraComponent.orthographicSize = firstFrameZoom;
-            }
-            else
-            {
-                cameraComponent.fieldOfView = firstFrameZoom;
-            }
-
-            elapsed = Time.unscaledDeltaTime; // 从第一帧的时间开始，而不是0
+            // 需要动画：从当前缩放值和位置过渡到总览值
+            // 使用平滑插值，避免抖动
+            elapsed = 0f; // 重置elapsed，从0开始
+            
+            // 使用平滑插值的速度变量（用于减少抖动）
+            float currentZoom = startZoomValue;
+            Vector3 currentPosition = startCameraPosition;
+            
             while (elapsed < zoomOutDuration)
             {
                 elapsed += Time.unscaledDeltaTime;
-                float t = elapsed / zoomOutDuration;
+                float t = Mathf.Clamp01(elapsed / zoomOutDuration); // 确保t在0-1范围内
                 float curveValue = zoomCurve.Evaluate(t);
 
-                float currentZoom = Mathf.Lerp(startZoomValue, overviewZoomValue, curveValue);
+                // 使用Lerp进行平滑插值
+                currentZoom = Mathf.Lerp(startZoomValue, overviewZoomValue, curveValue);
+                currentPosition = Vector3.Lerp(startCameraPosition, overviewCameraPosition, curveValue);
 
+                // 在同一帧内同时更新，避免不同步导致的抖动
                 if (isOrthographic)
                 {
                     cameraComponent.orthographicSize = currentZoom;
@@ -671,12 +1063,24 @@ public class CameraFollowShip : MonoBehaviour
                 {
                     cameraComponent.fieldOfView = currentZoom;
                 }
+                transform.position = currentPosition;
 
                 yield return null;
             }
+            
+            // 确保最终值精确
+            if (isOrthographic)
+            {
+                cameraComponent.orthographicSize = overviewZoomValue;
+            }
+            else
+            {
+                cameraComponent.fieldOfView = overviewZoomValue;
+            }
+            transform.position = overviewCameraPosition;
         }
 
-        // 确保到达总览缩放值（无论是否执行了动画）
+        // 确保到达总览缩放值和位置（无论是否执行了动画）
         if (isOrthographic)
         {
             cameraComponent.orthographicSize = overviewZoomValue;
@@ -685,6 +1089,7 @@ public class CameraFollowShip : MonoBehaviour
         {
             cameraComponent.fieldOfView = overviewZoomValue;
         }
+        transform.position = overviewCameraPosition;
 
         // 第二步：总览停留
         // 如果已经在总览状态（跳过了第一步动画），缩短停留时间，让用户更快看到响应
@@ -695,10 +1100,11 @@ public class CameraFollowShip : MonoBehaviour
         }
 
         // 第三步：回到聚焦飞船（画面放大的同时，相机逐渐移动到飞船位置）
-        // 记录开始聚焦时的相机位置
-        Vector3 startCameraPosition = transform.position;
+        // 记录开始聚焦时的相机位置（此时应该是总览位置，可能包含Y轴偏移）
+        Vector3 focusStartPosition = transform.position;
         
         // 计算目标位置（飞船位置 + 偏移量）
+        // 注意：聚焦时相机回到只跟随X轴的模式，Y和Z回到初始值
         Vector3 targetCameraPosition;
         if (shipTransform != null)
         {
@@ -707,35 +1113,63 @@ public class CameraFollowShip : MonoBehaviour
         }
         else
         {
-            targetCameraPosition = startCameraPosition; // 如果没有飞船，保持当前位置
+            // 如果没有飞船，回到初始位置（包括Y和Z）
+            targetCameraPosition = new Vector3(focusStartPosition.x, initialPosition.y, initialPosition.z);
+        }
+        
+        if (showDebugLogs)
+        {
+            Debug.Log($"CameraFollowShip: 聚焦动画 - 从总览位置 {focusStartPosition} 到目标位置 {targetCameraPosition}");
         }
 
         elapsed = 0f; // 重置elapsed变量用于第三步动画
-        while (elapsed < zoomInDuration)
+        float focusZoom = overviewZoomValue;
+        Vector3 focusPosition = focusStartPosition;
+        
+        // 使用固定时间步长来减少抖动
+        float fixedDeltaTime = 0.016f; // 约60fps
+        int frameCount = Mathf.CeilToInt(zoomInDuration / fixedDeltaTime);
+        
+        if (showDebugLogs)
         {
-            elapsed += Time.unscaledDeltaTime;
-            float t = elapsed / zoomInDuration;
+            Debug.Log($"CameraFollowShip: 开始聚焦动画 - 从缩放 {overviewZoomValue:F2} 到 {targetZoomValue:F2}, 从位置 {focusStartPosition} 到 {targetCameraPosition}, 帧数: {frameCount}");
+        }
+        
+        for (int i = 0; i <= frameCount; i++)
+        {
+            float t = (float)i / frameCount;
+            t = Mathf.Clamp01(t); // 确保t在0-1范围内
             float curveValue = zoomCurve.Evaluate(t);
 
-            // 同时进行缩放和位置插值
-            float currentZoom = Mathf.Lerp(overviewZoomValue, targetZoomValue, curveValue);
-            Vector3 currentPosition = Vector3.Lerp(startCameraPosition, targetCameraPosition, curveValue);
+            // 同时进行缩放和位置插值，使用相同的曲线值确保同步
+            focusZoom = Mathf.Lerp(overviewZoomValue, targetZoomValue, curveValue);
+            focusPosition = Vector3.Lerp(focusStartPosition, targetCameraPosition, curveValue);
 
-            // 应用缩放
+            // 在同一帧内同时更新，避免不同步导致的抖动
             if (isOrthographic)
             {
-                cameraComponent.orthographicSize = currentZoom;
+                cameraComponent.orthographicSize = focusZoom;
             }
             else
             {
-                cameraComponent.fieldOfView = currentZoom;
+                cameraComponent.fieldOfView = focusZoom;
             }
+            transform.position = focusPosition;
 
-            // 应用位置
-            transform.position = currentPosition;
-
-            yield return null;
+            // 使用固定时间步长等待
+            yield return new WaitForSecondsRealtime(fixedDeltaTime);
         }
+        
+        // 确保最终值精确
+        if (isOrthographic)
+        {
+            cameraComponent.orthographicSize = targetZoomValue;
+        }
+        else
+        {
+            cameraComponent.fieldOfView = targetZoomValue;
+        }
+        transform.position = targetCameraPosition;
 
         // 确保到达目标缩放值和位置
         if (isOrthographic)

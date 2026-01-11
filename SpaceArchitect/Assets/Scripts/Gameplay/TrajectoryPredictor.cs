@@ -23,8 +23,8 @@ public class TrajectoryPredictor : MonoBehaviour
     [SerializeField] private PredictionMode predictionMode = PredictionMode.Preview;
     
     [Header("预测设置")]
-    [Tooltip("预测的时间步长（秒），越小越精确但性能消耗越大\n推荐：0.005-0.01（高精度），0.02（标准），0.03+（低精度）")]
-    [SerializeField] private float predictionTimeStep = 0.01f;
+    [Tooltip("预测的时间步长（秒），越小越精确但性能消耗越大\n推荐：0.002-0.005（超高精度），0.01（高精度），0.02（标准）")]
+    [SerializeField] private float predictionTimeStep = 0.005f;
     
     [Tooltip("预测的总步数，决定轨迹的长度")]
     [SerializeField] private int predictionSteps = 500;
@@ -94,6 +94,9 @@ public class TrajectoryPredictor : MonoBehaviour
     // 缓存场景中所有的引力源（NBody对象，包括行星和Core）
     private List<GravitySource> gravitySources = new List<GravitySource>();
     
+    // 缓存场景中所有的 CoreDeflector（用于考虑偏转效果）
+    private List<CoreDeflector> coreDeflectors = new List<CoreDeflector>();
+    
     // 预览模式缓存的轨迹（发射前固定不变）
     private List<Vector3> cachedPreviewTrajectory = null;
     private Vector3 cachedLaunchVelocity = Vector3.zero;
@@ -156,8 +159,9 @@ public class TrajectoryPredictor : MonoBehaviour
         isTrajectoryVisible = showOnStart;
         lineRenderer.enabled = isTrajectoryVisible;
         
-        // 缓存场景中的引力源
+        // 缓存场景中的引力源和 CoreDeflector
         CacheGravitySources();
+        CacheCoreDeflectors();
         
         // 如果是预览模式且飞船未发射，自动切换到预览模式
         if (predictionMode == PredictionMode.Preview && shipState != null && shipState.CurrentState == ShipState.State.PreLaunch)
@@ -260,6 +264,27 @@ public class TrajectoryPredictor : MonoBehaviour
         
         Debug.Log($"TrajectoryPredictor: 已缓存 {gravitySources.Count} 个引力源（massScale: {massScale}, gravityMultiplier: {gravityMultiplier}）");
     }
+    
+    /// <summary>
+    /// 缓存场景中的所有 CoreDeflector
+    /// </summary>
+    private void CacheCoreDeflectors()
+    {
+        coreDeflectors.Clear();
+        
+        // 查找场景中所有的 CoreDeflector 对象
+        CoreDeflector[] allDeflectors = FindObjectsOfType<CoreDeflector>();
+        
+        foreach (CoreDeflector deflector in allDeflectors)
+        {
+            if (deflector != null && deflector.enabled)
+            {
+                coreDeflectors.Add(deflector);
+            }
+        }
+        
+        Debug.Log($"TrajectoryPredictor: 已缓存 {coreDeflectors.Count} 个 CoreDeflector");
+    }
 
     /// <summary>
     /// 切换轨迹显示
@@ -361,11 +386,12 @@ public class TrajectoryPredictor : MonoBehaviour
     /// </summary>
     private void UpdateTrajectory()
     {
-        // 重新缓存引力源（以防场景中的物体发生变化）
+        // 重新缓存引力源和 CoreDeflector（以防场景中的物体发生变化）
         // 注意：频繁调用可能影响性能，可以考虑只在特定情况下刷新
         if (Time.frameCount % 60 == 0) // 每60帧刷新一次
         {
             CacheGravitySources();
+            CacheCoreDeflectors();
         }
         
         List<Vector3> trajectoryPoints;
@@ -425,7 +451,7 @@ public class TrajectoryPredictor : MonoBehaviour
         // 迭代模拟
         for (int i = 0; i < actualSteps; i++)
         {
-            // 根据积分方法选择不同的更新算法
+            // 根据积分方法选择不同的更新算法（传入当前速度用于 CoreDeflector 计算）
             switch (integrationMethod)
             {
                 case IntegrationMethod.Euler:
@@ -458,23 +484,26 @@ public class TrajectoryPredictor : MonoBehaviour
     }
 
     /// <summary>
-    /// 计算某个位置的引力加速度
+    /// 计算某个位置的引力加速度（包括 CoreDeflector 的偏转效果）
     /// </summary>
     /// <param name="position">位置</param>
+    /// <param name="velocity">当前速度（用于计算 CoreDeflector 的偏转效果）</param>
     /// <returns>引力加速度向量</returns>
-    private Vector3 CalculateGravityAcceleration(Vector3 position)
+    private Vector3 CalculateGravityAcceleration(Vector3 position, Vector3 velocity)
     {
         Vector3 totalAcceleration = Vector3.zero;
         
-        // 遍历所有引力源
+        // 1. 遍历所有引力源（NBody 的引力）
+        // 注意：source.position 已经是世界空间坐标，position 也是世界空间坐标
         foreach (GravitySource source in gravitySources)
         {
-            // 计算到引力源的方向和距离
+            // 计算到引力源的方向和距离（世界空间）
             Vector3 direction = source.position - position;
+            direction.z = 0f; // 确保在XY平面
             float distance = direction.magnitude;
             
             // 避免除以零或距离过小
-            if (distance < 0.01f)
+            if (distance < 0.001f)
             {
                 continue;
             }
@@ -483,14 +512,218 @@ public class TrajectoryPredictor : MonoBehaviour
             direction.Normalize();
             
             // 计算引力加速度：a = GM / r^2
-            // 这里使用简化的引力公式，G常数已经包含在质量中
+            // source.mass 已经包含了 massScale 和 gravityMultiplier
+            // 这里需要考虑物理空间的缩放（如果需要）
             float accelerationMagnitude = source.mass / (distance * distance);
             
             // 累加加速度
             totalAcceleration += direction * accelerationMagnitude;
         }
         
+        // 2. 检查是否在 CoreDeflector 的 trigger 范围内，应用额外的偏转效果
+        foreach (CoreDeflector deflector in coreDeflectors)
+        {
+            if (deflector == null || !deflector.enabled)
+            {
+                continue;
+            }
+            
+            // 检查是否在 trigger 范围内
+            Collider triggerCollider = deflector.GetComponent<Collider>();
+            if (triggerCollider == null || !triggerCollider.isTrigger)
+            {
+                continue;
+            }
+            
+            // 使用更准确的 trigger 检测方法
+            // 检查位置是否在 trigger 范围内
+            bool isInTrigger = IsPointInTrigger(triggerCollider, position);
+            
+            if (isInTrigger)
+            {
+                // 直接访问 CoreDeflector 的 public 字段（面板上的数据）
+                float coreEffectiveMass = deflector.coreEffectiveMass;
+                float guidanceStrength = deflector.guidanceStrength;
+                float minDistance = deflector.minDistance;
+                float maxAngularVelocity = deflector.maxAngularVelocity;
+                float targetOrbitRadius = deflector.targetOrbitRadius;
+                
+                // 应用 CoreDeflector 的偏转效果（包括 maxAngularVelocity 限制）
+                Vector3 corePosition = deflector.transform.position;
+                Vector3 deflectorAcceleration = CalculateCoreDeflectorAcceleration(
+                    position, velocity, corePosition, coreEffectiveMass, guidanceStrength, minDistance, maxAngularVelocity, targetOrbitRadius);
+                totalAcceleration += deflectorAcceleration;
+            }
+        }
+        
         return totalAcceleration;
+    }
+    
+    /// <summary>
+    /// 检查点是否在 trigger 范围内（更准确的检测方法）
+    /// </summary>
+    private bool IsPointInTrigger(Collider triggerCollider, Vector3 point)
+    {
+        if (triggerCollider == null || !triggerCollider.isTrigger)
+        {
+            return false;
+        }
+        
+        // 使用 Physics.ComputePenetration 或其他方法检查
+        // 简单方法：检查点是否在 bounds 内
+        if (triggerCollider.bounds.Contains(point))
+        {
+            // 进一步检查实际碰撞（对于非凸形状更准确）
+            // 创建一个临时的 Collider 在指定位置进行测试
+            // 这里简化处理，使用 bounds 检查
+            return true;
+        }
+        
+        // 对于球形 Collider，使用距离检查
+        if (triggerCollider is SphereCollider sphereCollider)
+        {
+            Vector3 sphereCenter = triggerCollider.transform.TransformPoint(sphereCollider.center);
+            float sphereRadius = sphereCollider.radius * Mathf.Max(
+                triggerCollider.transform.lossyScale.x,
+                triggerCollider.transform.lossyScale.y,
+                triggerCollider.transform.lossyScale.z);
+            float distanceToCenter = Vector3.Distance(point, sphereCenter);
+            return distanceToCenter <= sphereRadius;
+        }
+        
+        // 对于 Box Collider，使用 bounds 检查
+        if (triggerCollider is BoxCollider)
+        {
+            return triggerCollider.bounds.Contains(point);
+        }
+        
+        // 对于 Capsule Collider，近似处理
+        if (triggerCollider is CapsuleCollider capsuleCollider)
+        {
+            Vector3 capsuleCenter = triggerCollider.transform.TransformPoint(capsuleCollider.center);
+            float capsuleRadius = capsuleCollider.radius * Mathf.Max(
+                triggerCollider.transform.lossyScale.x,
+                triggerCollider.transform.lossyScale.y);
+            float distanceToCenter = Vector3.Distance(point, capsuleCenter);
+            return distanceToCenter <= capsuleRadius * 2f; // 近似处理
+        }
+        
+        // 默认使用 bounds 检查
+        return triggerCollider.bounds.Contains(point);
+    }
+    
+    /// <summary>
+    /// 计算 CoreDeflector 的偏转加速度（完整模拟 CoreDeflector 的逻辑）
+    /// </summary>
+    private Vector3 CalculateCoreDeflectorAcceleration(
+        Vector3 position, Vector3 velocity, Vector3 corePosition, 
+        float coreEffectiveMass, float guidanceStrength, float minDistance,
+        float maxAngularVelocity, float targetOrbitRadius)
+    {
+        Vector3 coreToPosition = position - corePosition;
+        coreToPosition.z = 0f;
+        float distance = coreToPosition.magnitude;
+        
+        if (distance < minDistance)
+        {
+            return Vector3.zero;
+        }
+        
+        Vector3 radialDirection = coreToPosition.normalized; // 从Core指向位置
+        Vector3 velocityDirection = velocity.magnitude > 0.01f ? velocity.normalized : Vector3.right;
+        float currentSpeed = velocity.magnitude;
+        
+        // 1. 计算纯引力加速度（径向，指向Core）
+        // 注意：这里需要考虑 GravityEngine 的 massScale
+        float massScale = gravityEngine != null ? gravityEngine.massScale : 1.0f;
+        float gravitationalAcceleration = (coreEffectiveMass * massScale) / (distance * distance);
+        Vector3 radialGravity = -radialDirection * gravitationalAcceleration; // 负号表示指向Core
+        
+        // 2. 计算引导加速度（切向，让飞船沿轨道偏转）
+        Vector3 tangentialDirection = GetTangentialDirection(radialDirection, velocityDirection);
+        Vector3 guidanceAcceleration = Vector3.zero;
+        
+        // 使用预测的时间步长
+        float deltaTime = predictionTimeStep;
+        
+        if (guidanceStrength > 0f && currentSpeed > 0.01f)
+        {
+            // 计算理想切向速度（垂直于径向）
+            Vector3 idealTangentialVel = tangentialDirection * currentSpeed;
+            
+            // 计算需要转向切向的加速度
+            Vector3 velocityToTangential = idealTangentialVel - velocity;
+            guidanceAcceleration = velocityToTangential * guidanceStrength / deltaTime;
+            
+            // 如果有目标轨道半径，添加径向调整
+            if (targetOrbitRadius > 0f)
+            {
+                float radiusError = distance - targetOrbitRadius;
+                Vector3 radiusCorrection = -radialDirection * radiusError * guidanceStrength * 0.5f;
+                guidanceAcceleration += radiusCorrection;
+            }
+        }
+        
+        // 3. 混合引力和引导：最终加速度 = 引力 * (1-引导强度) + 引导 * 引导强度
+        Vector3 totalAcceleration = radialGravity * (1f - guidanceStrength) + guidanceAcceleration * guidanceStrength;
+        
+        // 4. 应用 maxAngularVelocity 限制（模拟 CoreDeflector 的角度限制逻辑）
+        if (maxAngularVelocity > 0f && currentSpeed > 0.01f)
+        {
+            // 计算当前速度方向和新速度方向
+            Vector3 newVelocity = velocity + totalAcceleration * deltaTime;
+            Vector3 newVelocityDirection = newVelocity.normalized;
+            
+            float angleChange = Vector3.Angle(velocityDirection, newVelocityDirection) * Mathf.Deg2Rad;
+            float maxRotationPerFrame = maxAngularVelocity * Mathf.Deg2Rad * deltaTime;
+            
+            if (angleChange > maxRotationPerFrame && angleChange > 0.001f)
+            {
+                // 限制旋转角度
+                Vector3 rotationAxis = Vector3.Cross(velocityDirection, newVelocityDirection);
+                if (rotationAxis.magnitude < 0.001f)
+                {
+                    rotationAxis = Vector3.forward; // 默认绕Z轴
+                }
+                rotationAxis = rotationAxis.normalized;
+                
+                Quaternion limitedRotation = Quaternion.AngleAxis(maxAngularVelocity * deltaTime, rotationAxis);
+                Vector3 limitedDir = limitedRotation * velocityDirection;
+                
+                // 根据限制后的方向重新计算加速度
+                Vector3 limitedVelocity = limitedDir * currentSpeed;
+                Vector3 limitedAcceleration = (limitedVelocity - velocity) / deltaTime;
+                
+                // 混合：保持加速度的大小，但限制方向变化
+                float originalMagnitude = totalAcceleration.magnitude;
+                if (originalMagnitude > 0.01f)
+                {
+                    totalAcceleration = limitedAcceleration.normalized * originalMagnitude;
+                }
+                else
+                {
+                    totalAcceleration = limitedAcceleration;
+                }
+            }
+        }
+        
+        return totalAcceleration;
+    }
+    
+    /// <summary>
+    /// 获取切向方向（垂直于径向，选择与速度方向更接近的那个）
+    /// </summary>
+    private Vector3 GetTangentialDirection(Vector3 radialDirection, Vector3 velocityDirection)
+    {
+        // 计算两个可能的切向方向
+        Vector3 tangent1 = new Vector3(-radialDirection.y, radialDirection.x, 0f).normalized;
+        Vector3 tangent2 = new Vector3(radialDirection.y, -radialDirection.x, 0f).normalized;
+        
+        // 选择与速度方向更接近的切向
+        float dot1 = Vector3.Dot(velocityDirection, tangent1);
+        float dot2 = Vector3.Dot(velocityDirection, tangent2);
+        
+        return (dot1 > dot2) ? tangent1 : tangent2;
     }
 
     /// <summary>
@@ -499,6 +732,7 @@ public class TrajectoryPredictor : MonoBehaviour
     public void RefreshGravitySources()
     {
         CacheGravitySources();
+        CacheCoreDeflectors();
     }
 
     /// <summary>
@@ -641,8 +875,8 @@ public class TrajectoryPredictor : MonoBehaviour
     /// </summary>
     private void UpdateEuler(ref Vector3 position, ref Vector3 velocity, float dt)
     {
-        // 1. 计算当前加速度
-        Vector3 acceleration = CalculateGravityAcceleration(position);
+        // 1. 计算当前加速度（传入当前速度用于 CoreDeflector 计算）
+        Vector3 acceleration = CalculateGravityAcceleration(position, velocity);
         
         // 2. 更新速度
         velocity += acceleration * dt;
@@ -663,8 +897,8 @@ public class TrajectoryPredictor : MonoBehaviour
     /// </summary>
     private void UpdateVerlet(ref Vector3 position, ref Vector3 velocity, float dt)
     {
-        // 1. 计算当前加速度
-        Vector3 acceleration = CalculateGravityAcceleration(position);
+        // 1. 计算当前加速度（传入当前速度用于 CoreDeflector 计算）
+        Vector3 acceleration = CalculateGravityAcceleration(position, velocity);
         
         // 2. 使用半步 Verlet（Velocity Verlet）
         // v(t+dt/2) = v(t) + a(t) * dt/2
@@ -674,8 +908,8 @@ public class TrajectoryPredictor : MonoBehaviour
         // x(t+dt) = x(t) + v(t+dt/2) * dt
         position += velocity * dt;
         
-        // 4. 计算新位置的加速度
-        Vector3 newAcceleration = CalculateGravityAcceleration(position);
+        // 4. 计算新位置的加速度（传入更新后的速度用于 CoreDeflector 计算）
+        Vector3 newAcceleration = CalculateGravityAcceleration(position, velocity);
         
         // 5. 完成速度更新
         // v(t+dt) = v(t+dt/2) + a(t+dt) * dt/2
@@ -694,16 +928,16 @@ public class TrajectoryPredictor : MonoBehaviour
     /// </summary>
     private void UpdateRK2(ref Vector3 position, ref Vector3 velocity, float dt)
     {
-        // 1. 计算当前状态的导数 k1
-        Vector3 k1_v = CalculateGravityAcceleration(position);
+        // 1. 计算当前状态的导数 k1（传入当前速度用于 CoreDeflector 计算）
+        Vector3 k1_v = CalculateGravityAcceleration(position, velocity);
         Vector3 k1_x = velocity;
         
         // 2. 计算中点状态
         Vector3 midPosition = position + k1_x * (dt * 0.5f);
         Vector3 midVelocity = velocity + k1_v * (dt * 0.5f);
         
-        // 3. 计算中点的导数 k2
-        Vector3 k2_v = CalculateGravityAcceleration(midPosition);
+        // 3. 计算中点的导数 k2（传入中点速度用于 CoreDeflector 计算）
+        Vector3 k2_v = CalculateGravityAcceleration(midPosition, midVelocity);
         Vector3 k2_x = midVelocity;
         
         // 4. 使用中点导数更新

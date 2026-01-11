@@ -587,18 +587,33 @@ public class ShipOverheat : MonoBehaviour
         // ✅ 隐藏UI警告
         HideWarningUI();
         
-        // ✅ 隐藏炫光效果
+        // ✅ 隐藏炫光效果（立即隐藏并重置所有属性）
         if (glowObject != null)
         {
             glowObject.SetActive(false);
             if (glowMaterialInstance != null)
             {
-                // 重置炫光强度
-                glowMaterialInstance.SetColor("_EmissionColor", glowColor * 0f);
+                // 重置炫光强度为0（所有可能的属性）
+                if (glowMaterialInstance.HasProperty("_EmissionColor"))
+                {
+                    glowMaterialInstance.SetColor("_EmissionColor", glowColor * 0f);
+                }
+                if (glowMaterialInstance.HasProperty("_Color"))
+                {
+                    Color resetColor = glowColor;
+                    resetColor.a = 0f;
+                    glowMaterialInstance.color = resetColor;
+                }
+                if (glowMaterialInstance.HasProperty("_BaseColor"))
+                {
+                    Color resetColor = glowColor;
+                    resetColor.a = 0f;
+                    glowMaterialInstance.SetColor("_BaseColor", resetColor);
+                }
             }
             if (showDebugLog)
             {
-                Debug.Log("ShipOverheat: ✅ 重置时隐藏炫光效果");
+                Debug.Log("ShipOverheat: ✅ 重置时隐藏炫光效果（所有属性已重置）");
             }
         }
         
@@ -1884,18 +1899,33 @@ public class ShipOverheat : MonoBehaviour
         // 隐藏UI警告
         HideWarningUI();
         
-        // ✅ 隐藏炫光效果
+        // ✅ 隐藏炫光效果（立即隐藏并重置所有属性）
         if (glowObject != null)
         {
             glowObject.SetActive(false);
             if (glowMaterialInstance != null)
             {
-                // 重置炫光强度
-                glowMaterialInstance.SetColor("_EmissionColor", glowColor * 0f);
+                // 重置炫光强度为0（所有可能的属性）
+                if (glowMaterialInstance.HasProperty("_EmissionColor"))
+                {
+                    glowMaterialInstance.SetColor("_EmissionColor", glowColor * 0f);
+                }
+                if (glowMaterialInstance.HasProperty("_Color"))
+                {
+                    Color resetColor = glowColor;
+                    resetColor.a = 0f;
+                    glowMaterialInstance.color = resetColor;
+                }
+                if (glowMaterialInstance.HasProperty("_BaseColor"))
+                {
+                    Color resetColor = glowColor;
+                    resetColor.a = 0f;
+                    glowMaterialInstance.SetColor("_BaseColor", resetColor);
+                }
             }
             if (showDebugLog)
             {
-                Debug.Log("ShipOverheat: ✅ 取消过热时隐藏炫光效果");
+                Debug.Log("ShipOverheat: ✅ 取消过热时隐藏炫光效果（所有属性已重置）");
             }
         }
         
@@ -2106,6 +2136,36 @@ public class ShipOverheat : MonoBehaviour
             if (showDebugLog)
             {
                 Debug.Log("ShipOverheat: 已停止闪烁协程");
+            }
+        }
+        
+        // ✅ 隐藏炫光效果（重置时立即隐藏）
+        if (glowObject != null)
+        {
+            glowObject.SetActive(false);
+            if (glowMaterialInstance != null)
+            {
+                // 重置炫光强度为0
+                if (glowMaterialInstance.HasProperty("_EmissionColor"))
+                {
+                    glowMaterialInstance.SetColor("_EmissionColor", glowColor * 0f);
+                }
+                if (glowMaterialInstance.HasProperty("_Color"))
+                {
+                    Color resetColor = glowColor;
+                    resetColor.a = 0f;
+                    glowMaterialInstance.color = resetColor;
+                }
+                if (glowMaterialInstance.HasProperty("_BaseColor"))
+                {
+                    Color resetColor = glowColor;
+                    resetColor.a = 0f;
+                    glowMaterialInstance.SetColor("_BaseColor", resetColor);
+                }
+            }
+            if (showDebugLog)
+            {
+                Debug.Log("ShipOverheat: ✅ 重置时隐藏炫光效果");
             }
         }
         

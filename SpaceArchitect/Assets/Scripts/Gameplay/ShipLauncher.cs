@@ -26,6 +26,9 @@ public class ShipLauncher : MonoBehaviour
     [Tooltip("箭头宽度")]
     [SerializeField] private float arrowWidth = 0.1f;
 
+    [Tooltip("箭头材质（可选，如果不指定会自动创建）")]
+    [SerializeField] private Material arrowMaterial;
+
     // 内部状态
     private ShipState shipState;
     private TrajectoryPredictor trajectoryPredictor;
@@ -291,9 +294,24 @@ public class ShipLauncher : MonoBehaviour
             arrowLine.startWidth = arrowWidth;
             arrowLine.endWidth = arrowWidth * 1.5f;
             arrowLine.positionCount = 2;
-            arrowLine.material = new Material(Shader.Find("Sprites/Default"));
+            
+            // 设置材质（使用提供的材质，如果不提供则使用Unity默认材质）
+            if (arrowMaterial != null)
+            {
+                arrowLine.material = arrowMaterial;
+            }
+            // 如果不指定材质，Unity会自动使用LineRenderer的默认材质
+            
             arrowLine.startColor = arrowColor;
             arrowLine.endColor = arrowColor;
+        }
+        else
+        {
+            // 如果 LineRenderer 已存在，只有在提供了材质时才设置
+            if (arrowMaterial != null && arrowLine.material != arrowMaterial)
+            {
+                arrowLine.material = arrowMaterial;
+            }
         }
 
         ShowArrow(false);
