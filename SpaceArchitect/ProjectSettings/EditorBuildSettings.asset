@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/UI/Scenes/UITRY.unity
     guid: 4f0b4635ae7fe7f42a334f6159e2bfba
+  - enabled: 1
+    path: Assets/Scenes/SkillTestScene/SkillTestScene.unity
+    guid: cf162623724445b4fa09ef9527585960
   m_configObjects: {}
