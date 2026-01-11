@@ -891,6 +891,9 @@ MonoBehaviour:
   settingsButton: {fileID: 1396884796}
   quitButton: {fileID: 1945870436}
   highlightController: {fileID: 1414264006}
+  audioSource: {fileID: 0}
+  buttonHoverSound: {fileID: 8300000, guid: a78c273c50c5bc54283c06ba2f68fe01, type: 3}
+  buttonClickSound: {fileID: 8300000, guid: 89e617dde557ee9458afb4f224f8332e, type: 3}
 --- !u!114 &717661950
 MonoBehaviour:
   m_ObjectHideFlags: 0

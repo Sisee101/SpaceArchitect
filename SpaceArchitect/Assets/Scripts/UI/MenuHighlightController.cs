@@ -124,6 +124,7 @@ public class MenuHighlightController : MonoBehaviour
     
     /// <summary>
     /// 移动到指定菜单项（通过按钮引用）
+    /// 直接定位到按钮位置，无动画
     /// </summary>
     /// <param name="targetButton">目标按钮的 RectTransform</param>
     public void MoveToButton(RectTransform targetButton)
@@ -134,17 +135,35 @@ public class MenuHighlightController : MonoBehaviour
             return;
         }
         
-        // 查找目标按钮在数组中的索引
+        if (highlightBlock == null)
+        {
+            Debug.LogWarning("MenuHighlightController: 高亮色块未配置！");
+            return;
+        }
+        
+        // 停止所有动画
+        highlightBlock.DOKill();
+        
+        // 直接设置位置和宽度，无动画
+        highlightBlock.anchoredPosition = new Vector2(
+            targetButton.anchoredPosition.x + highlightOffset.x,
+            targetButton.anchoredPosition.y + highlightOffset.y
+        );
+        
+        highlightBlock.sizeDelta = new Vector2(
+            targetButton.sizeDelta.x,
+            highlightBlock.sizeDelta.y
+        );
+        
+        // 更新当前选中索引（如果按钮在数组中）
         for (int i = 0; i < menuButtons.Length; i++)
         {
             if (menuButtons[i] == targetButton)
             {
-                MoveToButton(i);
+                currentSelectedIndex = i;
                 return;
             }
         }
-        
-        Debug.LogWarning("MenuHighlightController: 未找到目标按钮在菜单列表中的位置！");
     }
     
     /// <summary>

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System.Collections;
 
 /// <summary>
 /// 主菜单面板控制器
@@ -17,8 +18,25 @@ public class MainMenuPanel : MonoBehaviour
     [Header("高亮控制器")]
     [SerializeField] private MenuHighlightController highlightController; // 高亮跟随控制器
     
+    [Header("音效")]
+    [SerializeField] private AudioSource audioSource;          // 音频源组件
+    [SerializeField] private AudioClip buttonHoverSound;       // 按钮悬停音效
+    [SerializeField] private AudioClip buttonClickSound;       // 按钮点击音效
+    [SerializeField] private float clickSoundDelay = 0.15f;    // 点击音效播放后的延迟时间（秒），用于确保音效播放完成再执行后续操作
+    
     void Start()
     {
+        // 如果未手动指定 AudioSource，尝试自动获取
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            // 如果还是没有，自动添加一个
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+            }
+        }
+        
         // 绑定按钮点击事件
         if (startGameButton != null)
         {
@@ -98,6 +116,31 @@ public class MainMenuPanel : MonoBehaviour
         {
             highlightController.MoveToButton(buttonRect);
         }
+        
+        // 播放悬停音效
+        PlayButtonHoverSound();
+    }
+    
+    /// <summary>
+    /// 播放按钮悬停音效
+    /// </summary>
+    private void PlayButtonHoverSound()
+    {
+        if (audioSource != null && buttonHoverSound != null)
+        {
+            audioSource.PlayOneShot(buttonHoverSound);
+        }
+    }
+    
+    /// <summary>
+    /// 播放按钮点击音效
+    /// </summary>
+    private void PlayButtonClickSound()
+    {
+        if (audioSource != null && buttonClickSound != null)
+        {
+            audioSource.PlayOneShot(buttonClickSound);
+        }
     }
     
     /// <summary>
@@ -121,6 +164,21 @@ public class MainMenuPanel : MonoBehaviour
     /// </summary>
     private void OnStartGameClicked()
     {
+        // 播放点击音效并延迟执行场景切换，确保音效能够播放
+        StartCoroutine(PlayClickSoundAndLoadScene());
+    }
+    
+    /// <summary>
+    /// 播放点击音效并延迟加载场景（协程）
+    /// </summary>
+    private IEnumerator PlayClickSoundAndLoadScene()
+    {
+        // 播放点击音效
+        PlayButtonClickSound();
+        
+        // 等待一小段时间，让音效有时间播放
+        yield return new WaitForSeconds(clickSoundDelay);
+        
         Debug.Log("开始游戏 - 跳转到主界面");
         if (SceneTransitionManager.Instance != null)
         {
@@ -137,6 +195,21 @@ public class MainMenuPanel : MonoBehaviour
     /// </summary>
     private void OnPlanetEncyclopediaClicked()
     {
+        // 播放点击音效并延迟打开面板，确保音效能够播放
+        StartCoroutine(PlayClickSoundAndShowPlanetEncyclopedia());
+    }
+    
+    /// <summary>
+    /// 播放点击音效并延迟显示行星图鉴（协程）
+    /// </summary>
+    private IEnumerator PlayClickSoundAndShowPlanetEncyclopedia()
+    {
+        // 播放点击音效
+        PlayButtonClickSound();
+        
+        // 等待一小段时间，让音效有时间播放
+        yield return new WaitForSeconds(clickSoundDelay);
+        
         Debug.Log("打开行星图鉴");
         if (UIManager.Instance != null)
         {
@@ -153,6 +226,21 @@ public class MainMenuPanel : MonoBehaviour
     /// </summary>
     private void OnSettingsClicked()
     {
+        // 播放点击音效并延迟打开面板，确保音效能够播放
+        StartCoroutine(PlayClickSoundAndShowSettings());
+    }
+    
+    /// <summary>
+    /// 播放点击音效并延迟显示设置（协程）
+    /// </summary>
+    private IEnumerator PlayClickSoundAndShowSettings()
+    {
+        // 播放点击音效
+        PlayButtonClickSound();
+        
+        // 等待一小段时间，让音效有时间播放
+        yield return new WaitForSeconds(clickSoundDelay);
+        
         Debug.Log("打开设置");
         if (UIManager.Instance != null)
         {
@@ -169,6 +257,9 @@ public class MainMenuPanel : MonoBehaviour
     /// </summary>
     private void OnQuitClicked()
     {
+        // 播放点击音效
+        PlayButtonClickSound();
+        
         Debug.Log("退出游戏");
         if (SceneTransitionManager.Instance != null)
         {

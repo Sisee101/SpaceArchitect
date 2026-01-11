@@ -438,7 +438,7 @@ PrefabInstance:
     - target: {fileID: 709288859376153528, guid: 78502e15205847142a3bb29f02f79ad1,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 928633416243771035, guid: 78502e15205847142a3bb29f02f79ad1,
         type: 3}
@@ -494,6 +494,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0.00001049
+      objectReference: {fileID: 0}
+    - target: {fileID: 7914553207792661646, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 2.2470703
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1, type: 3}
@@ -1123,7 +1128,7 @@ PrefabInstance:
     - target: {fileID: 709288859376153528, guid: 78502e15205847142a3bb29f02f79ad1,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 928633416243771035, guid: 78502e15205847142a3bb29f02f79ad1,
         type: 3}
@@ -1180,6 +1185,11 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0.00001049
       objectReference: {fileID: 0}
+    - target: {fileID: 7914553207792661646, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 2.2470703
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1, type: 3}
     m_RemovedGameObjects: []
@@ -1200,7 +1210,6 @@ GameObject:
   m_Component:
   - component: {fileID: 942158971}
   - component: {fileID: 942158973}
-  - component: {fileID: 942158972}
   m_Layer: 5
   m_Name: ResourceDisplay
   m_TagString: Untagged
@@ -1227,20 +1236,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &942158972
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 942158970}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bebe70ada3867434d98d3f5abdc6aa59, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  orderButton: {fileID: 0}
-  orderInfoText: {fileID: 0}
 --- !u!114 &942158973
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1542,37 +1537,12 @@ PrefabInstance:
     - target: {fileID: 709288859376153528, guid: 78502e15205847142a3bb29f02f79ad1,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3179128212419436623, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Color.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3713818421665280990, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Color.a
-      value: 0.45882353
-      objectReference: {fileID: 0}
-    - target: {fileID: 3713818421665280990, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Color.b
-      value: 0.49056602
-      objectReference: {fileID: 0}
-    - target: {fileID: 3713818421665280990, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Color.g
-      value: 0.27908
-      objectReference: {fileID: 0}
-    - target: {fileID: 3713818421665280990, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Color.r
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4392946105938591393, guid: 78502e15205847142a3bb29f02f79ad1,
+    - target: {fileID: 6335161021169384327, guid: 78502e15205847142a3bb29f02f79ad1,
         type: 3}
-      propertyPath: m_Color.a
-      value: 0
+      propertyPath: m_SizeDelta.x
+      value: 40
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2239,7 +2209,6 @@ MonoBehaviour:
   settingsPanel: {fileID: 0}
   employeeHandbookPanel: {fileID: 1021886023}
   stationLevelPanel: {fileID: 2008853951}
-  orderListPanel: {fileID: 0}
 --- !u!4 &1909989936
 Transform:
   m_ObjectHideFlags: 0
