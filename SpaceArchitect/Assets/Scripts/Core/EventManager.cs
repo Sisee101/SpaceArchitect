@@ -103,6 +103,18 @@ public class EventManager : MonoBehaviour
     /// </summary>
     public event Action<ShipState.State, GameObject> OnShipFailed;
     
+    /// <summary>
+    /// 飞船开始过热事件（进入加热范围，开始变红效果）
+    /// 参数：火行星GameObject，飞船GameObject
+    /// </summary>
+    public event Action<GameObject, GameObject> OnShipStartOverheating;
+    
+    /// <summary>
+    /// 飞船过热失败事件（过热完成，触发爆炸）
+    /// 参数：火行星GameObject，飞船GameObject
+    /// </summary>
+    public event Action<GameObject, GameObject> OnShipOverheated;
+    
     #endregion
     
     #region 行星事件
@@ -247,6 +259,22 @@ public class EventManager : MonoBehaviour
         OnShipFailed?.Invoke(failureReason, ship);
     }
     
+    /// <summary>
+    /// 触发飞船开始过热事件
+    /// </summary>
+    public void TriggerShipStartOverheating(GameObject firePlanet, GameObject ship)
+    {
+        OnShipStartOverheating?.Invoke(firePlanet, ship);
+    }
+    
+    /// <summary>
+    /// 触发飞船过热失败事件
+    /// </summary>
+    public void TriggerShipOverheated(GameObject firePlanet, GameObject ship)
+    {
+        OnShipOverheated?.Invoke(firePlanet, ship);
+    }
+    
     #endregion
     
     #region 行星事件触发
@@ -376,6 +404,8 @@ public class EventManager : MonoBehaviour
         OnTimeStopEnd = null;
         OnShipSucceed = null;
         OnShipFailed = null;
+        OnShipStartOverheating = null;
+        OnShipOverheated = null;
         OnPlanetCaptureStart = null;
         OnPlanetCaptureEnd = null;
         OnCoreDragStart = null;
@@ -403,6 +433,8 @@ public class EventManager : MonoBehaviour
         Debug.Log($"OnTimeStopEnd: {GetSubscriberCount(OnTimeStopEnd)}");
         Debug.Log($"OnShipSucceed: {GetSubscriberCount(OnShipSucceed)}");
         Debug.Log($"OnShipFailed: {GetSubscriberCount(OnShipFailed)}");
+        Debug.Log($"OnShipStartOverheating: {GetSubscriberCount(OnShipStartOverheating)}");
+        Debug.Log($"OnShipOverheated: {GetSubscriberCount(OnShipOverheated)}");
         Debug.Log($"OnPlanetCaptureStart: {GetSubscriberCount(OnPlanetCaptureStart)}");
         Debug.Log($"OnPlanetCaptureEnd: {GetSubscriberCount(OnPlanetCaptureEnd)}");
         Debug.Log($"OnCoreDragStart: {GetSubscriberCount(OnCoreDragStart)}");

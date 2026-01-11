@@ -11,6 +11,10 @@ TagManager:
   - PlanetCapture
   - Destination
   - Core
+  - effect
+  - loweffect
+  - Obstacles
+  - Fire
   layers:
   - Default
   - TransparentFX

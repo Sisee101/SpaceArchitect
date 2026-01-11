@@ -695,9 +695,9 @@ MonoBehaviour:
   leftMoveKey: 97
   rightMoveKey: 100
   enableZoom: 1
-  zoomSpeed: 2
+  zoomSpeed: 10
   minZoom: 1
-  maxZoom: 100
+  maxZoom: 30
   overviewZoomScale: 3
   zoomOutDuration: 1
   overviewHoldDuration: 1.5
@@ -2627,24 +2627,6 @@ MonoBehaviour:
   size: 0.1
   rotateFrame: 1
   lockToXYPlane: 0
---- !u!114 &1966355603
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1966355597}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b731033cfd7c3ea47852af804dd5e11e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  launchForceMultiplier: 9.85
-  maxDragDistance: 20
-  arrowLine: {fileID: 0}
-  arrowHead: {fileID: 0}
-  arrowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  arrowWidth: 0.1
 --- !u!114 &1966355604
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2819,6 +2801,62 @@ MonoBehaviour:
   arrowSprite: {fileID: 21300000, guid: 34bbbbffaee1e9a428f7083d1426eb2c, type: 3}
   arrowSize: {x: 0.3, y: 0.3}
   arrowSpacing: 0.6
+  showDebugLog: 1
+--- !u!114 &1966355613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1966355597}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 880a41c81fa4aca43958ce1bb0f67cf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shieldKey: 99
+  shieldDuration: 5
+  cooldownDuration: 10
+  shieldVFX: {fileID: 0}
+  shieldVFXParent: {fileID: 0}
+  asteroidBeltTag: Obstacles
+  showDebugLog: 1
+--- !u!114 &1966355614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1966355597}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bcc0176844fd154c83b292e1bf61e2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  heatShieldKey: 104
+  shieldDuration: 5
+  cooldownDuration: 10
+  showDebugLog: 1
+--- !u!114 &1966355615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1966355597}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 714a10ae684bd934680028707b62461b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  redEffectDuration: 1
+  explosionParticlesPrefab: {fileID: 1286973089002592906, guid: 9b08032d5214dbc46a55f5163ec72de8,
+    type: 3}
+  overheatParticlesPrefab: {fileID: 0}
+  shipRenderers: []
+  overheatColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  originalMaterials: []
+  redMaterials: []
   showDebugLog: 1
 --- !u!1001 &2071229980
 PrefabInstance:
@@ -3171,10 +3209,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1966355603}
-    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
-        type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1966355605}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
@@ -3195,11 +3229,23 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
       insertIndex: -1
+      addedObject: {fileID: 1966355615}
+    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1966355611}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1966355612}
+    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1966355613}
+    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1966355614}
   m_SourcePrefab: {fileID: 100100000, guid: 85df5d8f1d63d594caaf743031644e31, type: 3}
 --- !u!1001 &8192898088282667707
 PrefabInstance:
@@ -3218,6 +3264,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2042081114281233866, guid: 65d63d8a0d508f444ba274a04b5b1471,
+        type: 3}
+      propertyPath: m_TagString
+      value: Obstacles
       objectReference: {fileID: 0}
     - target: {fileID: 7499652371527784848, guid: 65d63d8a0d508f444ba274a04b5b1471,
         type: 3}

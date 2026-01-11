@@ -25,6 +25,7 @@ public class Crash : MonoBehaviour
     private CapsuleCollider capsuleCollider;
     private Rigidbody rb;
     private bool hasCrashed = false;
+    private ShipShieldSkill shieldSkill; // 防撞技能组件引用
 
     void Awake()
     {
@@ -46,6 +47,9 @@ public class Crash : MonoBehaviour
         {
             Debug.LogError($"Crash: {gameObject.name} 缺少 Rigidbody 组件！");
         }
+
+        // 获取防撞技能组件（可选，如果没有也不报错）
+        shieldSkill = GetComponent<ShipShieldSkill>();
     }
 
     void Start()
@@ -129,6 +133,16 @@ public class Crash : MonoBehaviour
         {
             HandleDestinationReached(collision);
             return;
+        }
+
+        // 检查防撞技能：如果技能激活且碰撞对象是小行星带，则忽略碰撞
+        if (shieldSkill != null && shieldSkill.CanIgnoreCollision(otherTag))
+        {
+            if (showDebugLogs)
+            {
+                Debug.Log($"[Crash] 防撞技能激活，忽略小行星带碰撞（Tag: {otherTag}）");
+            }
+            return; // 忽略碰撞，不触发坠毁
         }
 
         // 检查是否是Planet或Obstacle（失败）

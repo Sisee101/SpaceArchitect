@@ -11,7 +11,8 @@ public class ShipState : MonoBehaviour
     /// </summary>
     public enum State
     {
-        PreLaunch,  // 发射前状态（不受引力影响）
+        Setup,      // 检查/摆放阶段（摆放引力枢纽，不受引力影响）
+        PreLaunch,  // 发射前状态（不受引力影响，可以发射）
         Flying,     // 飞行状态（受引力影响）
         Captured,   // 被行星捕获状态（受引力影响，处于轨道引导中）
         Crashed,    // 碰撞状态（已坠毁，不受引力影响）
@@ -19,7 +20,7 @@ public class ShipState : MonoBehaviour
     }
 
     [Header("当前状态")]
-    [SerializeField] private State currentState = State.PreLaunch;
+    [SerializeField] private State currentState = State.Setup;
 
     [Header("逃离检测设置")]
     [Tooltip("用于检测视野的摄像机（如果为空，使用主摄像机）")]
@@ -116,8 +117,8 @@ public class ShipState : MonoBehaviour
             }
         }
 
-        // 初始化为PreLaunch状态（这会检查并移除如果已被添加）
-        InitializePreLaunchState();
+        // 初始化状态（Setup或PreLaunch状态，这会检查并移除如果已被添加到引力引擎）
+        InitializeStationaryState();
         hasInitialized = true;
     }
 
@@ -135,17 +136,18 @@ public class ShipState : MonoBehaviour
             nBody.engineRef = null;
         }
 
-        // 确保飞船处于PreLaunch状态
-        if (currentState == State.PreLaunch)
+        // 确保飞船处于Setup或PreLaunch状态（静止状态）
+        if (currentState == State.Setup || currentState == State.PreLaunch)
         {
-            InitializePreLaunchState();
+            InitializeStationaryState();
         }
     }
 
     /// <summary>
-    /// 初始化PreLaunch状态
+    /// 初始化静止状态（Setup或PreLaunch状态）
+    /// 确保飞船不在引力引擎中，位置固定
     /// </summary>
-    private void InitializePreLaunchState()
+    private void InitializeStationaryState()
     {
         if (nBody == null) return;
 
@@ -154,20 +156,23 @@ public class ShipState : MonoBehaviour
         {
             // 如果已被添加，立即移除
             Debug.Log($"检测到飞船已被自动添加到引力引擎，正在移除...");
-            gravityEngine.RemoveBody(gameObject);
-            nBody.engineRef = null;
+            if (gravityEngine != null)
+            {
+                gravityEngine.RemoveBody(gameObject);
+                nBody.engineRef = null;
+            }
         }
 
         // 确保位置正确
         transform.position = initialPosition;
 
-        Debug.Log($"飞船初始化完成 - PreLaunch状态，未添加到引力引擎");
+        Debug.Log($"飞船初始化完成 - {currentState}状态，未添加到引力引擎");
     }
 
     void FixedUpdate()
     {
-        // 在PreLaunch状态下，强制保持位置不变
-        if (hasInitialized && currentState == State.PreLaunch)
+        // 在Setup或PreLaunch状态下，强制保持位置不变
+        if (hasInitialized && (currentState == State.Setup || currentState == State.PreLaunch))
         {
             // 确保飞船不会因为任何原因移动（包括重力）
             // 每帧都重置到初始位置和旋转，确保完全固定
@@ -187,11 +192,15 @@ public class ShipState : MonoBehaviour
             }
 
             // 持续检查是否被意外添加到引擎
-            if (nBody.engineRef != null)
+            if (nBody != null && nBody.engineRef != null)
             {
-                Debug.LogWarning("飞船在PreLaunch状态下被意外添加到引力引擎，正在移除...");
-                gravityEngine.RemoveBody(gameObject);
-                nBody.engineRef = null;
+                string stateName = currentState == State.Setup ? "Setup" : "PreLaunch";
+                Debug.LogWarning($"飞船在{stateName}状态下被意外添加到引力引擎，正在移除...");
+                if (gravityEngine != null)
+                {
+                    gravityEngine.RemoveBody(gameObject);
+                    nBody.engineRef = null;
+                }
             }
         }
         
@@ -280,16 +289,16 @@ public class ShipState : MonoBehaviour
 
         switch (state)
         {
-            case State.PreLaunch:
-                // PreLaunch状态：从引力引擎移除
+            case State.Setup:
+                // Setup状态：检查/摆放阶段（不受引力影响，位置固定）
                 if (nBody.engineRef != null)
                 {
                     gravityEngine.RemoveBody(gameObject);
                     nBody.engineRef = null;
-                    Debug.Log("飞船已从引力引擎移除（PreLaunch状态）");
+                    Debug.Log("飞船已从引力引擎移除（Setup状态）");
                 }
                 
-                // 重置到初始位置和旋转
+                // 确保位置和旋转正确
                 transform.position = initialPosition;
                 transform.rotation = initialRotation;
                 
@@ -298,6 +307,29 @@ public class ShipState : MonoBehaviour
                 {
                     rb.velocity = Vector3.zero;
                     rb.angularVelocity = Vector3.zero;
+                    rb.isKinematic = true; // 设置为运动学，完全由脚本控制
+                }
+                break;
+
+            case State.PreLaunch:
+                // PreLaunch状态：发射前状态（不受引力影响，位置固定）
+                if (nBody.engineRef != null)
+                {
+                    gravityEngine.RemoveBody(gameObject);
+                    nBody.engineRef = null;
+                    Debug.Log("飞船已从引力引擎移除（PreLaunch状态）");
+                }
+                
+                // 确保位置和旋转正确
+                transform.position = initialPosition;
+                transform.rotation = initialRotation;
+                
+                // 如果有Rigidbody，重置速度
+                if (rb != null)
+                {
+                    rb.velocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                    rb.isKinematic = true; // 设置为运动学，完全由脚本控制
                 }
                 break;
 
@@ -601,18 +633,18 @@ public class ShipState : MonoBehaviour
     }
 
     /// <summary>
-    /// 重置飞船到初始状态（PreLaunch状态）
+    /// 重置飞船到初始状态（Setup状态）
     /// 用于游戏重启功能
     /// </summary>
     public void ResetShip()
     {
-        // 如果已经在PreLaunch状态，直接返回
-        if (currentState == State.PreLaunch)
+        // 如果已经在Setup状态，直接返回
+        if (currentState == State.Setup)
         {
             return;
         }
 
-        Debug.Log("重置飞船到初始状态...");
+        Debug.Log("重置飞船到初始状态（Setup状态）...");
 
         // 如果之前是Crashed状态，需要恢复飞船模型的渲染
         if (currentState == State.Crashed)
@@ -620,8 +652,8 @@ public class ShipState : MonoBehaviour
             RestoreShipModel();
         }
 
-        // 切换到PreLaunch状态（这会处理所有必要的清理工作）
-        SetState(State.PreLaunch);
+        // 切换到Setup状态（初始状态，这会处理所有必要的清理工作）
+        SetState(State.Setup);
 
         // 确保位置和旋转正确
         transform.position = initialPosition;
@@ -659,7 +691,60 @@ public class ShipState : MonoBehaviour
             crashScript.ResetCrashState();
         }
 
-        Debug.Log("飞船已重置到初始状态（PreLaunch）");
+        Debug.Log("飞船已重置到初始状态（Setup）");
+    }
+
+    /// <summary>
+    /// 从Setup状态转换到PreLaunch状态
+    /// 当点击READY按钮时调用此方法，表示检查/摆放阶段完成，进入准备发射阶段
+    /// </summary>
+    public void ReadyToPreLaunch()
+    {
+        // 只能在Setup状态下调用
+        if (currentState != State.Setup)
+        {
+            Debug.LogWarning($"飞船当前状态为 {currentState}，无法转换到PreLaunch状态。只能在Setup状态下调用ReadyToPreLaunch()。");
+            return;
+        }
+
+        Debug.Log("飞船从Setup状态转换到PreLaunch状态（检查阶段完成，进入准备发射阶段）");
+
+        // 切换到PreLaunch状态
+        SetState(State.PreLaunch);
+
+        // 确保位置和旋转正确
+        transform.position = initialPosition;
+        transform.rotation = initialRotation;
+
+        // 确保Rigidbody配置正确
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+
+        // 确保NBody组件启用
+        if (nBody != null && !nBody.enabled)
+        {
+            nBody.enabled = true;
+        }
+
+        // 重置NBody的速度
+        if (nBody != null)
+        {
+            nBody.vel = Vector3.zero;
+            nBody.vel_phys = Vector3.zero;
+        }
+
+        // 通过EventManager触发状态转换事件（可选）
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.TriggerShipStateChanged(State.Setup, State.PreLaunch, gameObject);
+        }
+
+        Debug.Log("飞船已进入PreLaunch状态，可以发射");
     }
 
     /// <summary>

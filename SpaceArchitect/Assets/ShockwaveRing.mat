@@ -40,9 +40,9 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _RippleDistanceFromCenter: 0.9763429
-    - _RippleStrength: 0.00007575917
-    - _RippleWidth: 0.082
+    - _RippleDistanceFromCenter: 1.5
+    - _RippleStrength: 0
+    - _RippleWidth: 0.025
     m_Colors:
     - _CenterPoint: {r: 0.5, g: 0.5, b: 0, a: 0}
   m_BuildTextureStacks: []

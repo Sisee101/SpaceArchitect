@@ -69,13 +69,14 @@ public class CameraFollowShip : MonoBehaviour
 
     private Vector3 initialPosition; // 保存初始位置（用于保持Y和Z不变）
     private Camera cameraComponent; // 摄像机组件引用
-    private float initialOrthographicSize; // 初始正交大小（用于正交摄像机）
-    private float initialFieldOfView; // 初始视野角度（用于透视摄像机）
+    private float initialOrthographicSize; // 初始正交大小（用于正交摄像机，这是聚焦飞船时的值）
+    private float initialFieldOfView; // 初始视野角度（用于透视摄像机，这是聚焦飞船时的值）
     private bool isOrthographic; // 是否为正交摄像机
     private float manualMoveOffset = 0f; // 手动移动的累积偏移量
     private ShipState shipState; // 飞船状态组件引用（用于检查飞船状态）
     private bool isAnimating = false; // 是否正在执行动画（动画期间禁用手动缩放）
     private Coroutine readySequenceCoroutine; // READY序列协程
+    private bool hasReadyClicked = false; // 是否已经点击过READY按钮（READY后禁用手动移动和缩放）
 
     void Awake()
     {
@@ -169,75 +170,211 @@ public class CameraFollowShip : MonoBehaviour
             shipState = shipTransform.GetComponent<ShipState>();
             if (shipState == null && showDebugLogs)
             {
-                Debug.LogWarning("CameraFollowShip: 飞船没有ShipState组件，将无法检测飞船状态，缩放和移动功能将始终可用。");
+                Debug.LogWarning("CameraFollowShip: 飞船没有ShipState组件，将无法检测飞船状态。");
             }
+        }
+
+        // 订阅游戏重置事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnGameReset += OnGameReset;
+        }
+
+        // 初始状态：设置为总览全局的缩放值，显示整个场景
+        // 这样进入场景时就可以看到所有内容，方便摆放行星
+        SetOverviewZoom();
+
+        if (showDebugLogs)
+        {
+            Debug.Log("CameraFollowShip: 初始状态已设置为总览全局，可以手动移动和缩放");
+        }
+    }
+
+    void OnEnable()
+    {
+        // 如果EventManager已存在，订阅游戏重置事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnGameReset += OnGameReset;
+        }
+    }
+
+    void OnDisable()
+    {
+        // 取消订阅游戏重置事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnGameReset -= OnGameReset;
+        }
+    }
+
+    /// <summary>
+    /// 游戏重置事件回调
+    /// 重置相机到初始Setup状态（完全回到游戏开始时的状态）
+    /// </summary>
+    private void OnGameReset()
+    {
+        if (showDebugLogs)
+        {
+            Debug.Log("CameraFollowShip: 收到游戏重置事件，重置相机到初始Setup状态");
+        }
+
+        // 1. 停止任何正在进行的动画
+        if (readySequenceCoroutine != null)
+        {
+            StopCoroutine(readySequenceCoroutine);
+            readySequenceCoroutine = null;
+        }
+        isAnimating = false;
+
+        // 2. 重置READY标志，允许手动移动和缩放（回到Setup状态）
+        hasReadyClicked = false;
+
+        // 3. 清除手动移动偏移
+        manualMoveOffset = 0f;
+
+        // 4. 重置到总览全局的缩放值（显示整个场景）
+        SetOverviewZoom();
+
+        // 5. 重置相机位置到初始位置（Y和Z保持初始值，X跟随飞船初始位置）
+        // 在Setup状态下，相机不自动跟随飞船，但应该在一个合理的初始位置
+        if (shipTransform != null)
+        {
+            float targetX = shipTransform.position.x + xOffset;
+            transform.position = new Vector3(targetX, initialPosition.y, initialPosition.z);
+        }
+        else
+        {
+            // 如果没有飞船引用，重置到保存的初始位置
+            transform.position = initialPosition;
+        }
+
+        if (showDebugLogs)
+        {
+            Debug.Log("CameraFollowShip: 相机已完全重置到Setup状态 - 可以摆放引力枢纽，可以手动移动相机（A/D键），可以缩放相机（鼠标滚轮）");
+        }
+    }
+
+    /// <summary>
+    /// 设置为总览全局的缩放值（用于初始状态和READY序列）
+    /// </summary>
+    private void SetOverviewZoom()
+    {
+        if (cameraComponent == null) return;
+
+        float overviewZoomValue;
+        if (isOrthographic)
+        {
+            overviewZoomValue = initialOrthographicSize * overviewZoomScale;
+            overviewZoomValue = Mathf.Clamp(overviewZoomValue, minZoom, maxZoom);
+            cameraComponent.orthographicSize = overviewZoomValue;
+        }
+        else
+        {
+            overviewZoomValue = initialFieldOfView * overviewZoomScale;
+            overviewZoomValue = Mathf.Clamp(overviewZoomValue, minZoom, maxZoom);
+            cameraComponent.fieldOfView = overviewZoomValue;
+        }
+
+        if (showDebugLogs)
+        {
+            Debug.Log($"CameraFollowShip: 已设置为总览全局缩放值: {overviewZoomValue:F2}");
         }
     }
 
     void LateUpdate()
     {
-        // 检查飞船是否处于Flying状态（如果处于Flying状态，禁用缩放和移动）
-        bool isShipFlying = IsShipFlying();
+        // 状态检查：
+        // 1. 如果已经点击过READY（hasReadyClicked = true）：禁用手动移动和缩放，开始跟随飞船
+        // 2. 初始状态（hasReadyClicked = false）：允许手动移动和缩放，不跟随飞船（保持在当前位置）
 
-        // 处理鼠标滚轮缩放（仅在飞船非Flying状态时可用，且不在执行动画时）
-        if (enableZoom && cameraComponent != null && !isShipFlying && !isAnimating)
+        // 处理鼠标滚轮缩放（仅在READY前可用，且不在执行动画时）
+        if (enableZoom && cameraComponent != null && !hasReadyClicked && !isAnimating)
         {
             HandleZoom();
         }
 
-        // 处理手动移动（A/D键） - 仅在飞船非Flying状态时可用
+        // 处理手动移动（A/D键） - 仅在READY前可用
         float currentManualOffset = 0f;
-        if (enableManualMove && !isShipFlying)
+        if (enableManualMove && !hasReadyClicked)
         {
             currentManualOffset = HandleManualMove();
         }
-        else if (isShipFlying)
+
+        // READY后才开始跟随飞船
+        if (hasReadyClicked && shipTransform != null)
         {
-            // 飞船在Flying状态时，清除手动移动偏移（平滑回到跟随位置）
-            if (Mathf.Abs(manualMoveOffset) > 0.01f)
+            // 计算目标X坐标（飞船X坐标 + 偏移量）
+            // READY后不再使用手动移动偏移，只跟随飞船
+            float targetX = shipTransform.position.x + xOffset;
+
+            // 获取当前位置
+            Vector3 currentPos = transform.position;
+
+            // 计算新位置（只改变X坐标）
+            Vector3 newPosition;
+
+            if (useSmoothing && followSpeed > 0f)
             {
-                manualMoveOffset = Mathf.Lerp(manualMoveOffset, 0f, followSpeed * Time.unscaledDeltaTime);
+                // 平滑跟随：使用Lerp插值（使用未缩放时间，确保时停时也能平滑）
+                float smoothedX = Mathf.Lerp(currentPos.x, targetX, followSpeed * Time.unscaledDeltaTime);
+                newPosition = new Vector3(smoothedX, initialPosition.y, initialPosition.z);
             }
             else
             {
-                manualMoveOffset = 0f;
+                // 立即跟随
+                newPosition = new Vector3(targetX, initialPosition.y, initialPosition.z);
             }
-            currentManualOffset = manualMoveOffset;
+
+            // 应用新位置
+            transform.position = newPosition;
+
+            if (showDebugLogs)
+            {
+                Debug.Log($"摄像机跟随：飞船X={shipTransform.position.x:F2}, 目标X={targetX:F2}, 当前X={transform.position.x:F2}, READY状态={hasReadyClicked}");
+            }
         }
-
-        // 如果飞船引用为空，跳过跟随
-        if (shipTransform == null)
+        else if (!hasReadyClicked)
         {
-            return;
-        }
+            // Setup状态：不跟随飞船，但需要应用手动移动偏移
+            // 计算目标X坐标（飞船初始位置 + 偏移量 + 手动移动偏移）
+            float baseX;
+            if (shipTransform != null)
+            {
+                baseX = shipTransform.position.x + xOffset;
+            }
+            else
+            {
+                baseX = initialPosition.x;
+            }
 
-        // 计算目标X坐标（飞船X坐标 + 偏移量 + 手动移动偏移）
-        float targetX = shipTransform.position.x + xOffset + currentManualOffset;
+            float targetX = baseX + currentManualOffset;
 
-        // 获取当前位置
-        Vector3 currentPos = transform.position;
+            // 获取当前位置
+            Vector3 currentPos = transform.position;
 
-        // 计算新位置（只改变X坐标）
-        Vector3 newPosition;
+            // 计算新位置（只改变X坐标）
+            Vector3 newPosition;
 
-        if (useSmoothing && followSpeed > 0f)
-        {
-            // 平滑跟随：使用Lerp插值（使用未缩放时间，确保时停时也能平滑）
-            float smoothedX = Mathf.Lerp(currentPos.x, targetX, followSpeed * Time.unscaledDeltaTime);
-            newPosition = new Vector3(smoothedX, initialPosition.y, initialPosition.z);
-        }
-        else
-        {
-            // 立即跟随
-            newPosition = new Vector3(targetX, initialPosition.y, initialPosition.z);
-        }
+            if (useSmoothing && followSpeed > 0f)
+            {
+                // 平滑移动：使用Lerp插值
+                float smoothedX = Mathf.Lerp(currentPos.x, targetX, followSpeed * Time.unscaledDeltaTime);
+                newPosition = new Vector3(smoothedX, initialPosition.y, initialPosition.z);
+            }
+            else
+            {
+                // 立即移动
+                newPosition = new Vector3(targetX, initialPosition.y, initialPosition.z);
+            }
 
-        // 应用新位置
-        transform.position = newPosition;
+            // 应用新位置
+            transform.position = newPosition;
 
-        if (showDebugLogs)
-        {
-            Debug.Log($"摄像机跟随：飞船X={shipTransform.position.x:F2}, 目标X={targetX:F2}, 当前X={transform.position.x:F2}, 手动偏移={currentManualOffset:F2}, 飞船状态={GetShipStateName()}");
+            if (showDebugLogs)
+            {
+                Debug.Log($"摄像机Setup状态：基础X={baseX:F2}, 手动偏移={currentManualOffset:F2}, 目标X={targetX:F2}, 当前X={transform.position.x:F2}");
+            }
         }
     }
 
@@ -468,6 +605,7 @@ public class CameraFollowShip : MonoBehaviour
         float startZoomValue;
         float overviewZoomValue;
         float targetZoomValue;
+        float elapsed = 0f; // 声明elapsed变量，在多个步骤中复用
 
         if (isOrthographic)
         {
@@ -498,28 +636,47 @@ public class CameraFollowShip : MonoBehaviour
         }
 
         // 第一步：缩小到总览全局
-        float elapsed = 0f;
-        while (elapsed < zoomOutDuration)
+        // 如果当前已经在总览状态（或非常接近），跳过这一步，立即响应
+        float zoomDifference = Mathf.Abs(startZoomValue - overviewZoomValue);
+        float zoomTolerance = overviewZoomValue * 0.05f; // 5%的容差，如果差异小于5%就认为已经在总览状态
+
+        if (zoomDifference > zoomTolerance)
         {
-            elapsed += Time.unscaledDeltaTime;
-            float t = elapsed / zoomOutDuration;
-            float curveValue = zoomCurve.Evaluate(t);
-
-            float currentZoom = Mathf.Lerp(startZoomValue, overviewZoomValue, curveValue);
-
+            // 需要动画：从当前缩放值缩放到总览值
+            // 立即设置第一帧的值，让用户立即看到响应（而不是等到下一帧）
+            float firstFrameZoom = Mathf.Lerp(startZoomValue, overviewZoomValue, zoomCurve.Evaluate(0f));
             if (isOrthographic)
             {
-                cameraComponent.orthographicSize = currentZoom;
+                cameraComponent.orthographicSize = firstFrameZoom;
             }
             else
             {
-                cameraComponent.fieldOfView = currentZoom;
+                cameraComponent.fieldOfView = firstFrameZoom;
             }
 
-            yield return null;
+            elapsed = Time.unscaledDeltaTime; // 从第一帧的时间开始，而不是0
+            while (elapsed < zoomOutDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = elapsed / zoomOutDuration;
+                float curveValue = zoomCurve.Evaluate(t);
+
+                float currentZoom = Mathf.Lerp(startZoomValue, overviewZoomValue, curveValue);
+
+                if (isOrthographic)
+                {
+                    cameraComponent.orthographicSize = currentZoom;
+                }
+                else
+                {
+                    cameraComponent.fieldOfView = currentZoom;
+                }
+
+                yield return null;
+            }
         }
 
-        // 确保到达总览缩放值
+        // 确保到达总览缩放值（无论是否执行了动画）
         if (isOrthographic)
         {
             cameraComponent.orthographicSize = overviewZoomValue;
@@ -530,7 +687,12 @@ public class CameraFollowShip : MonoBehaviour
         }
 
         // 第二步：总览停留
-        yield return new WaitForSecondsRealtime(overviewHoldDuration);
+        // 如果已经在总览状态（跳过了第一步动画），缩短停留时间，让用户更快看到响应
+        float actualHoldDuration = zoomDifference <= zoomTolerance ? overviewHoldDuration * 0.3f : overviewHoldDuration;
+        if (actualHoldDuration > 0.01f) // 只有停留时间大于0.01秒才等待
+        {
+            yield return new WaitForSecondsRealtime(actualHoldDuration);
+        }
 
         // 第三步：回到聚焦飞船（画面放大的同时，相机逐渐移动到飞船位置）
         // 记录开始聚焦时的相机位置
@@ -548,7 +710,7 @@ public class CameraFollowShip : MonoBehaviour
             targetCameraPosition = startCameraPosition; // 如果没有飞船，保持当前位置
         }
 
-        elapsed = 0f;
+        elapsed = 0f; // 重置elapsed变量用于第三步动画
         while (elapsed < zoomInDuration)
         {
             elapsed += Time.unscaledDeltaTime;
@@ -586,12 +748,25 @@ public class CameraFollowShip : MonoBehaviour
         }
         transform.position = targetCameraPosition;
 
-        // READY序列完成：清除手动移动偏移，进入准备发射阶段（相机已聚焦飞船，开始自动跟随）
-        manualMoveOffset = 0f; // 清除手动偏移，确保之后自动跟随
+        // READY序列完成：
+        // 1. 飞船状态从Setup转换到PreLaunch（检查阶段完成，进入准备发射阶段）
+        if (shipState != null)
+        {
+            shipState.ReadyToPreLaunch();
+        }
+        
+        // 2. 清除手动移动偏移
+        manualMoveOffset = 0f;
+        
+        // 3. 设置READY标志，禁用手动移动和缩放，开始自动跟随飞船
+        hasReadyClicked = true;
+        
+        // 4. 确保立即聚焦到飞船位置（如果之前位置有偏差）
+        SnapToShip();
 
         if (showDebugLogs)
         {
-            Debug.Log("CameraFollowShip: READY序列完成，相机已聚焦飞船，进入准备发射阶段");
+            Debug.Log("CameraFollowShip: READY序列完成，飞船已从Setup转换到PreLaunch状态，相机已聚焦飞船，手动移动和缩放已禁用，开始自动跟随");
         }
 
         isAnimating = false;

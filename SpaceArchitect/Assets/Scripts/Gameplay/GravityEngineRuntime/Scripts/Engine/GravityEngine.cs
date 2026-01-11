@@ -1019,7 +1019,16 @@ public class GravityEngine : MonoBehaviour {
         //
         // physTimeError records the amount the engine overshoots the requested physicsDeltaTime
         float deltaTime = Time.timeSinceLevelLoad - previousPhyLoopGameTime;
-        double physicsDeltaTime = deltaTime * timeZoom - physTimeError; 
+        double physicsDeltaTime = deltaTime * timeZoom - physTimeError;
+        
+        // 安全检查：确保 worldState 已初始化
+        if (worldState == null)
+        {
+            Debug.LogWarning("GravityEngine: worldState is null in PhysicsLoop, initializing...");
+            worldState = new GravityState(arraySize);
+            SetAlgorithm(algorithm);
+        }
+        
         double currentPhysTime = worldState.GetPhysicsTime();
         if (evolve) {
             if (!isSetup) {
