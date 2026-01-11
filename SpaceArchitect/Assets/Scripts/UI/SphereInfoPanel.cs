@@ -54,6 +54,11 @@ public class SphereInfoPanel : MonoBehaviour
     /// <param name="sceneName">目标场景名称</param>
     public void Show(Sprite image, string sceneName)
     {
+        if (enableDebugLog)
+        {
+            Debug.Log($"SphereInfoPanel: Show方法被调用 - image: {(image != null ? image.name : "null")}, sceneName: {sceneName}");
+        }
+        
         if (panelImage == null)
         {
             Debug.LogError("SphereInfoPanel: panelImage未配置，无法显示面板！");
@@ -77,11 +82,53 @@ public class SphereInfoPanel : MonoBehaviour
         currentTargetSceneName = sceneName;
         
         // 显示面板
+        Debug.Log($"SphereInfoPanel: 准备激活GameObject - 当前状态: {gameObject.activeSelf}, 父对象: {(transform.parent != null ? transform.parent.name : "null")}");
+        
+        // 确保父对象已启用
+        if (transform.parent != null && !transform.parent.gameObject.activeSelf)
+        {
+            Debug.LogWarning($"SphereInfoPanel: 父对象 {transform.parent.name} 被禁用，正在启用...");
+            transform.parent.gameObject.SetActive(true);
+        }
+        
+        // 确保Canvas已启用
+        Canvas canvas = GetComponentInParent<Canvas>();
+        if (canvas != null)
+        {
+            Debug.Log($"SphereInfoPanel: 找到Canvas - {canvas.name}, Active: {canvas.gameObject.activeSelf}, RenderMode: {canvas.renderMode}");
+            if (!canvas.gameObject.activeSelf)
+            {
+                Debug.LogWarning($"SphereInfoPanel: Canvas {canvas.name} 被禁用，正在启用...");
+                canvas.gameObject.SetActive(true);
+            }
+        }
+        
         gameObject.SetActive(true);
+        Debug.Log($"SphereInfoPanel: GameObject已激活 - 新状态: {gameObject.activeSelf}, 激活层级: {gameObject.activeInHierarchy}");
+        
+        // 检查面板位置和Canvas设置
+        RectTransform rectTransform = GetComponent<RectTransform>();
+        if (rectTransform != null)
+        {
+            Debug.Log($"SphereInfoPanel: 面板位置 - Pos: {rectTransform.anchoredPosition}, Size: {rectTransform.sizeDelta}, Active: {gameObject.activeSelf}, ActiveInHierarchy: {gameObject.activeInHierarchy}");
+            
+            // 检查Canvas的Sort Order
+            if (canvas != null)
+            {
+                Debug.Log($"SphereInfoPanel: Canvas Sort Order: {canvas.sortingOrder}");
+            }
+        }
+        
+        // 强制刷新Canvas
+        if (canvas != null)
+        {
+            Canvas.ForceUpdateCanvases();
+            Debug.Log("SphereInfoPanel: 已强制刷新Canvas");
+        }
         
         if (enableDebugLog)
         {
-            Debug.Log($"SphereInfoPanel: 显示面板，场景: {sceneName}");
+            Debug.Log($"SphereInfoPanel: 显示面板完成，场景: {sceneName}");
         }
     }
     

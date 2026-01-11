@@ -252,13 +252,21 @@ public class SphereIconManager : MonoBehaviour
         Button iconButton = iconObj.GetComponent<Button>();
         if (iconButton != null)
         {
+            Debug.Log($"SphereIconManager: 找到Button组件，开始绑定点击事件 - Sphere: {sphere.name}");
+            Debug.Log($"SphereIconManager: Button.Interactable = {iconButton.interactable}");
+            
             // 获取Sphere的引用，用于点击事件
             GameObject sphereRef = sphere; // 闭包捕获
-            iconButton.onClick.AddListener(() => OnIconClicked(sphereRef));
+            iconButton.onClick.AddListener(() => {
+                Debug.Log($"SphereIconManager: ====== Button被点击！Sphere: {sphereRef.name} =====");
+                OnIconClicked(sphereRef);
+            });
+            
+            Debug.Log($"SphereIconManager: 点击事件绑定成功");
         }
         else
         {
-            Debug.LogWarning($"SphereIconManager: Icon预制体 {iconPrefab.name} 没有Button组件，无法处理点击事件！");
+            Debug.LogError($"SphereIconManager: Icon预制体 {iconPrefab.name} 没有Button组件，无法处理点击事件！");
         }
         
         // 检查Image组件

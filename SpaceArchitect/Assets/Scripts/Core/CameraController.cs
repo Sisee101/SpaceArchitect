@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.EventSystems; // 添加用于UI检测
+using UnityEngine.UI; // 添加用于GraphicRaycaster
 
 /// <summary>
 /// 相机控制器
@@ -108,6 +110,12 @@ public class CameraController : MonoBehaviour
         // 检查是否点击了鼠标旋转按键
         if (Input.GetKeyDown(mouseRotateKey))
         {
+            // 如果鼠标在UI上，不处理旋转（避免与UI点击冲突）
+            if (IsPointerOverUI())
+            {
+                return;
+            }
+            
             isRotating = true;
             lastMousePosition = Input.mousePosition;
         }
@@ -151,6 +159,12 @@ public class CameraController : MonoBehaviour
         // 检查是否按下鼠标中键
         if (Input.GetKeyDown(KeyCode.Mouse2))
         {
+            // 如果鼠标在UI上，不处理平移（避免与UI点击冲突）
+            if (IsPointerOverUI())
+            {
+                return;
+            }
+            
             isPanning = true;
             lastPanMousePosition = Input.mousePosition;
         }
@@ -281,5 +295,71 @@ public class CameraController : MonoBehaviour
     {
         // 可以扩展这个方法，让缩放围绕指定点进行
         // 目前缩放是沿相机前方向移动
+    }
+    
+    /// <summary>
+    /// 检查鼠标是否在UI元素上（包括World Space Canvas）
+    /// </summary>
+    private bool IsPointerOverUI()
+    {
+        // 方法1：检查EventSystem（对Screen Space Canvas有效）
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return true;
+        }
+        
+        // 方法2：使用GraphicRaycaster检测所有Canvas（包括World Space Canvas）
+        // 获取所有Canvas上的GraphicRaycaster
+        GraphicRaycaster[] raycasters = FindObjectsOfType<GraphicRaycaster>();
+        
+        if (raycasters != null && raycasters.Length > 0)
+        {
+            PointerEventData pointerData = new PointerEventData(EventSystem.current);
+            pointerData.position = Input.mousePosition;
+            
+            foreach (GraphicRaycaster raycaster in raycasters)
+            {
+                if (raycaster == null || !raycaster.enabled) continue;
+                
+                // 对于World Space Canvas，需要指定Event Camera
+                Canvas canvas = raycaster.GetComponent<Canvas>();
+                if (canvas != null)
+                {
+                    // 创建射线检测结果列表
+                    System.Collections.Generic.List<RaycastResult> results = new System.Collections.Generic.List<RaycastResult>();
+                    
+                    // 执行射线检测
+                    raycaster.Raycast(pointerData, results);
+                    
+                    // 如果检测到UI元素，返回true
+                    if (results.Count > 0)
+                    {
+                        // 检查结果中是否有可交互的UI元素（Button、Image等）
+                        foreach (RaycastResult result in results)
+                        {
+                            if (result.gameObject != null)
+                            {
+                                // 检查是否有可交互的组件
+                                Selectable selectable = result.gameObject.GetComponent<Selectable>();
+                                Image image = result.gameObject.GetComponent<Image>();
+                                
+                                // 如果RaycastTarget启用，认为是可以点击的UI
+                                if (image != null && image.raycastTarget)
+                                {
+                                    return true;
+                                }
+                                
+                                if (selectable != null && selectable.interactable)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return false;
     }
 }
