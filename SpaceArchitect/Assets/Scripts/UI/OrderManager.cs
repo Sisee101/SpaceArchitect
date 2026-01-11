@@ -163,5 +163,28 @@ public class OrderManager : MonoBehaviour
     {
         return orders.Count;
     }
+    
+    /// <summary>
+    /// 获取所有订单列表（供列表显示使用）
+    /// </summary>
+    public List<OrderData> GetAllOrders()
+    {
+        return new List<OrderData>(orders); // 返回副本，避免外部修改原始列表
+    }
+    
+    /// <summary>
+    /// 根据订单ID获取订单数据
+    /// </summary>
+    public OrderData GetOrderById(int orderId)
+    {
+        foreach (var order in orders)
+        {
+            if (order.orderId == orderId)
+            {
+                return order;
+            }
+        }
+        return null;
+    }
 }
 

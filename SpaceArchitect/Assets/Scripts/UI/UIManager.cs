@@ -50,11 +50,8 @@ public class UIManager : MonoBehaviour
     [Header("基站等级面板")]
     [SerializeField] private StationLevelPanel stationLevelPanel;
     
-    [Header("订单面板（已废弃，现在使用OrderTransitionController）")]
-    [SerializeField] private OrderPanel orderPanel; // 保留作为备用引用
-    
-    [Header("订单切换控制器（用于访问订单面板）")]
-    [SerializeField] private OrderTransitionController orderTransitionController;
+    [Header("订单列表面板（新系统）")]
+    [SerializeField] private OrderListPanel orderListPanel; // 订单列表面板
     
     // 初始化标志，用于防止初始化期间的时序冲突
     private bool isInitializationComplete = false;
@@ -154,9 +151,9 @@ public class UIManager : MonoBehaviour
             stationLevelPanel.Hide();
         }
         
-        if (orderPanel != null && orderPanel.gameObject.activeSelf && !userActivatedPanels.Contains(orderPanel))
+        if (orderListPanel != null && orderListPanel.gameObject.activeSelf && !userActivatedPanels.Contains(orderListPanel))
         {
-            orderPanel.Hide();
+            orderListPanel.Hide();
         }
         
         // 标记初始化完成（在这之后用户点击按钮，面板不会被延迟隐藏）
@@ -243,9 +240,9 @@ public class UIManager : MonoBehaviour
             stationLevelPanel.Hide();
         }
         
-        if (orderPanel != null && orderPanel.gameObject.activeSelf)
+        if (orderListPanel != null && orderListPanel.gameObject.activeSelf)
         {
-            orderPanel.Hide();
+            orderListPanel.Hide();
         }
     }
     
@@ -279,9 +276,9 @@ public class UIManager : MonoBehaviour
             stationLevelPanel.Hide();
         }
         
-        if (orderPanel != null && orderPanel != exceptPanel && orderPanel.gameObject.activeSelf)
+        if (orderListPanel != null && orderListPanel != exceptPanel && orderListPanel.gameObject.activeSelf)
         {
-            orderPanel.Hide();
+            orderListPanel.Hide();
         }
     }
     
@@ -402,60 +399,41 @@ public class UIManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 显示订单面板
-    /// 注意：现在订单面板由 OrderSet 管理，需要通过 OrderTransitionController 访问
+    /// 显示订单列表面板（新系统）
     /// </summary>
     public void ShowOrderPanel()
     {
-        // 从 OrderTransitionController 获取当前订单面板
-        if (orderTransitionController != null && orderTransitionController.GetCurrentOrderSet() != null)
+        if (orderListPanel != null)
         {
-            OrderPanel currentPanel = orderTransitionController.GetCurrentOrderSet().Panel;
-            if (currentPanel != null)
-            {
-                // 如果初始化还未完成，等待初始化完成后再显示（避免与DelayedHidePanels冲突）
-                if (!isInitializationComplete)
-                {
-                    StartCoroutine(ShowOrderPanelAfterInit(currentPanel));
-                }
-                else
-                {
-                    // 初始化已完成，直接显示
-                    HideAllPanelsExcept(currentPanel);
-                    currentPanel.Show();
-                }
-            }
-        }
-        else if (orderPanel != null)
-        {
-            // 兼容旧代码：如果直接引用orderPanel，也支持
+            // 如果初始化还未完成，等待初始化完成后再显示（避免与DelayedHidePanels冲突）
             if (!isInitializationComplete)
             {
-                StartCoroutine(ShowOrderPanelAfterInit(orderPanel));
+                StartCoroutine(ShowOrderListPanelAfterInit());
             }
             else
             {
-                HideAllPanelsExcept(orderPanel);
-                orderPanel.Show();
+                // 初始化已完成，直接显示
+                HideAllPanelsExcept(orderListPanel);
+                orderListPanel.Show();
             }
         }
         else
         {
-            Debug.LogWarning("UIManager: OrderPanel未配置，请确保OrderTransitionController已正确配置");
+            Debug.LogWarning("UIManager: OrderListPanel未配置，请确保订单列表面板已正确配置");
         }
     }
     
     /// <summary>
-    /// 等待初始化完成后显示订单面板
+    /// 等待初始化完成后显示订单列表面板
     /// </summary>
-    private IEnumerator ShowOrderPanelAfterInit(OrderPanel panel)
+    private IEnumerator ShowOrderListPanelAfterInit()
     {
         // 先立即显示面板，给用户即时反馈
-        if (panel != null)
+        if (orderListPanel != null)
         {
-            panel.Show();
+            orderListPanel.Show();
             // 记录这是用户主动显示的面板，避免被DelayedHidePanels隐藏
-            userActivatedPanels.Add(panel);
+            userActivatedPanels.Add(orderListPanel);
         }
         
         // 等待初始化完成（DelayedHidePanels执行完毕）
@@ -468,9 +446,9 @@ public class UIManager : MonoBehaviour
         yield return null;
         
         // 初始化完成后，再隐藏其他面板（面板已经在上面显示了）
-        if (panel != null && panel.gameObject.activeInHierarchy)
+        if (orderListPanel != null && orderListPanel.gameObject.activeInHierarchy)
         {
-            HideAllPanelsExcept(panel);
+            HideAllPanelsExcept(orderListPanel);
         }
     }
     
