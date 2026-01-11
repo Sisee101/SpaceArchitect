@@ -21,7 +21,7 @@ MonoBehaviour:
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 0
   m_RequireOpaqueTexture: 1
-  m_OpaqueDownsampling: 1
+  m_OpaqueDownsampling: 0
   m_SupportsTerrainHoles: 1
   m_SupportsHDR: 1
   m_HDRColorBufferPrecision: 0
@@ -34,7 +34,7 @@ MonoBehaviour:
   m_LODCrossFadeDitheringType: 1
   m_ShEvalMode: 0
   m_MainLightRenderingMode: 1
-  m_MainLightShadowsSupported: 1
+  m_MainLightShadowsSupported: 0
   m_MainLightShadowmapResolution: 4096
   m_AdditionalLightsRenderingMode: 1
   m_AdditionalLightsPerObjectLimit: 8

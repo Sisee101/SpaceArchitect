@@ -46,15 +46,16 @@ public class OrderButton : MonoBehaviour
     /// </summary>
     private void OnOrderButtonClicked()
     {
-        Debug.Log("点击订单，前往游戏场景");
+        Debug.Log("点击订单 - 打开订单面板");
         
-        if (SceneTransitionManager.Instance != null)
+        // 显示订单面板
+        if (UIManager.Instance != null)
         {
-            SceneTransitionManager.Instance.LoadGameScene();
+            UIManager.Instance.ShowOrderPanel();
         }
         else
         {
-            Debug.LogError("OrderButton: SceneTransitionManager未找到！");
+            Debug.LogError("OrderButton: UIManager未找到！");
         }
     }
     

@@ -45,6 +45,28 @@ public class StationLevelPanel : MonoBehaviour
             backButton.onClick.RemoveListener(OnBackClicked); // 先移除，避免重复绑定
             backButton.onClick.AddListener(OnBackClicked);
         }
+        
+        // 面板激活时，延迟更新显示（确保UI元素已准备好）
+        // 使用协程延迟一帧，确保所有UI元素都已完全初始化
+        if (this != null && gameObject.activeInHierarchy)
+        {
+            StartCoroutine(DelayedUpdateOnEnable());
+        }
+    }
+    
+    /// <summary>
+    /// 延迟更新（在OnEnable中调用，确保UI元素已准备好）
+    /// </summary>
+    private System.Collections.IEnumerator DelayedUpdateOnEnable()
+    {
+        // 等待一帧，确保所有UI元素都已准备好
+        yield return null;
+        
+        // 再次检查，确保面板仍然激活且对象仍然存在
+        if (this != null && gameObject != null && gameObject.activeInHierarchy && levelText != null)
+        {
+            UpdateLevelDisplay();
+        }
     }
     
     void Start()
@@ -81,21 +103,15 @@ public class StationLevelPanel : MonoBehaviour
     /// </summary>
     public void Show()
     {
-        // 如果面板还没有初始化，先初始化（无论是否激活）
+        // 总是确保初始化完成
         if (!isInitialized)
         {
             InitializePanel();
             isInitialized = true;
         }
-        
-        // 激活面板（如果已经是激活的，这不会触发OnEnable，但我们已经在上面初始化了）
-        if (!gameObject.activeSelf)
-        {
-            gameObject.SetActive(true);
-        }
         else
         {
-            // 如果面板已经是激活的，确保按钮事件已绑定
+            // 即使已经初始化，也确保按钮事件已绑定（防止事件丢失）
             if (backButton != null)
             {
                 backButton.onClick.RemoveListener(OnBackClicked);
@@ -103,7 +119,20 @@ public class StationLevelPanel : MonoBehaviour
             }
         }
         
-        UpdateLevelDisplay(); // 显示时更新等级信息
+        // 激活面板（与员工手册保持完全一致的逻辑）
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+            // OnEnable会自动调用DelayedUpdateOnEnable()来更新显示
+        }
+        else
+        {
+            // 如果面板已经是激活的，也触发更新（使用协程确保UI元素已准备好）
+            if (this != null && gameObject.activeInHierarchy)
+            {
+                StartCoroutine(DelayedUpdateOnEnable());
+            }
+        }
     }
     
     /// <summary>
