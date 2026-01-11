@@ -35,47 +35,23 @@ public class GalaxyDistributorXY : MonoBehaviour
         public float minRadius = 2.5f;
     }
 
-    [System.Serializable]
-    public class CometSetting
-    {
-        public bool enableComets = true;
-        [Tooltip("必须挂载 CometMover 脚本的预制体")]
-        public GameObject prefab;
-        public float minSpawnInterval = 5f; // 最快多久刷一个
-        public float maxSpawnInterval = 15f; // 最慢多久刷一个
-
-        [Header("飞行参数")]
-        public float minSpeed = 8f;
-        public float maxSpeed = 15f;
-        public float minScale = 0.5f;
-        public float maxScale = 1.0f;
-    }
-
     // --- 在Inspector中显示的配置列表 ---
 
     [Header("星体配置")]
     public List<CorePlanetSetting> corePlanets; // 优先级 1 & 2
     public List<DustLayerSetting> dustLayers;   // 优先级 3 (多种尘埃)
 
-    [Header("动态彗星配置")]
-    public CometSetting cometSetting;
-
     // --- 内部变量 ---
     private List<Transform> validAnchors = new List<Transform>(); // 存储核心行星位置
-    private float nextCometTime = 0f; // 彗星计时器
 
     // --- 生命周期 ---
 
     void Start()
     {
         GenerateGalaxy();
-        ResetCometTimer();
     }
 
-    void Update()
-    {
-        HandleCometSpawning();
-    }
+    // Update被移除了，因为之前它只用来检测彗星生成
 
     // --- 主要逻辑 ---
 
@@ -85,8 +61,6 @@ public class GalaxyDistributorXY : MonoBehaviour
         int childCount = transform.childCount;
         for (int i = childCount - 1; i >= 0; i--)
         {
-            // 只删除静态生成的物体，避免删除正在飞行的彗星(如果你希望重置时全部清空，可以去掉判断)
-            // 这里我们粗暴一点，全部清空
             if (Application.isPlaying)
                 Destroy(transform.GetChild(i).gameObject);
             else
@@ -99,18 +73,6 @@ public class GalaxyDistributorXY : MonoBehaviour
 
         // 3. 生成尘埃层
         SpawnDustLayers();
-    }
-
-    void HandleCometSpawning()
-    {
-        if (cometSetting.enableComets && cometSetting.prefab != null)
-        {
-            if (Time.time >= nextCometTime)
-            {
-                SpawnComet();
-                ResetCometTimer();
-            }
-        }
     }
 
     // --- 具体生成方法 ---
@@ -166,57 +128,6 @@ public class GalaxyDistributorXY : MonoBehaviour
                 obj.transform.localScale = Vector3.one * scale;
             }
         }
-    }
-
-    void SpawnComet()
-    {
-        // 1. 决定生成位置（屏幕边缘外）
-        // 50%概率左边出，50%概率右边出
-        bool startFromLeft = Random.value > 0.5f;
-        float spawnX = startFromLeft ? -areaSize.x / 2 - 10f : areaSize.x / 2 + 10f;
-
-        float spawnY = Random.Range(-areaSize.y / 2, areaSize.y / 2);
-        float spawnZ = Random.Range(-depthVariance, depthVariance);
-
-        Vector3 spawnPos = transform.position + new Vector3(spawnX, spawnY, spawnZ);
-
-        // 2. 决定目标点（屏幕另一侧的随机位置）
-        float targetX = startFromLeft ? areaSize.x / 2 + 10f : -areaSize.x / 2 - 10f;
-        float targetY = Random.Range(-areaSize.y / 2, areaSize.y / 2); // 随机高度
-        Vector3 targetPos = transform.position + new Vector3(targetX, targetY, spawnZ);
-
-        // 3. 生成
-        GameObject comet = Instantiate(cometSetting.prefab, spawnPos, Quaternion.identity);
-
-        // 4. 计算旋转 (让头部朝向目标)
-        Vector3 direction = targetPos - spawnPos;
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        comet.transform.rotation = Quaternion.Euler(0, 0, angle);
-
-        // 5. 缩放
-        float scale = Random.Range(cometSetting.minScale, cometSetting.maxScale);
-        comet.transform.localScale = Vector3.one * scale;
-
-        // 6. 设置速度组件
-        CometMover mover = comet.GetComponent<CometMover>();
-        if (mover != null)
-        {
-            mover.speed = Random.Range(cometSetting.minSpeed, cometSetting.maxSpeed);
-
-            // 计算需要飞多远
-            float distance = Vector3.Distance(spawnPos, targetPos);
-            // 设置生命周期：(距离 / 速度) * 保险系数
-            mover.lifeTime = (distance / mover.speed) * 2.0f;
-        }
-        else
-        {
-            Debug.LogWarning("注意：你的彗星 Prefab 没有挂载 CometMover 脚本，它不会动！");
-        }
-    }
-
-    void ResetCometTimer()
-    {
-        nextCometTime = Time.time + Random.Range(cometSetting.minSpawnInterval, cometSetting.maxSpawnInterval);
     }
 
     // --- 辅助工具 ---
