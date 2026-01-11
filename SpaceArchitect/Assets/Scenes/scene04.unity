@@ -2633,27 +2633,18 @@ MonoBehaviour:
   dustLayers:
   - label: 
     prefab: {fileID: 100000, guid: 8dacd5afb30e8b54d89cd16e368b1fe1, type: 3}
-    count: 2000
+    count: 1000
     minScale: 0
     maxScale: 0
     clusterRadius: 8
     minRadius: 0
   - label: 
     prefab: {fileID: 100000, guid: 6a7ea2163eb77c040b41f89ca9e897f9, type: 3}
-    count: 1600
+    count: 800
     minScale: 0
     maxScale: 0
     clusterRadius: 5
     minRadius: 0
-  cometSetting:
-    enableComets: 1
-    prefab: {fileID: 0}
-    minSpawnInterval: 5
-    maxSpawnInterval: 15
-    minSpeed: 8
-    maxSpeed: 15
-    minScale: 0.5
-    maxScale: 1
 --- !u!4 &1419598750
 Transform:
   m_ObjectHideFlags: 0
@@ -2776,6 +2767,64 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2008286387}
   m_SourcePrefab: {fileID: 100100000, guid: ba90dae8d4997d0499c5b6702c17fff0, type: 3}
+--- !u!1 &1620887836
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1620887838}
+  - component: {fileID: 1620887837}
+  m_Layer: 0
+  m_Name: MeteorController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1620887837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1620887836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 514c04af268d50b42b022a1eabc3585c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  meteorPrefab: {fileID: 2617670229634995830, guid: 02dd79bd086f5654a8e63a3e2ec82df7,
+    type: 3}
+  spawnArea: {x: 100, y: 50}
+  depthVariance: 5
+  minInterval: 2
+  maxInterval: 6
+  minBurst: 1
+  maxBurst: 3
+  minSpeedMult: 0.8
+  maxSpeedMult: 1.5
+  minLifeMult: 0.8
+  maxLifeMult: 1.2
+  minScale: 0.8
+  maxScale: 1.2
+--- !u!4 &1620887838
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1620887836}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -33.837975, y: -4.871644, z: 2.325264}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1775095391 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8016482144654686333, guid: e4f65b9cb9619874ebf038611ffad4da,
@@ -4194,3 +4243,4 @@ SceneRoots:
   - {fileID: 753033301}
   - {fileID: 665228332}
   - {fileID: 1419598750}
+  - {fileID: 1620887838}
