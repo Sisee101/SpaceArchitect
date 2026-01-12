@@ -43,6 +43,12 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
     [SerializeField] private float scrollDuration = 0.3f;        // 滚动动画时长
     [SerializeField] private float insertAnimationDuration = 0.3f;  // 插入动画时长
     
+    [Header("音效")]
+    [SerializeField] private AudioSource audioSource;              // 音频源组件
+    [SerializeField] private AudioClip buttonClickSound;            // 按钮点击音效（返回键、左右翻页键）
+    [SerializeField] private AudioClip cardToggleSound;            // 卡片展开/收起音效
+    [SerializeField] private float clickSoundDelay = 0.15f;        // 点击音效播放后的延迟时间（秒），用于确保音效播放完成再执行后续操作
+    
     private List<PlanetCard> planetCards = new List<PlanetCard>();  // 所有行星卡片列表
     private DetailCard currentDetailCard = null;                     // 当前显示的介绍卡片
     private PlanetCard currentSelectedCard = null;                   // 当前选中的行星卡片
@@ -50,6 +56,9 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
     
     void Start()
     {
+        // 初始化音频源
+        InitializeAudioSource();
+        
         // 绑定返回按钮
         if (backButton != null)
         {
@@ -76,6 +85,45 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
         }
         
         // 不在Start中初始化卡片，而是在Show()中初始化（确保面板显示时才创建）
+    }
+    
+    /// <summary>
+    /// 初始化音频源
+    /// </summary>
+    private void InitializeAudioSource()
+    {
+        // 如果未手动指定 AudioSource，尝试自动获取
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            // 如果还是没有，自动添加一个
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 播放按钮点击音效
+    /// </summary>
+    private void PlayButtonClickSound()
+    {
+        if (audioSource != null && buttonClickSound != null)
+        {
+            audioSource.PlayOneShot(buttonClickSound);
+        }
+    }
+    
+    /// <summary>
+    /// 播放卡片展开/收起音效
+    /// </summary>
+    private void PlayCardToggleSound()
+    {
+        if (audioSource != null && cardToggleSound != null)
+        {
+            audioSource.PlayOneShot(cardToggleSound);
+        }
     }
     
     void Update()
@@ -191,6 +239,9 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
     {
         Debug.Log($"PlanetEncyclopediaPanel: 卡片 {card.GetCardIndex()} 被点击");
         
+        // 播放卡片展开/收起音效
+        PlayCardToggleSound();
+        
         // 如果点击的是当前已选中的卡片，移除介绍卡片
         if (currentSelectedCard == card && currentDetailCard != null)
         {
@@ -293,6 +344,9 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
     /// </summary>
     private void OnLeftArrowClicked()
     {
+        // 播放按钮点击音效
+        PlayButtonClickSound();
+        
         Debug.Log("PlanetEncyclopediaPanel: 左箭头被点击");
         
         if (scrollRect == null)
@@ -336,6 +390,9 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
     /// </summary>
     private void OnRightArrowClicked()
     {
+        // 播放按钮点击音效
+        PlayButtonClickSound();
+        
         Debug.Log("PlanetEncyclopediaPanel: 右箭头被点击");
         
         if (scrollRect == null)
@@ -515,6 +572,21 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
     /// </summary>
     private void OnBackClicked()
     {
+        // 播放按钮点击音效并延迟执行返回操作，确保音效播放完成
+        StartCoroutine(PlayClickSoundAndReturn());
+    }
+    
+    /// <summary>
+    /// 播放点击音效并延迟返回（协程）
+    /// </summary>
+    private IEnumerator PlayClickSoundAndReturn()
+    {
+        // 播放按钮点击音效
+        PlayButtonClickSound();
+        
+        // 等待音效播放完成
+        yield return new WaitForSeconds(clickSoundDelay);
+        
         Debug.Log("返回主界面");
         // 根据当前场景决定返回哪里
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;

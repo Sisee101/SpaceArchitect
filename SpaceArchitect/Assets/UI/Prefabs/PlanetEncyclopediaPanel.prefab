@@ -136,6 +136,9 @@ MonoBehaviour:
   arrowScrollDistance: 685
   scrollDuration: 0.3
   insertAnimationDuration: 0.3
+  audioSource: {fileID: 0}
+  buttonClickSound: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b, type: 3}
+  cardToggleSound: {fileID: 8300000, guid: c6db548dd9f571744b5920016782e362, type: 3}
 --- !u!1 &1075891502672377082
 GameObject:
   m_ObjectHideFlags: 0
@@ -279,7 +282,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: -4, y: -3}
+  m_AnchoredPosition: {x: -77, y: -3}
   m_SizeDelta: {x: 97.38019, y: 81.0535}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2507824182138776984
@@ -678,7 +681,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -4, y: 21}
+  m_AnchoredPosition: {x: 62, y: -3}
   m_SizeDelta: {x: 92.94299, y: 81.053}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7419036638965449359

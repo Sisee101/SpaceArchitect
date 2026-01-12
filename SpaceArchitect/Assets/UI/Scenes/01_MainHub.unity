@@ -1769,79 +1769,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlanetEncyclopediaPanel
       objectReference: {fileID: 0}
-    - target: {fileID: 709288859376153528, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2462334502651247589, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Type
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2462334502651247589, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: b4b1e0d708e60d9418d233f332d3ab0e,
-        type: 3}
-    - target: {fileID: 3713818421665280990, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Type
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3713818421665280990, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 96949ab809d4de64b93ddcb6eaa0ce17,
-        type: 3}
-    - target: {fileID: 3713818421665280990, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Color.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3713818421665280990, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_PreserveAspect
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3749077110576038169, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Type
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3749077110576038169, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: e24b5869fefd84e498a7f86086276ad8,
-        type: 3}
-    - target: {fileID: 3749077110576038169, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_PreserveAspect
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6077958020574711810, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 104.0313
-      objectReference: {fileID: 0}
-    - target: {fileID: 6077958020574711810, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -817.0144
-      objectReference: {fileID: 0}
     - target: {fileID: 6335161021169384327, guid: 78502e15205847142a3bb29f02f79ad1,
         type: 3}
       propertyPath: m_SizeDelta.x
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 7078904959886211796, guid: 78502e15205847142a3bb29f02f79ad1, type: 3}
-    - {fileID: 6654970585468653799, guid: 78502e15205847142a3bb29f02f79ad1, type: 3}
-    - {fileID: 5029722780329331063, guid: 78502e15205847142a3bb29f02f79ad1, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 78502e15205847142a3bb29f02f79ad1, type: 3}
