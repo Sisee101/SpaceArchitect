@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
+using System;
 
 /// <summary>
 /// Sphere图标管理器
@@ -41,6 +43,10 @@ public class SphereIconManager : MonoBehaviour
     
     [Header("面板引用")]
     [SerializeField] private SphereInfoPanel infoPanel; // 信息面板引用（必须配置）
+    
+    [Header("气泡消失动画设置")]
+    [Tooltip("气泡消失动画的时长（秒）")]
+    [SerializeField] private float hideAnimationDuration = 0.5f; // 气泡消失动画时长
     
     // 私有变量
     private Dictionary<GameObject, GameObject> sphereIconMap; // Sphere到Icon的映射字典
@@ -488,6 +494,132 @@ public class SphereIconManager : MonoBehaviour
     public bool AreIconsVisible()
     {
         return iconsVisible;
+    }
+    
+    /// <summary>
+    /// 根据Sphere名称隐藏图标（播放消失动画）
+    /// </summary>
+    /// <param name="sphereName">Sphere GameObject的名称</param>
+    /// <param name="onComplete">动画完成回调</param>
+    public void HideIconForSphere(string sphereName, Action onComplete = null)
+    {
+        if (string.IsNullOrEmpty(sphereName))
+        {
+            Debug.LogWarning("SphereIconManager: sphereName为空！");
+            onComplete?.Invoke();
+            return;
+        }
+        
+        // 查找对应的Sphere GameObject
+        GameObject targetSphere = null;
+        if (sphere1 != null && sphere1.name == sphereName)
+        {
+            targetSphere = sphere1;
+        }
+        else if (sphere2 != null && sphere2.name == sphereName)
+        {
+            targetSphere = sphere2;
+        }
+        else if (sphere4 != null && sphere4.name == sphereName)
+        {
+            targetSphere = sphere4;
+        }
+        
+        if (targetSphere == null)
+        {
+            Debug.LogWarning($"SphereIconManager: 未找到名称为 {sphereName} 的Sphere！");
+            onComplete?.Invoke();
+            return;
+        }
+        
+        // 查找对应的图标
+        if (!sphereIconMap.ContainsKey(targetSphere) || sphereIconMap[targetSphere] == null)
+        {
+            Debug.LogWarning($"SphereIconManager: 未找到 {sphereName} 的图标！");
+            onComplete?.Invoke();
+            return;
+        }
+        
+        GameObject iconObj = sphereIconMap[targetSphere];
+        
+        // 播放消失动画
+        StartCoroutine(PlayHideAnimation(iconObj, () => {
+            // 从字典中移除
+            sphereIconMap.Remove(targetSphere);
+            
+            // 如果所有图标都隐藏了，更新状态
+            if (sphereIconMap.Count == 0)
+            {
+                iconsVisible = false;
+            }
+            
+            // 调用完成回调
+            onComplete?.Invoke();
+        }));
+    }
+    
+    /// <summary>
+    /// 播放图标消失动画（缩放 + 淡出）
+    /// </summary>
+    /// <param name="iconObj">图标GameObject</param>
+    /// <param name="onComplete">动画完成回调</param>
+    private IEnumerator PlayHideAnimation(GameObject iconObj, Action onComplete)
+    {
+        if (iconObj == null)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+        
+        // 获取Image组件（用于淡出效果）
+        Image iconImage = iconObj.GetComponent<Image>();
+        CanvasGroup canvasGroup = iconObj.GetComponent<CanvasGroup>();
+        
+        // 如果没有CanvasGroup，添加一个
+        if (canvasGroup == null)
+        {
+            canvasGroup = iconObj.AddComponent<CanvasGroup>();
+        }
+        
+        // 动画参数
+        float duration = hideAnimationDuration; // 使用Inspector中配置的动画时长
+        float elapsed = 0f;
+        Vector3 startScale = iconObj.transform.localScale;
+        float startAlpha = canvasGroup.alpha;
+        
+        // 动画循环
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            
+            // 使用缓动函数（easeOut）
+            float easeT = 1f - Mathf.Pow(1f - t, 3f);
+            
+            // 缩放：从1缩放到0
+            iconObj.transform.localScale = Vector3.Lerp(startScale, Vector3.zero, easeT);
+            
+            // 淡出：透明度从1到0
+            canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, easeT);
+            
+            yield return null;
+        }
+        
+        // 确保最终状态
+        iconObj.transform.localScale = Vector3.zero;
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+        }
+        
+        // 销毁图标
+        if (iconObj != null)
+        {
+            Destroy(iconObj);
+        }
+        
+        // 调用完成回调
+        onComplete?.Invoke();
     }
     
     void OnDestroy()

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections; // 添加用于 IEnumerator 协程
 using System.Collections.Generic; // 添加用于 HashSet
 using UnityEngine.SceneManagement; // 添加用于 SceneManager
