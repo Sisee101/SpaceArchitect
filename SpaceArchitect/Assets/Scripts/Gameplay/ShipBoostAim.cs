@@ -63,6 +63,16 @@ public class ShipBoostAim : MonoBehaviour
     [Tooltip("确认boost的鼠标按键（0=左键，1=右键，2=中键）")]
     [SerializeField] private int confirmMouseButton = 0;
 
+    [Header("使用次数限制")]
+    [Tooltip("Boost等级（用于升级系统，1级=1次，2级=3次，3级=5次等）")]
+    [SerializeField] private int boostLevel = 1;
+    
+    [Tooltip("每局最大使用次数（根据等级自动计算，也可以手动设置）\n等级1=1次，等级2=3次，等级3=5次，等级4=7次...")]
+    [SerializeField] private int maxUsesPerRound = 1;
+    
+    [Tooltip("当前已使用次数（运行时自动更新，游戏重置时自动清零）")]
+    [SerializeField] private int currentUses = 0;
+
     [Header("视觉效果（可选）")]
     [Tooltip("加速时的粒子效果")]
     [SerializeField] private ParticleSystem boostParticles;
@@ -134,6 +144,18 @@ public class ShipBoostAim : MonoBehaviour
         // 保存原始时间缩放
         originalTimeScale = Time.timeScale;
 
+        // 根据等级计算最大使用次数（如果未手动设置）
+        UpdateMaxUsesFromLevel();
+
+        // 重置使用次数
+        ResetUsageCount();
+
+        // 订阅游戏重置事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnGameReset += HandleGameReset;
+        }
+
         // 配置粒子系统使用未缩放时间（这样在时停状态下也能正常播放）
         ConfigureParticleSystemForTimeStop();
 
@@ -193,7 +215,7 @@ public class ShipBoostAim : MonoBehaviour
         }
 
         // 检查是否按下B键开始瞄准
-        if (Input.GetKeyDown(aimKey) && !isAiming && !isBoosting && !isOnCooldown)
+        if (Input.GetKeyDown(aimKey) && !isAiming && !isBoosting && !isOnCooldown && HasRemainingUses())
         {
             StartAiming();
         }
@@ -211,6 +233,12 @@ public class ShipBoostAim : MonoBehaviour
         if (isAiming)
         {
             EndAiming(false);
+        }
+        
+        // 取消订阅事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnGameReset -= HandleGameReset;
         }
     }
 
@@ -443,7 +471,18 @@ public class ShipBoostAim : MonoBehaviour
             return;
         }
 
+        // 检查是否还有剩余使用次数
+        if (!HasRemainingUses())
+        {
+            Debug.LogWarning($"Boost使用次数已达上限（{maxUsesPerRound}次），无法使用！");
+            return;
+        }
+
         isBoosting = true;
+
+        // 增加使用次数
+        currentUses++;
+        Debug.Log($"Boost使用次数: {currentUses}/{maxUsesPerRound}");
 
         // 计算加速增量
         Vector3 boostVelocity = selectedBoostDirection * boostForce;
@@ -463,7 +502,7 @@ public class ShipBoostAim : MonoBehaviour
         // 播放视觉效果和音效
         PlayBoostEffects();
 
-        Debug.Log($"Boost启动！方向: {selectedBoostDirection}, 速度增量: {boostVelocity}");
+        Debug.Log($"Boost启动！方向: {selectedBoostDirection}, 速度增量: {boostVelocity}, 剩余次数: {GetRemainingUses()}");
     }
 
     /// <summary>
@@ -878,6 +917,12 @@ public class ShipBoostAim : MonoBehaviour
             return false;
         }
 
+        // 检查是否还有剩余使用次数
+        if (!HasRemainingUses())
+        {
+            return false;
+        }
+
         if (nBody == null || gravityEngine == null || nBody.engineRef == null)
         {
             return false;
@@ -892,6 +937,108 @@ public class ShipBoostAim : MonoBehaviour
 
         Vector3 currentVelocity = gravityEngine.GetVelocity(nBody);
         return currentVelocity.magnitude >= minVelocityForBoost;
+    }
+
+    /// <summary>
+    /// 根据等级计算最大使用次数
+    /// 等级1=1次，等级2=3次，等级3=5次，等级4=7次...（公式：2*level-1）
+    /// </summary>
+    private void UpdateMaxUsesFromLevel()
+    {
+        // 如果maxUsesPerRound已经被手动设置过（不为默认值1），则不自动计算
+        // 否则根据等级自动计算
+        if (maxUsesPerRound == 1 && boostLevel > 1)
+        {
+            maxUsesPerRound = CalculateMaxUsesFromLevel(boostLevel);
+        }
+    }
+
+    /// <summary>
+    /// 根据等级计算最大使用次数
+    /// </summary>
+    /// <param name="level">Boost等级</param>
+    /// <returns>最大使用次数</returns>
+    private int CalculateMaxUsesFromLevel(int level)
+    {
+        // 等级1=1次，等级2=3次，等级3=5次，等级4=7次...
+        // 公式：2 * level - 1
+        return Mathf.Max(1, 2 * level - 1);
+    }
+
+    /// <summary>
+    /// 检查是否还有剩余使用次数
+    /// </summary>
+    public bool HasRemainingUses()
+    {
+        return currentUses < maxUsesPerRound;
+    }
+
+    /// <summary>
+    /// 获取剩余使用次数
+    /// </summary>
+    public int GetRemainingUses()
+    {
+        return Mathf.Max(0, maxUsesPerRound - currentUses);
+    }
+
+    /// <summary>
+    /// 获取当前已使用次数
+    /// </summary>
+    public int GetCurrentUses()
+    {
+        return currentUses;
+    }
+
+    /// <summary>
+    /// 获取最大使用次数
+    /// </summary>
+    public int GetMaxUses()
+    {
+        return maxUsesPerRound;
+    }
+
+    /// <summary>
+    /// 重置使用次数（游戏重置时调用）
+    /// </summary>
+    public void ResetUsageCount()
+    {
+        currentUses = 0;
+        Debug.Log($"Boost使用次数已重置，当前等级: {boostLevel}, 最大次数: {maxUsesPerRound}");
+    }
+
+    /// <summary>
+    /// 设置Boost等级（升级时调用）
+    /// </summary>
+    /// <param name="newLevel">新等级</param>
+    public void SetBoostLevel(int newLevel)
+    {
+        if (newLevel < 1)
+        {
+            Debug.LogWarning($"ShipBoostAim: 尝试设置无效的等级 {newLevel}，已设置为1");
+            newLevel = 1;
+        }
+
+        boostLevel = newLevel;
+        maxUsesPerRound = CalculateMaxUsesFromLevel(boostLevel);
+        
+        Debug.Log($"Boost等级已升级到 {boostLevel}，最大使用次数: {maxUsesPerRound}");
+    }
+
+    /// <summary>
+    /// 获取当前Boost等级
+    /// </summary>
+    public int GetBoostLevel()
+    {
+        return boostLevel;
+    }
+
+    /// <summary>
+    /// 游戏重置事件处理
+    /// </summary>
+    private void HandleGameReset()
+    {
+        ResetUsageCount();
+        Debug.Log("ShipBoostAim: 游戏重置，Boost使用次数已清零");
     }
 }
 

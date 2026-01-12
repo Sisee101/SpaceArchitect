@@ -1411,6 +1411,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcf4e23f479a86f4098cd7c7aa5c22c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableCapture: 1
   captureRadius: 12.18
   releaseRadius: 13.32
   orbitGuidanceStrength: 0.108
@@ -2210,6 +2211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcf4e23f479a86f4098cd7c7aa5c22c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableCapture: 1
   captureRadius: 11.9
   releaseRadius: 13.3
   orbitGuidanceStrength: 0.112
@@ -2811,10 +2813,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3270e10fbb3eb574e9703a8e36e20e2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  launchVelocity: {x: 5, y: 0, z: 0}
-  useShipForward: 0
   launchSpeed: 5
-  launchKey: 108
+  arrowLength: 10
+  arrowSegmentCount: 1
+  arrowSprite: {fileID: 21300000, guid: 34bbbbffaee1e9a428f7083d1426eb2c, type: 3}
+  arrowSize: {x: 0.3, y: 0.3}
+  arrowSpacing: 0.6
   showDebugLog: 1
 --- !u!1001 &2071229980
 PrefabInstance:

@@ -82,40 +82,47 @@ public class CoreDragger : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
             
             Debug.Log($"[CoreDragger] 鼠标按下，进行射线检测: {gameObject.name}");
             
-            // 射线检测（使用所有碰撞层）
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity))
+            // 使用 RaycastAll 获取所有击中的物体（避免被其他物体遮挡）
+            RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity);
+            
+            // 按距离排序，优先检测最近的
+            System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+            
+            bool foundCore = false;
+            
+            // 遍历所有击中的物体，找到第一个 Core 物体
+            foreach (RaycastHit hit in hits)
             {
-                Debug.Log($"[CoreDragger] 射线击中物体: {hit.collider.gameObject.name}, Tag: {hit.collider.gameObject.tag}");
+                if (hit.collider == null) continue;
                 
-                // 检查是否击中当前物体或其子物体
-                if (hit.collider != null && 
-                    (hit.collider.gameObject == gameObject || hit.collider.transform.IsChildOf(transform)))
+                GameObject hitObject = hit.collider.gameObject;
+                
+                // 忽略 OverviewRange 对象（用于相机总览范围，不应该被拖拽）
+                if (hitObject.name.Contains("OverviewRange") || hitObject.name.Contains("Overview"))
                 {
-                    Debug.Log($"[CoreDragger] 击中当前物体或其子物体");
-                    
-                    // 检查 Tag
-                    if (gameObject.CompareTag("Core"))
-                    {
-                        Debug.Log($"[CoreDragger] Tag 检查通过，开始拖拽");
-                        StartDragInternal();
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"[CoreDragger] Tag 检查失败，当前 Tag: {gameObject.tag}");
-                    }
+                    continue;
                 }
-                else
+                
+                Debug.Log($"[CoreDragger] 射线击中物体: {hitObject.name}, Tag: {hitObject.tag}, 距离: {hit.distance:F2}");
+                
+                // 检查是否击中当前物体或其子物体，并且 Tag 为 Core
+                if ((hitObject == gameObject || hitObject.transform.IsChildOf(transform)) && 
+                    gameObject.CompareTag("Core"))
                 {
-                    Debug.Log($"[CoreDragger] 射线击中的不是当前物体: {hit.collider?.gameObject?.name ?? "null"}");
+                    Debug.Log($"[CoreDragger] 找到 Core 物体，开始拖拽");
+                    foundCore = true;
+                    StartDragInternal();
+                    break; // 找到后立即退出循环
                 }
             }
-            else
+            
+            // 如果射线检测没有找到 Core 物体，使用备用方法（屏幕距离检测）
+            if (!foundCore)
             {
-                Debug.Log($"[CoreDragger] 射线没有击中任何物体");
+                Debug.Log($"[CoreDragger] 射线检测未找到 Core 物体，尝试屏幕距离检测");
                 
                 // 备用方法：检查鼠标是否在物体附近（屏幕坐标）
                 Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position);
@@ -167,13 +174,16 @@ public class CoreDragger : MonoBehaviour
         Debug.Log($"[CoreDragger] 拖拽参数 - mouseZCoord: {mouseZCoord}, offset: {offset}");
         Debug.Log($"[CoreDragger] 当前位置: {transform.position}, 鼠标世界位置: {mousePos}");
 
-        // 确保是运动学模式
+        // 确保是运动学模式（先设置速度，再设置为运动学，避免警告）
         if (coreRb != null)
         {
+            if (!coreRb.isKinematic)
+            {
+                coreRb.velocity = Vector3.zero;
+                coreRb.angularVelocity = Vector3.zero;
+            }
             coreRb.isKinematic = true;
             coreRb.useGravity = false;
-            coreRb.velocity = Vector3.zero;
-            coreRb.angularVelocity = Vector3.zero;
         }
 
         // 通过EventManager触发拖拽开始事件
@@ -191,13 +201,16 @@ public class CoreDragger : MonoBehaviour
         Debug.Log($"[CoreDragger] 结束拖拽: {gameObject.name}");
         isDragging = false;
 
-        // 保持运动学模式
+        // 保持运动学模式（先设置速度，再设置为运动学，避免警告）
         if (coreRb != null)
         {
+            if (!coreRb.isKinematic)
+            {
+                coreRb.velocity = Vector3.zero;
+                coreRb.angularVelocity = Vector3.zero;
+            }
             coreRb.isKinematic = true;
             coreRb.useGravity = false;
-            coreRb.velocity = Vector3.zero;
-            coreRb.angularVelocity = Vector3.zero;
         }
 
         // 如果产生引力，更新最终位置
@@ -349,13 +362,16 @@ public class CoreDragger : MonoBehaviour
         Debug.Log($"[CoreDragger] 当前位置: {transform.position}, 鼠标世界位置: {mousePos}");
         Debug.Log($"[CoreDragger] isDragging 已设置为: {isDragging}");
 
-        // 确保是运动学模式，位置完全由拖拽控制
+        // 确保是运动学模式，位置完全由拖拽控制（先设置速度，再设置为运动学，避免警告）
         if (coreRb != null)
         {
+            if (!coreRb.isKinematic)
+            {
+                coreRb.velocity = Vector3.zero;
+                coreRb.angularVelocity = Vector3.zero;
+            }
             coreRb.isKinematic = true;
             coreRb.useGravity = false;
-            coreRb.velocity = Vector3.zero;
-            coreRb.angularVelocity = Vector3.zero;
         }
     }
 
@@ -405,13 +421,16 @@ public class CoreDragger : MonoBehaviour
         isDragging = false;
 
         // 保持运动学模式，物体留在拖拽结束的位置
-        // 不恢复物理模拟，确保位置完全由拖拽决定
+        // 不恢复物理模拟，确保位置完全由拖拽决定（先设置速度，再设置为运动学，避免警告）
         if (coreRb != null)
         {
+            if (!coreRb.isKinematic)
+            {
+                coreRb.velocity = Vector3.zero;
+                coreRb.angularVelocity = Vector3.zero;
+            }
             coreRb.isKinematic = true;
             coreRb.useGravity = false;
-            coreRb.velocity = Vector3.zero;
-            coreRb.angularVelocity = Vector3.zero;
         }
 
         // 如果产生引力，更新最终位置

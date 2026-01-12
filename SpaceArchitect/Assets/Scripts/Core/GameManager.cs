@@ -37,6 +37,10 @@ public class GameRestartManager : MonoBehaviour
     [Tooltip("飞船GameObject（如果为空，将自动查找场景中的飞船）")]
     [SerializeField] private GameObject shipGameObject;
 
+    [Header("成功UI设置")]
+    [Tooltip("游戏成功UI弹窗（拖入成功弹窗的GameObject，如果没有则留空）")]
+    [SerializeField] private GameObject successUIPanel;
+
     private ShipState shipState;
     private bool canRestart = false; // 是否允许重启（只有在失败后才能重启）
 
@@ -146,8 +150,53 @@ public class GameRestartManager : MonoBehaviour
     /// </summary>
     private void OnShipSucceed(GameObject destination, GameObject ship)
     {
+        Debug.Log($"游戏成功！飞船已到达目的地: {destination.name}");
+        
+        // 立即暂停游戏
+        PauseGame();
+        
+        // 显示成功UI弹窗（预留接口，待UI系统实现）
+        ShowSuccessUI();
+        
         // 成功后也可以重启（可选，根据需求决定）
         // canRestart = true;
+    }
+    
+    /// <summary>
+    /// 暂停游戏
+    /// </summary>
+    private void PauseGame()
+    {
+        Time.timeScale = 0f;
+        Debug.Log("游戏已暂停（Time.timeScale = 0）");
+    }
+    
+    /// <summary>
+    /// 恢复游戏
+    /// </summary>
+    public void ResumeGame()
+    {
+        Time.timeScale = 1f;
+        Debug.Log("游戏已恢复（Time.timeScale = 1）");
+    }
+    
+    /// <summary>
+    /// 显示成功UI弹窗
+    /// </summary>
+    private void ShowSuccessUI()
+    {
+        if (successUIPanel != null)
+        {
+            // 如果UI面板存在，激活它
+            successUIPanel.SetActive(true);
+            Debug.Log("游戏成功UI弹窗已显示");
+        }
+        else
+        {
+            // 如果没有设置UI面板，只输出日志
+            Debug.Log("=== 游戏成功UI弹窗 ===");
+            Debug.LogWarning("GameRestartManager: 成功UI弹窗未设置，请在Inspector中拖入成功UI Panel GameObject");
+        }
     }
 
     /// <summary>

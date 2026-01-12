@@ -43,6 +43,8 @@ public class EventListener : MonoBehaviour
         EventManager.Instance.OnShipBoosted += OnShipBoosted;
         EventManager.Instance.OnShipSucceed += OnShipSucceed;
         EventManager.Instance.OnShipFailed += OnShipFailed;
+        EventManager.Instance.OnShipStartOverheating += OnShipStartOverheating;
+        EventManager.Instance.OnShipOverheated += OnShipOverheated;
         EventManager.Instance.OnPlanetCaptureStart += OnPlanetCaptureStart;
         EventManager.Instance.OnPlanetCaptureEnd += OnPlanetCaptureEnd;
         EventManager.Instance.OnCoreDragStart += OnCoreDragStart;
@@ -65,6 +67,8 @@ public class EventListener : MonoBehaviour
         EventManager.Instance.OnShipBoosted -= OnShipBoosted;
         EventManager.Instance.OnShipSucceed -= OnShipSucceed;
         EventManager.Instance.OnShipFailed -= OnShipFailed;
+        EventManager.Instance.OnShipStartOverheating -= OnShipStartOverheating;
+        EventManager.Instance.OnShipOverheated -= OnShipOverheated;
         EventManager.Instance.OnPlanetCaptureStart -= OnPlanetCaptureStart;
         EventManager.Instance.OnPlanetCaptureEnd -= OnPlanetCaptureEnd;
         EventManager.Instance.OnCoreDragStart -= OnCoreDragStart;
@@ -119,6 +123,19 @@ public class EventListener : MonoBehaviour
     {
         string reason = failureReason == ShipState.State.Crashed ? "坠毁" : "逃离";
         Debug.Log($"<color=red>[事件] ✗ 失败！</color> 原因: {reason} | 飞船: {ship.name}");
+    }
+
+    private void OnShipStartOverheating(GameObject firePlanet, GameObject ship)
+    {
+        if (showDetailedLogs)
+        {
+            Debug.Log($"<color=orange>[事件]</color> 飞船开始过热 | 火行星: {firePlanet.name} | 飞船: {ship.name}");
+        }
+    }
+
+    private void OnShipOverheated(GameObject firePlanet, GameObject ship)
+    {
+        Debug.Log($"<color=red>[事件] ✗ 失败！</color> 原因: 过热 | 飞船: {ship.name}");
     }
 
     private void OnPlanetCaptureStart(GameObject planet, GameObject ship)
