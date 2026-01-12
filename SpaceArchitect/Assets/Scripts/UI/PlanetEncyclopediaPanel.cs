@@ -32,6 +32,13 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
     [SerializeField] private float detailCardWidth = 600f;       // 介绍卡片宽度
     [SerializeField] private float detailCardHeight = 700f;      // 介绍卡片高度
     
+    [Header("滚动位置调整")]
+    [Tooltip("滚动到卡片中心时的水平偏移量（像素）。正值向右偏移，负值向左偏移")]
+    [SerializeField] private float scrollCenterOffset = 0f;       // 滚动中心偏移量
+    
+    [Tooltip("点击左右箭头时，每次滚动的距离（像素）。如果为0，则自动使用（行星卡片宽度 + 卡片间距）")]
+    [SerializeField] private float arrowScrollDistance = 0f;     // 箭头滚动距离（0表示自动计算）
+    
     [Header("动画参数")]
     [SerializeField] private float scrollDuration = 0.3f;        // 滚动动画时长
     [SerializeField] private float insertAnimationDuration = 0.3f;  // 插入动画时长
@@ -261,8 +268,8 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
         currentDetailCard = detailCard;
         currentSelectedCard = card;
         
-        // 可选：滚动到被点击的卡片位置
-        ScrollToCard(card);
+        // 滚动到被点击的卡片和详情卡片的中心位置（让两者同时在画面中央显示）
+        ScrollToCardAndDetail(card, detailCardObj);
     }
     
     /// <summary>
@@ -300,8 +307,10 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
             return;
         }
         
-        // 计算滚动步长（一张卡片的宽度 + 间距）
-        float scrollStep = planetCardWidth + cardSpacing;
+        // 计算滚动步长
+        // 如果arrowScrollDistance为0，则自动使用（行星卡片宽度 + 间距）
+        // 否则使用用户配置的滚动距离
+        float scrollStep = arrowScrollDistance > 0 ? arrowScrollDistance : (planetCardWidth + cardSpacing);
         float contentWidth = content.rect.width;
         
         if (contentWidth <= 0)
@@ -341,8 +350,10 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
             return;
         }
         
-        // 计算滚动步长（一张卡片的宽度 + 间距）
-        float scrollStep = planetCardWidth + cardSpacing;
+        // 计算滚动步长
+        // 如果arrowScrollDistance为0，则自动使用（行星卡片宽度 + 间距）
+        // 否则使用用户配置的滚动距离
+        float scrollStep = arrowScrollDistance > 0 ? arrowScrollDistance : (planetCardWidth + cardSpacing);
         float contentWidth = content.rect.width;
         
         if (contentWidth <= 0)
@@ -374,7 +385,10 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
         if (Mathf.Abs(scroll) > 0.01f)
         {
             // 计算滚动步长
-            float scrollStep = (planetCardWidth + cardSpacing) * scroll * 2f; // 乘以2增加灵敏度
+            // 如果arrowScrollDistance为0，则自动使用（行星卡片宽度 + 间距）
+            // 否则使用用户配置的滚动距离
+            float baseScrollStep = arrowScrollDistance > 0 ? arrowScrollDistance : (planetCardWidth + cardSpacing);
+            float scrollStep = baseScrollStep * scroll * 2f; // 乘以2增加灵敏度
             float targetPosition = scrollRect.horizontalNormalizedPosition + (scrollStep / content.rect.width);
             targetPosition = Mathf.Clamp01(targetPosition);
             
@@ -398,6 +412,74 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
         float cardPositionX = cardRect.anchoredPosition.x;
         float normalizedPosition = cardPositionX / (content.rect.width - scrollRect.viewport.rect.width);
         normalizedPosition = Mathf.Clamp01(normalizedPosition);
+        
+        // 执行滚动动画
+        DOTween.To(() => scrollRect.horizontalNormalizedPosition, 
+                   x => scrollRect.horizontalNormalizedPosition = x, 
+                   normalizedPosition, scrollDuration)
+               .SetEase(Ease.OutQuad);
+    }
+    
+    /// <summary>
+    /// 滚动到行星卡片和详情卡片的中心位置（让两者同时在画面中央显示）
+    /// </summary>
+    private void ScrollToCardAndDetail(PlanetCard card, GameObject detailCardObj)
+    {
+        if (scrollRect == null || content == null) return;
+        
+        RectTransform cardRect = card.GetComponent<RectTransform>();
+        RectTransform detailRect = detailCardObj.GetComponent<RectTransform>();
+        
+        if (cardRect == null || detailRect == null) return;
+        
+        // 等待一帧，确保布局已更新
+        StartCoroutine(ScrollToCardAndDetailCoroutine(cardRect, detailRect));
+    }
+    
+    /// <summary>
+    /// 滚动到行星卡片和详情卡片中心的协程
+    /// </summary>
+    private IEnumerator ScrollToCardAndDetailCoroutine(RectTransform cardRect, RectTransform detailRect)
+    {
+        // 等待布局更新完成
+        yield return null;
+        Canvas.ForceUpdateCanvases();
+        yield return null;
+        
+        // 获取两个卡片在Content中的位置（相对于Content的左边缘）
+        // 在Horizontal Layout Group中，anchoredPosition.x 是卡片中心相对于Content左边缘的偏移
+        float cardCenterX = cardRect.anchoredPosition.x;
+        float detailCenterX = detailRect.anchoredPosition.x;
+        
+        // 计算两个卡片组合的中心点位置
+        float combinedCenterX = (cardCenterX + detailCenterX) / 2f;
+        
+        // 计算视口宽度
+        float viewportWidth = scrollRect.viewport.rect.width;
+        
+        // 计算Content的总宽度和可滚动宽度
+        float contentWidth = content.rect.width;
+        float scrollableWidth = contentWidth - viewportWidth;
+        
+        if (scrollableWidth <= 0)
+        {
+            // 如果不需要滚动，直接返回
+            yield break;
+        }
+        
+        // 计算目标滚动位置：让组合中心点在视口中央
+        // 视口中央在Content中的位置 = combinedCenterX - viewportWidth / 2
+        // 由于Content的pivot通常在左上角(0,1)，所以直接计算即可
+        // 应用用户配置的偏移量
+        float targetContentPosition = combinedCenterX - viewportWidth / 2f + scrollCenterOffset;
+        
+        // 转换为归一化位置（0-1）
+        // normalizedPosition = 0 表示Content左边缘对齐视口左边缘
+        // normalizedPosition = 1 表示Content右边缘对齐视口右边缘
+        float normalizedPosition = targetContentPosition / scrollableWidth;
+        normalizedPosition = Mathf.Clamp01(normalizedPosition);
+        
+        Debug.Log($"PlanetEncyclopediaPanel: 滚动到卡片中心，combinedCenterX={combinedCenterX}, viewportWidth={viewportWidth}, normalizedPosition={normalizedPosition}");
         
         // 执行滚动动画
         DOTween.To(() => scrollRect.horizontalNormalizedPosition, 

@@ -132,6 +132,8 @@ MonoBehaviour:
   planetCardHeight: 661
   detailCardWidth: 1048
   detailCardHeight: 626
+  scrollCenterOffset: 120
+  arrowScrollDistance: 685
   scrollDuration: 0.3
   insertAnimationDuration: 0.3
 --- !u!1 &1075891502672377082
