@@ -12,7 +12,6 @@ public class MainMenuPanel : MonoBehaviour
     [Header("按钮引用")]
     [SerializeField] private Button startGameButton;
     [SerializeField] private Button planetEncyclopediaButton;
-    [SerializeField] private Button settingsButton;
     [SerializeField] private Button quitButton;
     
     [Header("高亮控制器")]
@@ -50,13 +49,6 @@ public class MainMenuPanel : MonoBehaviour
             planetEncyclopediaButton.onClick.AddListener(OnPlanetEncyclopediaClicked);
             // 添加鼠标悬停高亮效果
             SetupButtonHoverHighlight(planetEncyclopediaButton);
-        }
-        
-        if (settingsButton != null)
-        {
-            settingsButton.onClick.AddListener(OnSettingsClicked);
-            // 添加鼠标悬停高亮效果
-            SetupButtonHoverHighlight(settingsButton);
         }
         
         if (quitButton != null)
@@ -214,37 +206,6 @@ public class MainMenuPanel : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ShowPlanetEncyclopedia();
-        }
-        else
-        {
-            Debug.LogError("UIManager未找到！");
-        }
-    }
-    
-    /// <summary>
-    /// 设置按钮点击事件
-    /// </summary>
-    private void OnSettingsClicked()
-    {
-        // 播放点击音效并延迟打开面板，确保音效能够播放
-        StartCoroutine(PlayClickSoundAndShowSettings());
-    }
-    
-    /// <summary>
-    /// 播放点击音效并延迟显示设置（协程）
-    /// </summary>
-    private IEnumerator PlayClickSoundAndShowSettings()
-    {
-        // 播放点击音效
-        PlayButtonClickSound();
-        
-        // 等待一小段时间，让音效有时间播放
-        yield return new WaitForSeconds(clickSoundDelay);
-        
-        Debug.Log("打开设置");
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ShowSettings();
         }
         else
         {

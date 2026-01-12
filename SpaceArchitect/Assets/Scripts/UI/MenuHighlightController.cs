@@ -19,7 +19,8 @@ public class MenuHighlightController : MonoBehaviour
     [SerializeField] private Ease moveEase = Ease.OutQuad; // 缓动曲线
     
     [Header("高亮偏移（可选）")]
-    [SerializeField] private Vector2 highlightOffset = Vector2.zero; // 高亮块相对按钮的偏移量
+    [Tooltip("如果设置为(0,0)，将自动计算位置使高亮块显示在按钮正下方。如果需要自定义位置，可以手动设置偏移量。")]
+    [SerializeField] private Vector2 highlightOffset = Vector2.zero; // 高亮块相对按钮的偏移量（如果为(0,0)则自动计算）
     
     private int currentSelectedIndex = 0; // 当前选中的菜单项索引
     
@@ -45,17 +46,17 @@ public class MenuHighlightController : MonoBehaviour
         {
             RectTransform targetButton = menuButtons[0];
             
-            // 设置高亮块的宽度和X位置与目标按钮一致
+            // 自动计算偏移
+            Vector2 calculatedOffset = CalculateAutoOffset(targetButton);
+            
+            // 设置高亮块的位置（X轴和Y轴都对齐到按钮）
             highlightBlock.anchoredPosition = new Vector2(
-                targetButton.anchoredPosition.x + highlightOffset.x,
-                targetButton.anchoredPosition.y + highlightOffset.y
+                targetButton.anchoredPosition.x + calculatedOffset.x,
+                targetButton.anchoredPosition.y + calculatedOffset.y
             );
             
-            // 设置高亮块的宽度与按钮一致
-            highlightBlock.sizeDelta = new Vector2(
-                targetButton.sizeDelta.x,
-                highlightBlock.sizeDelta.y
-            );
+            // 保留高亮块自己的大小（不强制设置宽度）
+            // highlightBlock.sizeDelta 保持不变
         }
     }
     
@@ -125,6 +126,7 @@ public class MenuHighlightController : MonoBehaviour
     /// <summary>
     /// 移动到指定菜单项（通过按钮引用）
     /// 直接定位到按钮位置，无动画
+    /// 自动计算位置，使高亮块显示在按钮正下方
     /// </summary>
     /// <param name="targetButton">目标按钮的 RectTransform</param>
     public void MoveToButton(RectTransform targetButton)
@@ -144,16 +146,17 @@ public class MenuHighlightController : MonoBehaviour
         // 停止所有动画
         highlightBlock.DOKill();
         
-        // 直接设置位置和宽度，无动画
+        // 自动计算位置（使高亮块显示在按钮正下方，X轴和Y轴都对齐）
+        Vector2 calculatedOffset = CalculateAutoOffset(targetButton);
+        
+        // 直接设置位置（保留高亮块自己的大小，不强制设置宽度）
         highlightBlock.anchoredPosition = new Vector2(
-            targetButton.anchoredPosition.x + highlightOffset.x,
-            targetButton.anchoredPosition.y + highlightOffset.y
+            targetButton.anchoredPosition.x + calculatedOffset.x,
+            targetButton.anchoredPosition.y + calculatedOffset.y
         );
         
-        highlightBlock.sizeDelta = new Vector2(
-            targetButton.sizeDelta.x,
-            highlightBlock.sizeDelta.y
-        );
+        // 不再强制设置宽度，保留用户在Inspector中设置的高亮块大小
+        // highlightBlock.sizeDelta 保持不变
         
         // 更新当前选中索引（如果按钮在数组中）
         for (int i = 0; i < menuButtons.Length; i++)
@@ -164,6 +167,45 @@ public class MenuHighlightController : MonoBehaviour
                 return;
             }
         }
+    }
+    
+    /// <summary>
+    /// 自动计算高亮块的偏移量，使高亮块显示在按钮正下方
+    /// X轴和Y轴都对齐到按钮中心
+    /// </summary>
+    /// <param name="targetButton">目标按钮的 RectTransform</param>
+    /// <returns>计算得到的偏移量</returns>
+    private Vector2 CalculateAutoOffset(RectTransform targetButton)
+    {
+        // 如果手动设置了偏移（highlightOffset不为零），使用手动偏移
+        if (highlightOffset != Vector2.zero)
+        {
+            return highlightOffset;
+        }
+        
+        // 自动计算偏移
+        // X方向：对齐到按钮中心（不需要偏移，因为使用相同的anchoredPosition.x）
+        float offsetX = 0f;
+        
+        // Y方向：计算使高亮块显示在按钮正下方
+        // 使用rect.height获取实际渲染高度（比sizeDelta.y更准确，特别是使用Layout Group时）
+        // 确保Layout已经更新
+        Canvas.ForceUpdateCanvases();
+        
+        float buttonHeight = targetButton.rect.height;
+        float highlightHeight = highlightBlock.rect.height;
+        float spacing = 2f; // 高亮块与按钮之间的间距（像素）
+        
+        // 计算Y偏移（负数表示向下）
+        // 按钮底部位置 = 按钮中心Y - 按钮高度/2
+        // 高亮块应该放在按钮底部下方，所以：
+        // 高亮块中心Y = 按钮中心Y - 按钮高度/2 - 高亮块高度/2 - 间距
+        float offsetY = -(buttonHeight / 2f + highlightHeight / 2f + spacing);
+        
+        // 调试信息（启用后可以在运行时查看Console中的计算结果）
+        Debug.Log($"[MenuHighlightController] CalculateAutoOffset: buttonHeight={buttonHeight:F2}, highlightHeight={highlightHeight:F2}, spacing={spacing:F2}, offsetY={offsetY:F2}");
+        
+        return new Vector2(offsetX, offsetY);
     }
     
     /// <summary>
