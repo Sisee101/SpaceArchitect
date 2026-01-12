@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 /// <summary>
 /// 订单详情面板主控制器（结算界面）
@@ -12,6 +13,10 @@ public class OrderDetailPanel : MonoBehaviour
     [SerializeField] private TextImageController textImageController;
     [SerializeField] private DynamicTextController dynamicTextController;
     [SerializeField] private StampAnimationController stampAnimation;
+    
+    [Header("印章动画延迟")]
+    [Tooltip("结算界面显示后，延迟多少秒播放印章动画（秒）")]
+    [SerializeField] private float stampAnimationDelay = 1.0f; // 延迟时间（秒）
     
     [Header("调试")]
     [SerializeField] private bool enableDebugLog = true;
@@ -89,6 +94,27 @@ public class OrderDetailPanel : MonoBehaviour
         {
             Debug.Log("OrderDetailPanel: 结算界面已显示");
         }
+        
+        // 延迟播放印章动画
+        StartCoroutine(PlayStampAnimationDelayed());
+    }
+    
+    /// <summary>
+    /// 延迟播放印章动画（协程）
+    /// </summary>
+    private IEnumerator PlayStampAnimationDelayed()
+    {
+        if (stampAnimationDelay > 0f)
+        {
+            if (enableDebugLog)
+            {
+                Debug.Log($"OrderDetailPanel: 等待 {stampAnimationDelay} 秒后播放印章动画");
+            }
+            yield return new WaitForSeconds(stampAnimationDelay);
+        }
+        
+        // 播放印章动画
+        PlayStampAnimation();
     }
     
     /// <summary>
@@ -141,7 +167,15 @@ public class OrderDetailPanel : MonoBehaviour
     {
         if (stampAnimation != null)
         {
+            if (enableDebugLog)
+            {
+                Debug.Log("OrderDetailPanel: 调用播放印章动画");
+            }
             stampAnimation.PlayStampAnimation();
+        }
+        else
+        {
+            Debug.LogWarning("OrderDetailPanel: stampAnimation未配置！请在Inspector中配置Stamp Animation引用。");
         }
     }
 }
