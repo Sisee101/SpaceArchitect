@@ -19,6 +19,10 @@ public class MainHubController : MonoBehaviour
     [Header("主界面面板（默认显示）")]
     [SerializeField] private GameObject mainHubPanel;
     
+    [Header("结算界面")]
+    [Tooltip("结算界面（订单详情面板），在主界面按下空格键后显示")]
+    [SerializeField] private OrderDetailPanel settlementPanel;
+    
     [Header("音效")]
     [SerializeField] private AudioSource audioSource;              // 音频源组件
     [SerializeField] private AudioClip buttonClickSound;            // 按钮点击音效
@@ -55,6 +59,42 @@ public class MainHubController : MonoBehaviour
         if (mainHubPanel != null)
         {
             mainHubPanel.SetActive(true);
+        }
+        
+        // 结算界面会在自己的Start()中自动隐藏，这里不需要手动调用
+    }
+    
+    void Update()
+    {
+        // 监听空格键，显示结算界面
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (settlementPanel == null)
+            {
+                Debug.LogWarning("MainHubController: settlementPanel未配置！请在Inspector中配置Settlement Panel引用。");
+                return;
+            }
+            
+            // 如果结算界面未显示，显示结算界面
+            if (!settlementPanel.IsShowing())
+            {
+                Debug.Log("MainHubController: 按下空格键，显示结算界面");
+                settlementPanel.Show();
+            }
+            else
+            {
+                Debug.Log("MainHubController: 结算界面已显示，空格键不处理");
+            }
+        }
+        
+        // 监听ESC键，关闭结算界面
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (settlementPanel != null && settlementPanel.IsShowing())
+            {
+                Debug.Log("MainHubController: 按下ESC键，关闭结算界面");
+                settlementPanel.Hide();
+            }
         }
     }
     
