@@ -2741,17 +2741,17 @@ MonoBehaviour:
   corePlanets:
   - label: 
     prefab: {fileID: 100000, guid: c68eea21eab690a4e8b4b9155ed89b8b, type: 3}
-    count: 100
+    count: 150
     minScale: 0
     maxScale: 0
   - label: 
-    prefab: {fileID: 100000, guid: b033e653bf7685c4894dabd8af039195, type: 3}
-    count: 100
+    prefab: {fileID: 100000, guid: c68eea21eab690a4e8b4b9155ed89b8b, type: 3}
+    count: 0
     minScale: 0
     maxScale: 0
   - label: 
     prefab: {fileID: 100000, guid: 49d7c47dc7cd57348a3e3c342b05f0c0, type: 3}
-    count: 50
+    count: 30
     minScale: 0
     maxScale: 0
   dustLayers:
@@ -2764,7 +2764,7 @@ MonoBehaviour:
     minRadius: 0
   - label: 
     prefab: {fileID: 100000, guid: 6a7ea2163eb77c040b41f89ca9e897f9, type: 3}
-    count: 800
+    count: 0
     minScale: 0
     maxScale: 0
     clusterRadius: 5
