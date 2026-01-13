@@ -1968,6 +1968,7 @@ MonoBehaviour:
   restartKey: 114
   shipGameObject: {fileID: 1966355597}
   successUIPanel: {fileID: 0}
+  successPanelController: {fileID: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -2744,18 +2745,18 @@ MonoBehaviour:
     minScale: 0
     maxScale: 0
   - label: 
-    prefab: {fileID: 100000, guid: c62cd53d607e2fe458ae0df1a90cbfb8, type: 3}
+    prefab: {fileID: 100000, guid: b033e653bf7685c4894dabd8af039195, type: 3}
     count: 100
     minScale: 0
     maxScale: 0
   - label: 
     prefab: {fileID: 100000, guid: 49d7c47dc7cd57348a3e3c342b05f0c0, type: 3}
-    count: 100
+    count: 50
     minScale: 0
     maxScale: 0
   dustLayers:
   - label: 
-    prefab: {fileID: 100000, guid: 8dacd5afb30e8b54d89cd16e368b1fe1, type: 3}
+    prefab: {fileID: 100000, guid: c62cd53d607e2fe458ae0df1a90cbfb8, type: 3}
     count: 1000
     minScale: 0
     maxScale: 0
@@ -3300,7 +3301,6 @@ MonoBehaviour:
   targetCamera: {fileID: 0}
   escapeCheckInterval: 0.5
   viewportMargin: 0.1
-  speedMultiplier: 1.001
 --- !u!136 &1966355605
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -3428,9 +3428,18 @@ MonoBehaviour:
   updateInterval: 0.1
   onlyShowWhenFlying: 1
   minSpeedThreshold: 0.1
-  useSpeedMultiplier: 1
   gravityMultiplier: 1.1
+  maxPredictionDistance: 1000
+  maxPredictionStepsHardLimit: 10000
+  gravitySourceLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  onlyConsiderCoreDeflector: 0
   _info: "Core \u548C Planet \u4F7F\u7528\u76F8\u540C\u7684\u5F15\u529B\u8BA1\u7B97"
+  enablePredictionLogging: 0
+  triggerDelayFrames: 0
+  predictionLogFilePath: PredictionDataLog.txt
+  predictionLogInterval: 1
 --- !u!120 &1966355612
 LineRenderer:
   serializedVersion: 2
