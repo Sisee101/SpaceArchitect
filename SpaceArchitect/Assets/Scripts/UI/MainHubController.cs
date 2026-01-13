@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using TMPro;
 
 /// <summary>
 /// 主界面控制器
@@ -27,6 +28,19 @@ public class MainHubController : MonoBehaviour
     [SerializeField] private AudioSource audioSource;              // 音频源组件
     [SerializeField] private AudioClip buttonClickSound;            // 按钮点击音效
     [SerializeField] private float clickSoundDelay = 0.15f;        // 点击音效播放后的延迟时间（秒）
+    
+    [Header("金钱显示")]
+    [Tooltip("显示金钱数值的Text组件（Unity UI Text）")]
+    [SerializeField] private Text moneyText;                        // Unity UI Text组件（可选）
+    
+    [Tooltip("显示金钱数值的TextMeshPro组件（TextMeshPro - Text (UI)）")]
+    [SerializeField] private TextMeshProUGUI moneyTextMeshPro;     // TextMeshPro组件（可选）
+    
+    [Tooltip("是否启用实时更新（每帧检测金钱变化）")]
+    [SerializeField] private bool enableRealTimeUpdate = true;     // 是否实时更新
+    
+    // 上一次的金钱值，用于检测变化
+    private int lastMoneyValue = -1;
     
     void Start()
     {
@@ -60,6 +74,9 @@ public class MainHubController : MonoBehaviour
         {
             mainHubPanel.SetActive(true);
         }
+        
+        // 初始化金钱显示
+        InitializeMoneyDisplay();
         
         // 结算界面会在自己的Start()中自动隐藏，这里不需要手动调用
     }
@@ -95,6 +112,12 @@ public class MainHubController : MonoBehaviour
                 Debug.Log("MainHubController: 按下ESC键，关闭结算界面");
                 settlementPanel.Hide();
             }
+        }
+        
+        // 实时更新金钱显示（如果启用）
+        if (enableRealTimeUpdate)
+        {
+            UpdateMoneyDisplayIfChanged();
         }
     }
     
@@ -231,6 +254,59 @@ public class MainHubController : MonoBehaviour
         }
         // 移除了对 UIManager.Instance.ReturnToMainHub() 的调用，避免无限递归
         // UIManager.ReturnToMainHub() 会调用这个方法，不应该反向调用
+        
+        // 返回主界面时更新金钱显示
+        UpdateMoneyDisplay();
+    }
+    
+    /// <summary>
+    /// 初始化金钱显示
+    /// </summary>
+    private void InitializeMoneyDisplay()
+    {
+        // 如果两个文本组件都未配置，尝试自动查找
+        if (moneyText == null && moneyTextMeshPro == null)
+        {
+            // 尝试查找子对象中的Text组件
+            moneyText = GetComponentInChildren<Text>();
+            moneyTextMeshPro = GetComponentInChildren<TextMeshProUGUI>();
+        }
+        
+        // 初始化显示
+        UpdateMoneyDisplay();
+        lastMoneyValue = MoneyManager.money;
+    }
+    
+    /// <summary>
+    /// 更新金钱显示（如果金钱值发生变化）
+    /// </summary>
+    private void UpdateMoneyDisplayIfChanged()
+    {
+        if (MoneyManager.money != lastMoneyValue)
+        {
+            UpdateMoneyDisplay();
+            lastMoneyValue = MoneyManager.money;
+        }
+    }
+    
+    /// <summary>
+    /// 更新金钱显示文本
+    /// </summary>
+    public void UpdateMoneyDisplay()
+    {
+        string moneyString = MoneyManager.money.ToString();
+        
+        // 更新Unity UI Text
+        if (moneyText != null)
+        {
+            moneyText.text = moneyString;
+        }
+        
+        // 更新TextMeshPro
+        if (moneyTextMeshPro != null)
+        {
+            moneyTextMeshPro.text = moneyString;
+        }
     }
 }
 

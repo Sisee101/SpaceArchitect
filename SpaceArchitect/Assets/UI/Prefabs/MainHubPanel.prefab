@@ -1019,9 +1019,13 @@ MonoBehaviour:
   planetEncyclopediaButton: {fileID: 5894273939692522691}
   returnToMenuButton: {fileID: 111617491591646833}
   mainHubPanel: {fileID: 1358478184912109104}
+  settlementPanel: {fileID: 0}
   audioSource: {fileID: 0}
   buttonClickSound: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b, type: 3}
   clickSoundDelay: 0.15
+  moneyText: {fileID: 4486033777692157732}
+  moneyTextMeshPro: {fileID: 0}
+  enableRealTimeUpdate: 1
 --- !u!1 &7458729360364990449
 GameObject:
   m_ObjectHideFlags: 0
