@@ -180,6 +180,25 @@ public class SkillManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 通知所有技能按钮更新图片（当技能解锁后调用）
+    /// </summary>
+    /// <param name="skillType">解锁的技能类型（用于优化，只更新对应按钮）</param>
+    private void NotifyButtonUpdate(SkillButtonController.SkillType skillType)
+    {
+        // 查找场景中所有的 SkillButtonController
+        SkillButtonController[] allControllers = FindObjectsOfType<SkillButtonController>(true); // true表示包括未激活的对象
+        
+        foreach (SkillButtonController controller in allControllers)
+        {
+            // 只更新对应技能类型的按钮（优化性能）
+            if (controller != null && controller.CurrentSkillType == skillType)
+            {
+                controller.UpdateButtonImage();
+            }
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -203,6 +222,8 @@ public class SkillManager : MonoBehaviour
             Station1 = true;
             Debug.Log("Station1 已解锁!");
             ShowTip1Panel("Station1");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.Station1);
         }
     }
 
@@ -221,6 +242,8 @@ public class SkillManager : MonoBehaviour
             Station2 = true;
             Debug.Log("Station2 已解锁!");
             ShowTip1Panel("Station2");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.Station2);
         }
     }
 
@@ -239,6 +262,8 @@ public class SkillManager : MonoBehaviour
             Station3 = true;
             Debug.Log("Station3 已解锁!");
             ShowTip1Panel("Station3");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.Station3);
         }
     }
 
@@ -258,6 +283,8 @@ public class SkillManager : MonoBehaviour
             Boost1 = true;
             Debug.Log("Boost1 已解锁!");
             ShowTip1Panel("Boost1");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.Boost1);
         }
     }
 
@@ -276,6 +303,8 @@ public class SkillManager : MonoBehaviour
             Core1 = true;
             Debug.Log("Core1 已解锁!");
             ShowTip1Panel("Core1");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.Core1);
         }
     }
 
@@ -295,6 +324,8 @@ public class SkillManager : MonoBehaviour
             Boost2 = true;
             Debug.Log("Boost2 已解锁!");
             ShowTip1Panel("Boost2");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.Boost2);
         }
     }
 
@@ -313,6 +344,8 @@ public class SkillManager : MonoBehaviour
             Core2 = true;
             Debug.Log("Core2 已解锁!");
             ShowTip1Panel("Core2");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.Core2);
         }
     }
 
@@ -331,6 +364,8 @@ public class SkillManager : MonoBehaviour
             AntiHeat = true;
             Debug.Log("AntiHeat 已解锁!");
             ShowTip1Panel("AntiHeat");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.AntiHeat);
         }
     }
 
@@ -349,6 +384,8 @@ public class SkillManager : MonoBehaviour
             Predict = true;
             Debug.Log("Predict 已解锁!");
             ShowTip1Panel("Predict");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.Predict);
         }
     }
 
@@ -368,6 +405,8 @@ public class SkillManager : MonoBehaviour
             Boost3 = true;
             Debug.Log("Boost3 已解锁!");
             ShowTip1Panel("Boost3");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.Boost3);
         }
     }
 
@@ -386,6 +425,8 @@ public class SkillManager : MonoBehaviour
             Core3 = true;
             Debug.Log("Core3 已解锁!");
             ShowTip1Panel("Core3");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.Core3);
         }
     }
 
@@ -404,6 +445,8 @@ public class SkillManager : MonoBehaviour
             AntiCollision = true;
             Debug.Log("AntiCollision 已解锁!");
             ShowTip1Panel("AntiCollision");
+            // 通知按钮更新图片
+            NotifyButtonUpdate(SkillButtonController.SkillType.AntiCollision);
         }
     }
 }
