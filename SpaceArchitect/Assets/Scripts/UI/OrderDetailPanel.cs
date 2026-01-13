@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 /// <summary>
@@ -13,6 +14,14 @@ public class OrderDetailPanel : MonoBehaviour
     [SerializeField] private TextImageController textImageController;
     [SerializeField] private DynamicTextController dynamicTextController;
     [SerializeField] private StampAnimationController stampAnimation;
+    
+    [Header("按钮引用")]
+    [Tooltip("重置所有订单访问状态的按钮")]
+    [SerializeField] private Button resetVisitOrderButton; // 重置访问状态按钮
+    
+    [Header("数据配置")]
+    [Tooltip("订单数据配置（用于重置订单状态）")]
+    [SerializeField] private SphereOrderDataConfig orderDataConfig; // 订单数据配置引用
     
     [Header("印章动画延迟")]
     [Tooltip("结算界面显示后，延迟多少秒播放印章动画（秒）")]
@@ -57,6 +66,19 @@ public class OrderDetailPanel : MonoBehaviour
         if (stampAnimation == null)
         {
             Debug.LogWarning("OrderDetailPanel: stampAnimation未配置！");
+        }
+        
+        // 绑定重置按钮事件
+        if (resetVisitOrderButton != null)
+        {
+            resetVisitOrderButton.onClick.AddListener(OnResetVisitOrderClicked);
+        }
+        else
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("OrderDetailPanel: resetVisitOrderButton未配置！如需重置功能，请在Inspector中配置。");
+            }
         }
         
         // 订阅订单切换事件（如果订单列表控制器支持）
@@ -176,6 +198,57 @@ public class OrderDetailPanel : MonoBehaviour
         else
         {
             Debug.LogWarning("OrderDetailPanel: stampAnimation未配置！请在Inspector中配置Stamp Animation引用。");
+        }
+    }
+    
+    /// <summary>
+    /// 重置所有订单访问状态按钮点击事件
+    /// </summary>
+    private void OnResetVisitOrderClicked()
+    {
+        if (enableDebugLog)
+        {
+            Debug.Log("OrderDetailPanel: 点击重置访问状态按钮");
+        }
+        
+        ResetAllVisitOrder();
+    }
+    
+    /// <summary>
+    /// 重置所有订单的VisitOrder状态为false
+    /// </summary>
+    public void ResetAllVisitOrder()
+    {
+        if (orderDataConfig == null)
+        {
+            Debug.LogWarning("OrderDetailPanel: orderDataConfig未配置！无法重置订单访问状态。");
+            return;
+        }
+        
+        if (orderDataConfig.orderDataList == null || orderDataConfig.orderDataList.Count == 0)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("OrderDetailPanel: 订单数据列表为空，无需重置。");
+            }
+            return;
+        }
+        
+        int resetCount = 0;
+        
+        // 遍历所有订单，重置VisitOrder状态
+        foreach (var orderInfo in orderDataConfig.orderDataList)
+        {
+            if (orderInfo != null && orderInfo.VisitOrder)
+            {
+                orderInfo.VisitOrder = false;
+                resetCount++;
+            }
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"OrderDetailPanel: 已重置 {resetCount} 个订单的访问状态");
         }
     }
 }

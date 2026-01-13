@@ -32,6 +32,13 @@ public class SphereOrderDataConfig : ScriptableObject
         [Header("胜利视频")]
         [Tooltip("任务完成时播放的胜利结算视频")]
         public VideoClip victoryVideoClip; // 胜利视频（新增）
+        
+        [Header("订单状态")]
+        [Tooltip("是否已访问订单（是否查看过订单详情）")]
+        public bool VisitOrder = false;  // 是否已访问订单
+        
+        [Tooltip("是否已完成订单")]
+        public bool CompleteOrder = false; // 是否已完成订单
     }
     
     [Header("订单数据列表")]

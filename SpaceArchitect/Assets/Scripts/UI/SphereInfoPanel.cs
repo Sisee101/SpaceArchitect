@@ -14,6 +14,10 @@ public class SphereInfoPanel : MonoBehaviour
     [SerializeField] private Button closeButton;    // 关闭按钮
     [SerializeField] private Button jumpButton;     // 跳转场景按钮（前往配送）
     
+    [Header("数据配置")]
+    [Tooltip("订单数据配置（用于更新订单状态）")]
+    [SerializeField] private SphereOrderDataConfig orderDataConfig; // 订单数据配置引用
+    
     [Header("高亮控制器")]
     [SerializeField] private MenuHighlightController highlightController; // 高亮跟随控制器
     
@@ -27,6 +31,7 @@ public class SphereInfoPanel : MonoBehaviour
     [SerializeField] private bool enableDebugLog = true; // 是否启用调试日志
     
     private string currentTargetSceneName; // 当前面板的目标场景名称
+    private SphereOrderDataConfig.SphereOrderInfo currentOrderInfo; // 当前显示的订单信息
     
     void Start()
     {
@@ -183,6 +188,9 @@ public class SphereInfoPanel : MonoBehaviour
         // 保存目标场景名称
         currentTargetSceneName = sceneName;
         
+        // 查找并保存当前订单信息（用于更新订单状态）
+        UpdateCurrentOrderInfo(image);
+        
         // 显示面板
         Debug.Log($"SphereInfoPanel: 准备激活GameObject - 当前状态: {gameObject.activeSelf}, 父对象: {(transform.parent != null ? transform.parent.name : "null")}");
         
@@ -281,8 +289,80 @@ public class SphereInfoPanel : MonoBehaviour
     /// </summary>
     private void OnJumpClicked()
     {
+        // 更新订单的访问状态
+        MarkOrderAsVisited();
+        
         // 播放点击音效并延迟执行场景跳转，确保音效能够播放
         StartCoroutine(PlayClickSoundAndLoadScene());
+    }
+    
+    /// <summary>
+    /// 更新当前订单信息（通过订单图片查找）
+    /// </summary>
+    /// <param name="orderImage">订单图片</param>
+    private void UpdateCurrentOrderInfo(Sprite orderImage)
+    {
+        currentOrderInfo = null;
+        
+        if (orderDataConfig == null)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("SphereInfoPanel: orderDataConfig未配置，无法更新订单状态。");
+            }
+            return;
+        }
+        
+        if (orderImage == null)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("SphereInfoPanel: 订单图片为空，无法查找订单信息。");
+            }
+            return;
+        }
+        
+        // 遍历所有订单，查找匹配的订单图片
+        foreach (var orderInfo in orderDataConfig.orderDataList)
+        {
+            if (orderInfo != null && orderInfo.orderImage == orderImage)
+            {
+                currentOrderInfo = orderInfo;
+                if (enableDebugLog)
+                {
+                    Debug.Log($"SphereInfoPanel: 找到当前订单信息 - Sphere: {orderInfo.sphereName}");
+                }
+                return;
+            }
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.LogWarning($"SphereInfoPanel: 未找到匹配的订单信息（图片: {orderImage.name}）");
+        }
+    }
+    
+    /// <summary>
+    /// 标记当前订单为已访问
+    /// </summary>
+    private void MarkOrderAsVisited()
+    {
+        if (currentOrderInfo == null)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("SphereInfoPanel: 当前订单信息为空，无法更新访问状态。");
+            }
+            return;
+        }
+        
+        // 设置访问状态为真
+        currentOrderInfo.VisitOrder = true;
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"SphereInfoPanel: 订单 {currentOrderInfo.sphereName} 已标记为已访问");
+        }
     }
     
     /// <summary>
