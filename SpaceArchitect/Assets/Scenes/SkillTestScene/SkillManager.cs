@@ -4,6 +4,23 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+// 技能类型枚举
+public enum SkillType
+{
+    Station1,
+    Station2,
+    Station3,
+    Boost1,
+    Core1,
+    Boost2,
+    Core2,
+    AntiHeat,
+    Predict,
+    Boost3,
+    Core3,
+    AntiCollision
+}
+
 public class SkillManager : MonoBehaviour
 {
     // Tip Panel 相关引用
@@ -17,6 +34,20 @@ public class SkillManager : MonoBehaviour
     public GameObject tip1Panel;  // Tip1 Panel GameObject
     public TextMeshProUGUI tip1Text;  // Tip1 Panel 上的文字提示
     public Button confirmButton;  // Confirm 按钮
+    
+    // Information Panel 相关引用
+    [Header("Information Panel 设置")]
+    public GameObject informationPanel;  // Information Panel GameObject
+    public Image informationImage;  // 显示技能介绍图片的Image组件
+    public Button confirmUpgradeButton;  // 确认升级按钮
+    
+    // 技能介绍图片数组（按顺序：Station1, Station2, Station3, Boost1, Core1, Boost2, Core2, AntiHeat, Predict, Boost3, Core3, AntiCollision）
+    [Header("技能介绍图片")]
+    [Tooltip("技能介绍图片数组，按顺序：[0]Station1, [1]Station2, [2]Station3, [3]Boost1, [4]Core1, [5]Boost2, [6]Core2, [7]AntiHeat, [8]Predict, [9]Boost3, [10]Core3, [11]AntiCollision")]
+    public Sprite[] skillInfoImages = new Sprite[12];
+    
+    // 当前要解锁的技能类型
+    private SkillType currentSkillType;
     // Station 解锁状态
     public static bool Station1 = true;
     public static bool Station2 = false;
@@ -82,6 +113,18 @@ public class SkillManager : MonoBehaviour
         if (confirmButton != null)
         {
             confirmButton.onClick.AddListener(CloseTip1Panel);
+        }
+
+        // 初始化：默认隐藏 information panel
+        if (informationPanel != null)
+        {
+            informationPanel.SetActive(false);
+        }
+
+        // 绑定确认升级按钮的点击事件
+        if (confirmUpgradeButton != null)
+        {
+            confirmUpgradeButton.onClick.AddListener(ConfirmUpgrade);
         }
     }
 
@@ -180,6 +223,100 @@ public class SkillManager : MonoBehaviour
         }
     }
 
+    // 显示 Information Panel 并设置技能介绍图片
+    private void ShowInformationPanel(SkillType skillType)
+    {
+        if (informationPanel != null)
+        {
+            // 获取技能对应的图片索引
+            int imageIndex = (int)skillType;
+            
+            // 检查索引是否有效
+            if (imageIndex >= 0 && imageIndex < skillInfoImages.Length)
+            {
+                if (informationImage != null)
+                {
+                    informationImage.sprite = skillInfoImages[imageIndex];
+                }
+                else
+                {
+                    Debug.LogWarning("SkillManager: informationImage 未配置！");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"SkillManager: 技能类型 {skillType} 的图片索引 {imageIndex} 无效！");
+            }
+            
+            // 保存当前技能类型
+            currentSkillType = skillType;
+            
+            // 显示面板
+            informationPanel.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("SkillManager: informationPanel 未配置！");
+        }
+    }
+
+    // 关闭 Information Panel
+    public void CloseInformationPanel()
+    {
+        if (informationPanel != null)
+        {
+            informationPanel.SetActive(false);
+        }
+    }
+
+    // 确认升级按钮点击事件
+    private void ConfirmUpgrade()
+    {
+        // 根据当前技能类型调用对应的解锁方法（不关闭Information Panel）
+        switch (currentSkillType)
+        {
+            case SkillType.Station1:
+                ExecuteUnlockStation1();
+                break;
+            case SkillType.Station2:
+                ExecuteUnlockStation2();
+                break;
+            case SkillType.Station3:
+                ExecuteUnlockStation3();
+                break;
+            case SkillType.Boost1:
+                ExecuteUnlockBoost1();
+                break;
+            case SkillType.Core1:
+                ExecuteUnlockCore1();
+                break;
+            case SkillType.Boost2:
+                ExecuteUnlockBoost2();
+                break;
+            case SkillType.Core2:
+                ExecuteUnlockCore2();
+                break;
+            case SkillType.AntiHeat:
+                ExecuteUnlockAntiHeat();
+                break;
+            case SkillType.Predict:
+                ExecuteUnlockPredict();
+                break;
+            case SkillType.Boost3:
+                ExecuteUnlockBoost3();
+                break;
+            case SkillType.Core3:
+                ExecuteUnlockCore3();
+                break;
+            case SkillType.AntiCollision:
+                ExecuteUnlockAntiCollision();
+                break;
+            default:
+                Debug.LogWarning($"SkillManager: 未知的技能类型 {currentSkillType}");
+                break;
+        }
+    }
+
     /// <summary>
     /// 通知所有技能按钮更新图片（当技能解锁后调用）
     /// </summary>
@@ -205,8 +342,24 @@ public class SkillManager : MonoBehaviour
         // 可以在这里添加其他更新逻辑
     }
 
-    // Station 解锁方法
+    // Station 解锁方法（显示Information Panel）
     public void UnlockStation1()
+    {
+        ShowInformationPanel(SkillType.Station1);
+    }
+
+    public void UnlockStation2()
+    {
+        ShowInformationPanel(SkillType.Station2);
+    }
+
+    public void UnlockStation3()
+    {
+        ShowInformationPanel(SkillType.Station3);
+    }
+
+    // Station 实际解锁执行方法
+    private void ExecuteUnlockStation1()
     {
         if (!Station1)
         {
@@ -227,7 +380,7 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    public void UnlockStation2()
+    private void ExecuteUnlockStation2()
     {
         if (!Station2)
         {
@@ -247,7 +400,7 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    public void UnlockStation3()
+    private void ExecuteUnlockStation3()
     {
         if (!Station3)
         {
@@ -267,8 +420,19 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    // Station1 技能解锁方法
+    // Station1 技能解锁方法（显示Information Panel）
     public void UnlockBoost1()
+    {
+        ShowInformationPanel(SkillType.Boost1);
+    }
+
+    public void UnlockCore1()
+    {
+        ShowInformationPanel(SkillType.Core1);
+    }
+
+    // Station1 技能实际解锁执行方法
+    private void ExecuteUnlockBoost1()
     {
         if (!Boost1)
         {
@@ -288,7 +452,7 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    public void UnlockCore1()
+    private void ExecuteUnlockCore1()
     {
         if (!Core1)
         {
@@ -308,8 +472,29 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    // Station2 技能解锁方法
+    // Station2 技能解锁方法（显示Information Panel）
     public void UnlockBoost2()
+    {
+        ShowInformationPanel(SkillType.Boost2);
+    }
+
+    public void UnlockCore2()
+    {
+        ShowInformationPanel(SkillType.Core2);
+    }
+
+    public void UnlockAntiHeat()
+    {
+        ShowInformationPanel(SkillType.AntiHeat);
+    }
+
+    public void UnlockPredict()
+    {
+        ShowInformationPanel(SkillType.Predict);
+    }
+
+    // Station2 技能实际解锁执行方法
+    private void ExecuteUnlockBoost2()
     {
         if (!Boost2)
         {
@@ -329,7 +514,7 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    public void UnlockCore2()
+    private void ExecuteUnlockCore2()
     {
         if (!Core2)
         {
@@ -349,7 +534,7 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    public void UnlockAntiHeat()
+    private void ExecuteUnlockAntiHeat()
     {
         if (!AntiHeat)
         {
@@ -369,7 +554,7 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    public void UnlockPredict()
+    private void ExecuteUnlockPredict()
     {
         if (!Predict)
         {
@@ -389,8 +574,24 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    // Station3 技能解锁方法
+    // Station3 技能解锁方法（显示Information Panel）
     public void UnlockBoost3()
+    {
+        ShowInformationPanel(SkillType.Boost3);
+    }
+
+    public void UnlockCore3()
+    {
+        ShowInformationPanel(SkillType.Core3);
+    }
+
+    public void UnlockAntiCollision()
+    {
+        ShowInformationPanel(SkillType.AntiCollision);
+    }
+
+    // Station3 技能实际解锁执行方法
+    private void ExecuteUnlockBoost3()
     {
         if (!Boost3)
         {
@@ -410,7 +611,7 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    public void UnlockCore3()
+    private void ExecuteUnlockCore3()
     {
         if (!Core3)
         {
@@ -430,7 +631,7 @@ public class SkillManager : MonoBehaviour
         }
     }
 
-    public void UnlockAntiCollision()
+    private void ExecuteUnlockAntiCollision()
     {
         if (!AntiCollision)
         {
