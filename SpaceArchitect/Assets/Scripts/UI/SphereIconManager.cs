@@ -616,6 +616,8 @@ public class SphereIconManager : MonoBehaviour
     /// <param name="onComplete">动画完成回调</param>
     public void HideIconForSphere(string sphereName, Action onComplete = null)
     {
+        Debug.Log($"SphereIconManager: ====== HideIconForSphere 被调用，sphereName={sphereName} ======");
+        
         if (string.IsNullOrEmpty(sphereName))
         {
             Debug.LogWarning("SphereIconManager: sphereName为空！");
@@ -628,19 +630,23 @@ public class SphereIconManager : MonoBehaviour
         if (sphere1 != null && sphere1.name == sphereName)
         {
             targetSphere = sphere1;
+            Debug.Log($"SphereIconManager: 找到Sphere1，名称={sphere1.name}");
         }
         else if (sphere2 != null && sphere2.name == sphereName)
         {
             targetSphere = sphere2;
+            Debug.Log($"SphereIconManager: 找到Sphere2，名称={sphere2.name}");
         }
         else if (sphere4 != null && sphere4.name == sphereName)
         {
             targetSphere = sphere4;
+            Debug.Log($"SphereIconManager: 找到Sphere4，名称={sphere4.name}");
         }
         
         if (targetSphere == null)
         {
             Debug.LogWarning($"SphereIconManager: 未找到名称为 {sphereName} 的Sphere！");
+            Debug.LogWarning($"SphereIconManager: 当前Sphere引用 - sphere1={sphere1?.name ?? "null"}, sphere2={sphere2?.name ?? "null"}, sphere4={sphere4?.name ?? "null"}");
             onComplete?.Invoke();
             return;
         }
@@ -649,14 +655,22 @@ public class SphereIconManager : MonoBehaviour
         if (!sphereIconMap.ContainsKey(targetSphere) || sphereIconMap[targetSphere] == null)
         {
             Debug.LogWarning($"SphereIconManager: 未找到 {sphereName} 的图标！");
+            Debug.LogWarning($"SphereIconManager: 当前图标字典包含 {sphereIconMap.Count} 个条目");
+            foreach (var kvp in sphereIconMap)
+            {
+                Debug.LogWarning($"SphereIconManager: 字典条目 - Sphere={kvp.Key?.name ?? "null"}, Icon={kvp.Value?.name ?? "null"}");
+            }
             onComplete?.Invoke();
             return;
         }
         
         GameObject iconObj = sphereIconMap[targetSphere];
+        Debug.Log($"SphereIconManager: 找到图标 {iconObj.name}，开始播放消失动画");
         
         // 播放消失动画
         StartCoroutine(PlayHideAnimation(iconObj, () => {
+            Debug.Log($"SphereIconManager: 消失动画完成，Sphere={sphereName}");
+            
             // 从字典中移除
             sphereIconMap.Remove(targetSphere);
             
@@ -703,6 +717,14 @@ public class SphereIconManager : MonoBehaviour
         // 动画循环
         while (elapsed < duration)
         {
+            // 检查对象是否已被销毁（可能在动画过程中被其他地方销毁）
+            if (iconObj == null)
+            {
+                Debug.LogWarning("SphereIconManager: 图标对象在动画过程中被销毁，提前结束动画");
+                onComplete?.Invoke();
+                yield break;
+            }
+            
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
             
@@ -713,7 +735,10 @@ public class SphereIconManager : MonoBehaviour
             iconObj.transform.localScale = Vector3.Lerp(startScale, Vector3.zero, easeT);
             
             // 淡出：透明度从1到0
-            canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, easeT);
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, easeT);
+            }
             
             yield return null;
         }

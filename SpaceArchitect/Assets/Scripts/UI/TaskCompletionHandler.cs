@@ -3,16 +3,20 @@ using System.Collections;
 
 /// <summary>
 /// 任务完成处理器
-/// 监听任务完成事件，协调视频播放和气泡消失动画
-/// 执行顺序：播放胜利视频 → 视频播放完成 → 气泡消失动画
+/// 监听任务完成事件，协调胜利反馈显示和气泡消失动画
+/// 执行顺序：显示胜利图片+印章 → 图片和印章消失 → 气泡消失动画
 /// </summary>
 public class TaskCompletionHandler : MonoBehaviour
 {
     [Header("引用")]
     [SerializeField] private TaskManager taskManager;
     [SerializeField] private SphereIconManager iconManager;
-    [SerializeField] private VictoryVideoPlayer videoPlayer;
+    [Tooltip("胜利反馈显示组件（实现IVictoryFeedbackDisplay接口，如VictoryImageDisplay）")]
+    [SerializeField] private MonoBehaviour victoryFeedbackDisplayMono; // Unity Inspector不支持接口，使用MonoBehaviour
     [SerializeField] private SphereOrderDataConfig orderDataConfig;
+    
+    // 运行时转换为接口
+    private IVictoryFeedbackDisplay victoryFeedbackDisplay;
     
     [Header("检测设置")]
     [Tooltip("检测CompleteOrder变化的轮询间隔（秒）。如果为0，则每帧检测。")]
@@ -46,16 +50,27 @@ public class TaskCompletionHandler : MonoBehaviour
             return;
         }
         
-        if (videoPlayer == null)
-        {
-            Debug.LogError("TaskCompletionHandler: videoPlayer未配置！");
-            return;
-        }
-        
         if (orderDataConfig == null)
         {
             Debug.LogError("TaskCompletionHandler: orderDataConfig未配置！");
             return;
+        }
+        
+        // 将MonoBehaviour转换为接口
+        if (victoryFeedbackDisplayMono != null)
+        {
+            victoryFeedbackDisplay = victoryFeedbackDisplayMono as IVictoryFeedbackDisplay;
+            if (victoryFeedbackDisplay == null)
+            {
+                Debug.LogError("TaskCompletionHandler: victoryFeedbackDisplayMono 未实现 IVictoryFeedbackDisplay 接口！请在Inspector中配置 VictoryImageDisplay 组件。");
+            }
+        }
+        else
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("TaskCompletionHandler: victoryFeedbackDisplayMono未配置！任务完成时将不会显示胜利反馈。");
+            }
         }
         
         // 场景加载时，将已经完成的订单标记为已处理（避免场景切换时重复播放动画）
@@ -134,7 +149,7 @@ public class TaskCompletionHandler : MonoBehaviour
                 processedTaskIds.Add(orderInfo.taskId);
                 
                 // 处理任务完成序列
-                StartCoroutine(HandleTaskCompletionSequence(orderInfo.sphereName, orderInfo.victoryVideoClip));
+                StartCoroutine(HandleTaskCompletionSequence(orderInfo.sphereName));
             }
         }
     }
@@ -146,11 +161,16 @@ public class TaskCompletionHandler : MonoBehaviour
         {
             taskManager.OnTaskCompleted -= OnTaskCompleted;
         }
+        
+        if (victoryFeedbackDisplay != null)
+        {
+            victoryFeedbackDisplay.OnHidden -= OnVideoHidden;
+        }
     }
     
     /// <summary>
     /// 任务完成事件处理
-    /// 执行顺序：播放胜利视频 → 视频播放完成 → 气泡消失动画
+    /// 执行顺序：显示胜利图片+印章 → 图片和印章消失 → 气泡消失动画
     /// </summary>
     /// <param name="taskId">任务ID</param>
     private void OnTaskCompleted(int taskId)
@@ -170,7 +190,6 @@ public class TaskCompletionHandler : MonoBehaviour
         }
         
         string sphereName = orderInfo.sphereName;
-        UnityEngine.Video.VideoClip victoryVideo = orderInfo.victoryVideoClip;
         
         if (string.IsNullOrEmpty(sphereName))
         {
@@ -183,80 +202,118 @@ public class TaskCompletionHandler : MonoBehaviour
             Debug.Log($"TaskCompletionHandler: 开始处理任务完成，Sphere={sphereName}");
         }
         
-        // 执行流程：先播放视频，视频完成后播放气泡消失动画
-        StartCoroutine(HandleTaskCompletionSequence(sphereName, victoryVideo));
+        // 执行流程：显示图片+印章，然后等待消失后播放气泡消失动画
+        StartCoroutine(HandleTaskCompletionSequence(sphereName));
     }
     
     /// <summary>
-    /// 处理任务完成序列：播放视频 → 视频播放完成 → 视频消失 → 气泡消失动画
+    /// 处理任务完成序列：显示胜利图片+印章 → 图片和印章消失 → 气泡消失动画
     /// </summary>
     /// <param name="sphereName">Sphere名称</param>
-    /// <param name="victoryVideo">胜利视频剪辑</param>
-    private IEnumerator HandleTaskCompletionSequence(string sphereName, UnityEngine.Video.VideoClip victoryVideo)
+    private IEnumerator HandleTaskCompletionSequence(string sphereName)
     {
-        // 步骤1：播放胜利视频（如果有）
-        if (victoryVideo != null)
+        if (enableDebugLog)
+        {
+            Debug.Log($"TaskCompletionHandler: ====== 开始处理任务完成序列，Sphere={sphereName} ======");
+        }
+        
+        // 获取订单信息
+        var orderInfo = orderDataConfig.GetOrderInfoBySphereName(sphereName);
+        if (orderInfo == null)
+        {
+            Debug.LogWarning($"TaskCompletionHandler: 未找到 {sphereName} 的订单信息！");
+            yield break;
+        }
+        
+        // 步骤1：显示胜利图片+印章（优先使用图片）
+        if (orderInfo.orderImage != null && victoryFeedbackDisplay != null)
         {
             if (enableDebugLog)
             {
-                Debug.Log($"TaskCompletionHandler: 开始播放胜利视频 {victoryVideo.name}");
+                Debug.Log($"TaskCompletionHandler: 开始显示胜利图片 {orderInfo.orderImage.name}");
             }
             
-            bool videoFinished = false;
-            bool videoHidden = false;
+            bool imageHidden = false;
             
-            // 订阅视频隐藏完成事件
-            videoPlayer.OnVideoHidden += () => {
-                videoHidden = true;
-                if (enableDebugLog)
-                {
-                    Debug.Log("TaskCompletionHandler: 胜利视频已消失");
+            // 显示图片和印章（印章由组件内部处理）
+            victoryFeedbackDisplay.ShowImage(
+                orderInfo.orderImage, 
+                () => {
+                    imageHidden = true;
+                    if (enableDebugLog)
+                    {
+                        Debug.Log("TaskCompletionHandler: 图片和印章已消失，准备播放气泡消失动画");
+                    }
                 }
-            };
+            );
             
-            // 播放视频，设置完成回调
-            videoPlayer.PlayVideo(victoryVideo, () => {
-                videoFinished = true;
-                if (enableDebugLog)
-                {
-                    Debug.Log("TaskCompletionHandler: 胜利视频播放完成");
-                }
-            });
-            
-            // 等待视频播放完成
-            while (!videoFinished && videoPlayer.IsPlaying())
+            // 等待图片和印章消失
+            while (!imageHidden)
             {
                 yield return null;
             }
             
-            // 等待视频面板完全隐藏（视频消失）
+            if (enableDebugLog)
+            {
+                Debug.Log("TaskCompletionHandler: 图片显示序列已结束，准备播放气泡消失动画");
+            }
+        }
+        else if (orderInfo.victoryVideoClip != null && victoryFeedbackDisplay != null)
+        {
+            // 向后兼容：如果配置了视频，也可以播放
+            if (enableDebugLog)
+            {
+                Debug.Log($"TaskCompletionHandler: 开始播放胜利视频 {orderInfo.victoryVideoClip.name}");
+            }
+            
+            bool videoHidden = false;
+            victoryFeedbackDisplay.ShowVideo(orderInfo.victoryVideoClip, () => {
+                videoHidden = true;
+                if (enableDebugLog)
+                {
+                    Debug.Log("TaskCompletionHandler: 视频已隐藏，准备播放气泡消失动画");
+                }
+            });
+            
             while (!videoHidden)
             {
                 yield return null;
             }
-            
-            if (enableDebugLog)
-            {
-                Debug.Log("TaskCompletionHandler: 视频已完全消失，准备播放气泡消失动画");
-            }
         }
         else
         {
+            // 如果没有配置任何反馈，直接触发气泡消失
             if (enableDebugLog)
             {
-                Debug.LogWarning($"TaskCompletionHandler: 任务没有配置胜利视频，跳过视频播放");
+                if (orderInfo.orderImage == null && orderInfo.victoryVideoClip == null)
+                {
+                    Debug.LogWarning($"TaskCompletionHandler: 订单 {sphereName} 没有配置胜利反馈（orderImage或victoryVideoClip），直接播放气泡消失动画");
+                }
+                else if (victoryFeedbackDisplay == null)
+                {
+                    Debug.LogWarning($"TaskCompletionHandler: victoryFeedbackDisplay未配置，跳过显示，直接播放气泡消失动画");
+                }
             }
         }
         
         // 步骤2：等待延迟时间（如果有）
         if (bubbleAnimationDelay > 0f)
         {
+            if (enableDebugLog)
+            {
+                Debug.Log($"TaskCompletionHandler: 等待 {bubbleAnimationDelay} 秒后播放气泡消失动画");
+            }
             yield return new WaitForSeconds(bubbleAnimationDelay);
         }
         
-        // 步骤3：播放气泡消失动画
+        // 步骤3：播放气泡消失动画（保持和之前不变）
         if (iconManager != null)
         {
+            if (enableDebugLog)
+            {
+                Debug.Log($"TaskCompletionHandler: 开始播放气泡消失动画，Sphere={sphereName}");
+            }
+            
             iconManager.HideIconForSphere(sphereName, () => {
                 if (enableDebugLog)
                 {
@@ -266,7 +323,25 @@ public class TaskCompletionHandler : MonoBehaviour
         }
         else
         {
-            Debug.LogError("TaskCompletionHandler: iconManager未配置！");
+            Debug.LogError("TaskCompletionHandler: iconManager未配置！无法播放气泡消失动画");
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"TaskCompletionHandler: ====== 任务完成序列处理结束，Sphere={sphereName} ======");
+        }
+    }
+    
+    /// <summary>
+    /// 胜利反馈隐藏完成事件处理（当图片/视频完全隐藏后触发）
+    /// </summary>
+    private void OnVideoHidden()
+    {
+        // 这个方法现在由 HandleTaskCompletionSequence 中的回调处理
+        // 保留这个方法以防其他地方需要直接调用
+        if (enableDebugLog)
+        {
+            Debug.Log("TaskCompletionHandler: 收到胜利反馈隐藏事件");
         }
     }
 }
