@@ -3,6 +3,13 @@ using UnityEngine;
 /// <summary>
 /// 碰撞检测脚本
 /// 检测飞船与Planet或Obstacle的碰撞，并切换到Crashed状态
+/// 
+/// 碰撞检测规则：
+/// 1. Tag检测：检查碰撞对象的Tag是否为"Planet"、"Fire"或"Obstacle"
+/// 2. Component检测：检查碰撞对象是否有PlanetGravityCapture组件（更灵活，不依赖Tag）
+/// 
+/// 注意：Unity中一个GameObject只能有一个Tag，所以如果planet的Tag是"Fire"而不是"Planet"，
+/// 仍然可以通过Component检测来识别为planet
 /// </summary>
 [RequireComponent(typeof(CapsuleCollider))]
 public class Crash : MonoBehaviour
@@ -146,15 +153,31 @@ public class Crash : MonoBehaviour
         }
 
         // 检查是否是Planet或Obstacle（失败）
-        if (otherTag == "Planet" || otherTag == "Obstacle")
+        // 方法1：检查Tag（兼容旧代码）
+        bool isPlanetByTag = (otherTag == "Planet" || otherTag == "Fire");
+        // 同时检查 "Obstacle"（单数）和 "Obstacles"（复数）
+        // 注意：保护罩技能激活时，会忽略 "Obstacles" tag 的碰撞
+        // 但保护罩失效后，"Obstacles" tag 应该与 "Obstacle" tag 一样正常碰撞
+        bool isObstacleByTag = (otherTag == "Obstacle" || otherTag == "Obstacles");
+        
+        // 方法2：检查Component（更灵活，不依赖Tag）
+        // 如果物体有 PlanetGravityCapture 组件，也应该被视为planet，可以碰撞
+        bool isPlanetByComponent = otherObject.GetComponent<PlanetGravityCapture>() != null;
+        
+        if (isPlanetByTag || isObstacleByTag || isPlanetByComponent)
         {
+            if (showDebugLogs)
+            {
+                string reason = isPlanetByTag ? "Tag匹配" : (isPlanetByComponent ? "有PlanetGravityCapture组件" : "Obstacle标签");
+                Debug.Log($"[Crash] 检测到碰撞对象（{reason}）: {otherObject.name}, Tag: {otherTag}");
+            }
             HandleCrash(collision);
         }
         else
         {
             if (showDebugLogs)
             {
-                Debug.Log($"[Crash] 碰撞对象标签不是Planet或Obstacle，忽略碰撞");
+                Debug.Log($"[Crash] 碰撞对象标签不是Planet/Fire/Obstacle，也没有PlanetGravityCapture组件，忽略碰撞");
             }
         }
     }

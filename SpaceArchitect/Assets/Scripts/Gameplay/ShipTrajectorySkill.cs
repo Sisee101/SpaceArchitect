@@ -1,49 +1,52 @@
 using UnityEngine;
+using System.Linq;
 
 /// <summary>
-/// 飞船轨道预览技能
-/// 在发射前（PreLaunch状态）按Y键显示轨迹预览，帮助玩家规划发射路径
+/// 飞船轨迹预测技能
+/// 在PreLaunch状态下按Y键显示/隐藏飞船的预测轨道线
 /// </summary>
 [RequireComponent(typeof(ShipState))]
-public class ShipTrajectoryPreviewSkill : MonoBehaviour
+public class ShipTrajectorySkill : MonoBehaviour
 {
     [Header("输入设置")]
-    [Tooltip("触发预览的按键（按Y键显示预测线）")]
-    [SerializeField] private KeyCode previewKey = KeyCode.Y;
-    
-    [Header("预览设置")]
-    [Tooltip("是否在发射后自动隐藏预览")]
-    [SerializeField] private bool hideOnLaunch = true;
-    
-    [Tooltip("预览更新间隔（秒），越小越实时但性能消耗越大）")]
-    [SerializeField] private float previewUpdateInterval = 0.05f;
+    [Tooltip("触发轨迹显示的按键（默认Y键）")]
+    [SerializeField] private KeyCode toggleKey = KeyCode.Y;
     
     [Header("轨迹预测器设置")]
     [Tooltip("轨迹预测器组件（如果为空，将自动查找）")]
     [SerializeField] private TrajectoryPredictor trajectoryPredictor;
     
     [Tooltip("如果找不到TrajectoryPredictor，是否自动创建")]
-    [SerializeField] private bool autoCreatePredictor = false;
+    [SerializeField] private bool autoCreatePredictor = true;
+    
+    [Tooltip("只考虑 CoreDeflector，忽略其他 NBody 的基础引力\n启用后，预测轨迹将只计算 CoreDeflector 的影响")]
+    [SerializeField] private bool onlyConsiderCoreDeflector = false;
     
     [Header("发射速度设置")]
     [Tooltip("预览时使用的默认发射速度（如果发射器未提供）")]
     [SerializeField] private Vector3 defaultLaunchVelocity = new Vector3(5f, 0f, 0f);
     
-    [Tooltip("是否从发射器获取当前发射速度（ShipLauncher或ShipSimpleLauncher）")]
+    [Tooltip("是否从发射器获取当前发射速度")]
     [SerializeField] private bool useLauncherVelocity = true;
     
-    [Header("调试")]
+    [Header("其他设置")]
+    [Tooltip("是否在发射后自动隐藏轨迹")]
+    [SerializeField] private bool hideOnLaunch = true;
+    
     [Tooltip("显示调试信息")]
     [SerializeField] private bool showDebugLogs = false;
+    
+    [Tooltip("是否在显示轨迹时检查多个CoreDeflector的影响")]
+    [SerializeField] private bool checkMultipleDeflectors = true;
     
     // 内部状态
     private ShipState shipState;
     private ShipLauncher shipLauncher;
     private ShipSimpleLauncher shipSimpleLauncher;
     private Camera mainCamera;
-    private bool isPreviewActive = false;
-    private float lastPreviewUpdateTime = 0f;
+    private bool isTrajectoryVisible = false;
     private Vector3 lastPreviewVelocity = Vector3.zero;
+    private CoreDeflectorAnalyzer deflectorAnalyzer;
     
     void Awake()
     {
@@ -51,27 +54,11 @@ public class ShipTrajectoryPreviewSkill : MonoBehaviour
         shipState = GetComponent<ShipState>();
         if (shipState == null)
         {
-            Debug.LogError($"ShipTrajectoryPreviewSkill: {gameObject.name} 缺少 ShipState 组件！");
+            Debug.LogError($"ShipTrajectorySkill: {gameObject.name} 缺少 ShipState 组件！");
         }
         
         shipLauncher = GetComponent<ShipLauncher>();
         shipSimpleLauncher = GetComponent<ShipSimpleLauncher>();
-        
-        if (shipLauncher == null && shipSimpleLauncher == null && showDebugLogs)
-        {
-            Debug.LogWarning($"ShipTrajectoryPreviewSkill: {gameObject.name} 没有找到发射器组件（ShipLauncher 或 ShipSimpleLauncher），将使用默认发射速度");
-        }
-        else if (showDebugLogs)
-        {
-            if (shipLauncher != null)
-            {
-                Debug.Log($"ShipTrajectoryPreviewSkill: 找到 ShipLauncher 组件");
-            }
-            if (shipSimpleLauncher != null)
-            {
-                Debug.Log($"ShipTrajectoryPreviewSkill: 找到 ShipSimpleLauncher 组件");
-            }
-        }
         
         mainCamera = Camera.main;
         if (mainCamera == null)
@@ -101,37 +88,57 @@ public class ShipTrajectoryPreviewSkill : MonoBehaviour
                 
                 if (showDebugLogs)
                 {
-                    Debug.Log($"ShipTrajectoryPreviewSkill: 已自动创建 TrajectoryPredictor 组件");
+                    Debug.Log($"ShipTrajectorySkill: 已自动创建 TrajectoryPredictor 组件");
                 }
             }
         }
         
         if (trajectoryPredictor == null)
         {
-            Debug.LogWarning($"ShipTrajectoryPreviewSkill: {gameObject.name} 没有找到 TrajectoryPredictor 组件，预览功能将不可用。请在Inspector中手动指定或启用 autoCreatePredictor。");
+            Debug.LogWarning($"ShipTrajectorySkill: {gameObject.name} 没有找到 TrajectoryPredictor 组件，轨迹显示功能将不可用。请在Inspector中手动指定或启用 autoCreatePredictor。");
         }
         else
         {
-            // 设置 TrajectoryPredictor 为预览模式
+            // 设置预测模式为预览模式
             trajectoryPredictor.SetPredictionMode(TrajectoryPredictor.PredictionMode.Preview);
+            
+            // 设置是否只考虑 CoreDeflector
+            trajectoryPredictor.onlyConsiderCoreDeflector = onlyConsiderCoreDeflector;
+            
+            // 重要：刷新引力源缓存，确保CoreDeflector等组件被正确识别
+            trajectoryPredictor.RefreshGravitySources();
             
             if (showDebugLogs)
             {
-                Debug.Log($"ShipTrajectoryPreviewSkill: 已找到 TrajectoryPredictor 组件，预览功能已启用");
+                string modeInfo = onlyConsiderCoreDeflector ? "（仅CoreDeflector模式）" : "";
+                Debug.Log($"ShipTrajectorySkill: 已找到 TrajectoryPredictor 组件，轨迹显示功能已启用{modeInfo}，已刷新引力源缓存（包括CoreDeflector）");
             }
         }
         
-        // 订阅发射事件和状态变化事件，在发射后隐藏预览
+        // 订阅发射事件，在发射后隐藏轨迹
         if (EventManager.Instance != null)
         {
             EventManager.Instance.OnShipLaunched += OnShipLaunched;
             EventManager.Instance.OnShipStateChanged += OnShipStateChanged;
         }
+        
+        // 创建或查找 CoreDeflectorAnalyzer（用于检查多个CoreDeflector的影响）
+        if (checkMultipleDeflectors)
+        {
+            deflectorAnalyzer = FindObjectOfType<CoreDeflectorAnalyzer>();
+            if (deflectorAnalyzer == null)
+            {
+                // 创建一个临时的分析器（不添加到场景中）
+                GameObject analyzerObj = new GameObject("CoreDeflectorAnalyzer_Temp");
+                deflectorAnalyzer = analyzerObj.AddComponent<CoreDeflectorAnalyzer>();
+                deflectorAnalyzer.enabled = false; // 不自动运行，只在需要时调用
+            }
+        }
     }
     
     void OnEnable()
     {
-        // 订阅发射事件和状态变化事件
+        // 订阅事件
         if (EventManager.Instance != null)
         {
             EventManager.Instance.OnShipLaunched += OnShipLaunched;
@@ -151,50 +158,55 @@ public class ShipTrajectoryPreviewSkill : MonoBehaviour
     
     void Update()
     {
-        // 只在 PreLaunch 状态下响应
+        // 只在 PreLaunch 状态下响应Y键
         if (shipState == null || shipState.CurrentState != ShipState.State.PreLaunch)
         {
-            // 如果不在 PreLaunch 状态，隐藏预览
-            if (isPreviewActive)
+            // 如果不在 PreLaunch 状态，隐藏轨迹
+            if (isTrajectoryVisible)
             {
-                HidePreview();
+                HideTrajectory();
             }
             return;
         }
         
-        // 检测 Y 键输入（显示预览）
-        if (Input.GetKeyDown(previewKey))
+        // 检测 Y 键输入（切换显示/隐藏）
+        if (Input.GetKeyDown(toggleKey))
         {
-            if (!isPreviewActive)
-            {
-                // 如果预览未激活，显示预览
-                ShowPreview();
-            }
-            // 注意：按 Y 键只显示，不隐藏（隐藏由发射触发）
+            ToggleTrajectory();
         }
         
-        // 如果预览激活，实时更新预览轨迹（跟随鼠标方向）
-        if (isPreviewActive && trajectoryPredictor != null)
+        // 如果轨迹可见，实时更新轨迹（跟随发射器方向）
+        if (isTrajectoryVisible && trajectoryPredictor != null)
         {
-            // 按更新间隔更新预览轨迹
-            if (Time.time - lastPreviewUpdateTime >= previewUpdateInterval)
-            {
-                UpdatePreviewTrajectory();
-                lastPreviewUpdateTime = Time.time;
-            }
+            UpdateTrajectory();
         }
     }
     
     /// <summary>
-    /// 显示预览
+    /// 切换轨迹显示/隐藏
     /// </summary>
-    public void ShowPreview()
+    public void ToggleTrajectory()
+    {
+        if (isTrajectoryVisible)
+        {
+            HideTrajectory();
+        }
+        else
+        {
+            ShowTrajectory();
+        }
+    }
+    
+    /// <summary>
+    /// 显示轨迹
+    /// </summary>
+    public void ShowTrajectory()
     {
         if (trajectoryPredictor == null)
         {
             if (showDebugLogs)
             {
-                Debug.LogWarning("ShipTrajectoryPreviewSkill: 无法显示预览，TrajectoryPredictor 为空");
+                Debug.LogWarning("ShipTrajectorySkill: 无法显示轨迹，TrajectoryPredictor 为空");
             }
             return;
         }
@@ -203,75 +215,85 @@ public class ShipTrajectoryPreviewSkill : MonoBehaviour
         {
             if (showDebugLogs)
             {
-                Debug.LogWarning($"ShipTrajectoryPreviewSkill: 无法显示预览，飞船不在 PreLaunch 状态（当前状态: {shipState?.CurrentState}）");
+                Debug.LogWarning($"ShipTrajectorySkill: 无法显示轨迹，飞船不在 PreLaunch 状态（当前状态: {shipState?.CurrentState}）");
             }
             return;
         }
         
-        // 更新状态
-        isPreviewActive = true;
-        lastPreviewUpdateTime = Time.time;
+        // 重要：在显示轨迹前刷新引力源缓存，确保CoreDeflector等组件的最新参数被正确识别
+        // 这样可以确保预测轨迹准确反映场景中所有引力源（包括CoreDeflector）的影响
+        trajectoryPredictor.RefreshGravitySources();
         
-        // 立即更新一次预览轨迹
-        UpdatePreviewTrajectory();
+        // 检查是否有多个 CoreDeflector 同时影响飞船
+        if (checkMultipleDeflectors && deflectorAnalyzer != null)
+        {
+            CheckMultipleCoreDeflectors();
+        }
+        
+        // 更新状态
+        isTrajectoryVisible = true;
+        
+        // 立即更新一次轨迹
+        UpdateTrajectory();
+        
+        // 确保轨迹可见
+        trajectoryPredictor.SetTrajectoryVisible(true);
         
         if (showDebugLogs)
         {
-            Debug.Log("ShipTrajectoryPreviewSkill: 预览已显示（按鼠标左键发射，发射后自动隐藏）");
+            Debug.Log("ShipTrajectorySkill: 轨迹已显示（按Y键可隐藏），已刷新引力源缓存以确保CoreDeflector影响被正确计算");
         }
     }
     
     /// <summary>
-    /// 隐藏预览
+    /// 隐藏轨迹
     /// </summary>
-    public void HidePreview()
+    public void HideTrajectory()
     {
         if (trajectoryPredictor != null)
         {
-            trajectoryPredictor.HideTrajectory();
+            trajectoryPredictor.SetTrajectoryVisible(false);
             trajectoryPredictor.ClearPreviewTrajectory();
         }
         
-        isPreviewActive = false;
-        lastPreviewUpdateTime = 0f;
+        isTrajectoryVisible = false;
         lastPreviewVelocity = Vector3.zero;
         
         if (showDebugLogs)
         {
-            Debug.Log("ShipTrajectoryPreviewSkill: 预览已隐藏");
+            Debug.Log("ShipTrajectorySkill: 轨迹已隐藏");
         }
     }
     
     /// <summary>
-    /// 更新预览轨迹（实时跟随鼠标方向）
+    /// 更新轨迹（实时跟随发射器方向）
     /// </summary>
-    private void UpdatePreviewTrajectory()
+    private void UpdateTrajectory()
     {
         if (trajectoryPredictor == null || shipState == null || shipState.CurrentState != ShipState.State.PreLaunch)
         {
             return;
         }
         
-        // 获取当前发射位置和速度（跟随鼠标方向）
+        // 获取当前发射位置和速度
         Vector3 launchPosition = transform.position;
         Vector3 launchVelocity = GetLaunchVelocity();
         
-        // 如果速度变化超过阈值，更新预览轨迹
-        if (Vector3.Distance(launchVelocity, lastPreviewVelocity) > 0.01f || lastPreviewVelocity.magnitude < 0.01f)
+        // 如果速度发生变化，更新轨迹
+        // 注意：TrajectoryPredictor内部会考虑CoreDeflector的影响，因为它已经缓存了所有引力源
+        if (Vector3.Distance(launchVelocity, lastPreviewVelocity) > 0.01f)
         {
-            // 设置预览轨迹
             trajectoryPredictor.SetPreviewTrajectory(launchPosition, launchVelocity);
-            
-            // 确保轨迹可见
-            trajectoryPredictor.ShowTrajectory();
-            
             lastPreviewVelocity = launchVelocity;
             
-            if (showDebugLogs && Time.frameCount % 30 == 0) // 每30帧输出一次，避免日志过多
+            if (showDebugLogs)
             {
-                Debug.Log($"ShipTrajectoryPreviewSkill: 预览轨迹已更新 - 速度: {launchVelocity.magnitude:F2}, 方向: {launchVelocity.normalized}");
+                Debug.Log($"ShipTrajectorySkill: 轨迹已更新 - 位置: {launchPosition}, 速度: {launchVelocity}, 速度大小: {launchVelocity.magnitude:F2}");
             }
         }
+        
+        // 确保轨迹可见
+        trajectoryPredictor.SetTrajectoryVisible(true);
     }
     
     /// <summary>
@@ -327,7 +349,7 @@ public class ShipTrajectoryPreviewSkill : MonoBehaviour
                 var dragStartPositionField = typeof(ShipLauncher).GetField("dragStartPosition", 
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 
-                if (dragStartPositionField != null)
+                if (dragStartPositionField != null && mainCamera != null)
                 {
                     Vector3 dragStartPosition = (Vector3)dragStartPositionField.GetValue(shipLauncher);
                     Vector3 currentMousePosition = Input.mousePosition;
@@ -404,7 +426,6 @@ public class ShipTrajectoryPreviewSkill : MonoBehaviour
         return velocity;
     }
     
-    
     /// <summary>
     /// 飞船发射事件回调
     /// </summary>
@@ -416,14 +437,14 @@ public class ShipTrajectoryPreviewSkill : MonoBehaviour
             return;
         }
         
-        // 发射后隐藏预览
-        if (hideOnLaunch && isPreviewActive)
+        // 发射后隐藏轨迹
+        if (hideOnLaunch && isTrajectoryVisible)
         {
-            HidePreview();
+            HideTrajectory();
             
             if (showDebugLogs)
             {
-                Debug.Log("ShipTrajectoryPreviewSkill: 飞船已发射，预览已自动隐藏");
+                Debug.Log("ShipTrajectorySkill: 飞船已发射，轨迹已自动隐藏");
             }
         }
     }
@@ -439,45 +460,80 @@ public class ShipTrajectoryPreviewSkill : MonoBehaviour
             return;
         }
         
-        // 如果从 PreLaunch 转换到 Flying 状态，自动隐藏预览
-        if (oldState == ShipState.State.PreLaunch && newState == ShipState.State.Flying)
+        // 如果从 PreLaunch 转换到其他状态，自动隐藏轨迹
+        if (oldState == ShipState.State.PreLaunch && newState != ShipState.State.PreLaunch)
         {
-            if (hideOnLaunch && isPreviewActive)
+            if (isTrajectoryVisible)
             {
-                HidePreview();
+                HideTrajectory();
                 
                 if (showDebugLogs)
                 {
-                    Debug.Log("ShipTrajectoryPreviewSkill: 飞船状态从 PreLaunch 变为 Flying，预览已自动隐藏");
+                    Debug.Log($"ShipTrajectorySkill: 飞船状态从 PreLaunch 变为 {newState}，轨迹已自动隐藏");
                 }
             }
         }
-        // 如果不在 PreLaunch 状态，也隐藏预览
-        else if (newState != ShipState.State.PreLaunch && isPreviewActive)
+    }
+    
+    /// <summary>
+    /// 检查轨迹是否可见
+    /// </summary>
+    public bool IsTrajectoryVisible()
+    {
+        return isTrajectoryVisible;
+    }
+    
+    /// <summary>
+    /// 设置触发按键
+    /// </summary>
+    public void SetToggleKey(KeyCode key)
+    {
+        toggleKey = key;
+    }
+    
+    /// <summary>
+    /// 检查是否有多个 CoreDeflector 同时影响飞船
+    /// </summary>
+    private void CheckMultipleCoreDeflectors()
+    {
+        if (deflectorAnalyzer == null || shipState == null)
         {
-            HidePreview();
-            
-            if (showDebugLogs)
-            {
-                Debug.Log($"ShipTrajectoryPreviewSkill: 飞船状态变为 {newState}，预览已自动隐藏");
-            }
+            return;
         }
-    }
-    
-    /// <summary>
-    /// 检查预览是否激活
-    /// </summary>
-    public bool IsPreviewActive()
-    {
-        return isPreviewActive;
-    }
-    
-    /// <summary>
-    /// 设置预览按键
-    /// </summary>
-    public void SetPreviewKey(KeyCode key)
-    {
-        previewKey = key;
+        
+        // 设置分析器的目标飞船
+        var targetShipField = typeof(CoreDeflectorAnalyzer).GetField("targetShip", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (targetShipField != null)
+        {
+            targetShipField.SetValue(deflectorAnalyzer, gameObject);
+        }
+        
+        // 执行分析
+        deflectorAnalyzer.AnalyzeScene();
+        
+        // 检查结果
+        bool shipInMultipleRanges = deflectorAnalyzer.IsShipInMultipleRanges();
+        var overlaps = deflectorAnalyzer.GetOverlaps();
+        int overlappingCount = overlaps.Count(o => o.isOverlapping);
+        
+        if (shipInMultipleRanges)
+        {
+            Debug.LogWarning("⚠️ [ShipTrajectorySkill] 检测到飞船当前位置在多个 CoreDeflector 的影响范围内！");
+            Debug.LogWarning("这可能导致轨迹预测不准确，因为多个 CoreDeflector 会同时影响飞船。");
+            Debug.LogWarning("建议：调整 CoreDeflector 的位置或 trigger 范围，避免重叠。");
+        }
+        
+        if (overlappingCount > 0)
+        {
+            Debug.LogWarning($"⚠️ [ShipTrajectorySkill] 检测到 {overlappingCount} 对重叠的 CoreDeflector！");
+            Debug.LogWarning("重叠的 CoreDeflector 可能同时影响飞船，导致轨迹预测不准确。");
+        }
+        
+        if (showDebugLogs && !shipInMultipleRanges && overlappingCount == 0)
+        {
+            Debug.Log("✅ [ShipTrajectorySkill] CoreDeflector 检查通过：没有发现重叠或冲突");
+        }
     }
 }
 

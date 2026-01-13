@@ -210,7 +210,7 @@ public class ShipLauncher : MonoBehaviour
         // 清除轨迹预览
         if (trajectoryPredictor != null)
         {
-            trajectoryPredictor.HideTrajectory();
+            trajectoryPredictor.SetTrajectoryVisible(false);
         }
     }
     
@@ -229,7 +229,7 @@ public class ShipLauncher : MonoBehaviour
         // 如果速度太小，隐藏轨迹
         if (launchVelocity.magnitude < 0.1f)
         {
-            trajectoryPredictor.HideTrajectory();
+            trajectoryPredictor.SetTrajectoryVisible(false);
             return;
         }
         
@@ -237,7 +237,7 @@ public class ShipLauncher : MonoBehaviour
         trajectoryPredictor.SetPreviewTrajectory(transform.position, launchVelocity);
         
         // 确保轨迹可见
-        trajectoryPredictor.ShowTrajectory();
+        trajectoryPredictor.SetTrajectoryVisible(true);
     }
 
     /// <summary>

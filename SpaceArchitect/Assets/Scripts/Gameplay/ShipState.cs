@@ -32,9 +32,10 @@ public class ShipState : MonoBehaviour
     [Tooltip("视野边界扩展（0-1），值越大越容易触发逃离（例如0.1表示在视野外10%时触发）")]
     [SerializeField] private float viewportMargin = 0.1f;
 
-    [Header("速度调整")]
-    [Tooltip("飞行速度缩放系数（例如：1.5 = 速度提升50%，2.0 = 速度提升100%）")]
-    [SerializeField] private float speedMultiplier = 1.0f;
+    // 速度缩放功能已移除（简化预测系统，提高准确性）
+    // [Header("速度调整")]
+    // [Tooltip("飞行速度缩放系数（例如：1.5 = 速度提升50%，2.0 = 速度提升100%）")]
+    // [SerializeField] private float speedMultiplier = 1.0f;
 
     private NBody nBody;
     private GravityEngine gravityEngine;
@@ -47,8 +48,8 @@ public class ShipState : MonoBehaviour
     // 保存飞船模型子对象的引用，用于重置时恢复
     private Transform shipModelTransform;
     
-    // 用于速度缩放的上一帧速度，避免重复缩放
-    private Vector3 lastScaledVelocity = Vector3.zero;
+    // 速度缩放功能已移除
+    // private Vector3 lastScaledVelocity = Vector3.zero;
 
     /// <summary>
     /// 获取当前状态
@@ -204,30 +205,12 @@ public class ShipState : MonoBehaviour
             }
         }
         
-        // 在Flying或Captured状态下，同步Rigidbody位置以便碰撞检测，并应用速度缩放
+        // 在Flying或Captured状态下，同步Rigidbody位置以便碰撞检测
+        // 速度缩放功能已移除（简化系统，提高预测准确性）
         if (hasInitialized && (currentState == State.Flying || currentState == State.Captured))
         {
-            // 应用速度缩放（如果系数不为1.0）
-            // 每帧获取GravityEngine计算出的速度，应用缩放后重新设置
-            // 这样可以保持速度相对于引力计算结果的倍数关系，而不会指数增长
-            if (speedMultiplier != 1.0f && nBody != null && nBody.engineRef != null && gravityEngine != null)
-            {
-                Vector3 currentVelocity = gravityEngine.GetVelocity(nBody);
-                // 只有当速度与上一帧缩放后的速度不同时，才重新应用缩放
-                // 这样可以避免在同一物理帧内多次缩放
-                float velocityDiff = Vector3.Distance(currentVelocity, lastScaledVelocity);
-                if (velocityDiff > 0.01f) // 速度已被GravityEngine更新
-                {
-                    Vector3 scaledVelocity = currentVelocity * speedMultiplier;
-                    gravityEngine.SetVelocity(nBody, scaledVelocity);
-                    lastScaledVelocity = scaledVelocity;
-                }
-            }
-            else if (speedMultiplier == 1.0f)
-            {
-                // 如果速度缩放系数为1.0，重置追踪
-                lastScaledVelocity = Vector3.zero;
-            }
+            // 速度缩放逻辑已移除
+            // 如果需要调整游戏速度，可以使用 GravityEngine 的 timeZoom 或 massScale 参数
 
             // 同步Rigidbody位置（GravityEngine控制transform.position，但需要同步到Rigidbody才能检测碰撞）
             if (rb != null && !rb.isKinematic)
@@ -486,8 +469,8 @@ public class ShipState : MonoBehaviour
         nBody.vel = initialVelocity;
         Debug.Log($"飞船发射速度设置: {initialVelocity}");
         
-        // 重置速度追踪，准备应用速度缩放
-        lastScaledVelocity = Vector3.zero;
+        // 速度缩放功能已移除
+        // lastScaledVelocity = Vector3.zero;
 
         // 切换到Flying状态（这会自动添加到引力引擎）
         SetState(State.Flying);
@@ -681,8 +664,8 @@ public class ShipState : MonoBehaviour
             nBody.vel_phys = Vector3.zero;
         }
         
-        // 重置速度追踪
-        lastScaledVelocity = Vector3.zero;
+        // 速度缩放功能已移除
+        // lastScaledVelocity = Vector3.zero;
 
         // 重置Crash脚本的状态（重要：否则碰撞检测会被忽略）
         Crash crashScript = GetComponent<Crash>();

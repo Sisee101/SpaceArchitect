@@ -64,7 +64,7 @@ public class ShipBoostAim : MonoBehaviour
     [SerializeField] private int confirmMouseButton = 0;
 
     [Header("使用次数限制")]
-    [Tooltip("Boost等级（用于升级系统，1级=1次，2级=3次，3级=5次等）")]
+    [Tooltip("Boost等级（用于升级系统，1级=1次，2级=2次，3级=3次）")]
     [SerializeField] private int boostLevel = 1;
     
     [Tooltip("每局最大使用次数（根据等级自动计算，也可以手动设置）\n等级1=1次，等级2=3次，等级3=5次，等级4=7次...")]
@@ -960,9 +960,9 @@ public class ShipBoostAim : MonoBehaviour
     /// <returns>最大使用次数</returns>
     private int CalculateMaxUsesFromLevel(int level)
     {
-        // 等级1=1次，等级2=3次，等级3=5次，等级4=7次...
-        // 公式：2 * level - 1
-        return Mathf.Max(1, 2 * level - 1);
+        // 等级1=1次，等级2=2次，等级3=3次...
+        // 公式：直接等于等级
+        return Mathf.Max(1, level);
     }
 
     /// <summary>

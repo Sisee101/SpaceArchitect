@@ -35,6 +35,7 @@ public class GravityHubDeflector : MonoBehaviour
     private NBody hubNBody;
     private GravityEngine ge;
     private float lastDetectionTime;
+    private int frameCounter = 0; // 用于 FixedUpdate 的帧计数器
     
     void Start()
     {
@@ -47,12 +48,15 @@ public class GravityHubDeflector : MonoBehaviour
         ge = GravityEngine.Instance();
     }
     
-    void Update()
+    void FixedUpdate()
     {
-        if (Time.time - lastDetectionTime < detectionInterval)
+        // 关键修复：使用 fixedUnscaledDeltaTime 和固定时间步长，确保确定性
+        // 计算检测间隔（以 FixedUpdate 次数为单位）
+        int detectionIntervalFrames = Mathf.Max(1, Mathf.RoundToInt(detectionInterval / Time.fixedUnscaledDeltaTime));
+        frameCounter++;
+        
+        if (frameCounter % detectionIntervalFrames != 0)
             return;
-            
-        lastDetectionTime = Time.time;
         
         // 检测并偏转附近的飞船
         DeflectNearbySpaceships();
@@ -197,6 +201,8 @@ public class GravityHubDeflector : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, releaseRadius);
     }
 }
+
+
 
 
 

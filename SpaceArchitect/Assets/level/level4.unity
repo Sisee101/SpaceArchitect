@@ -786,6 +786,10 @@ MonoBehaviour:
   followSpeed: 5
   useSmoothing: 1
   xOffset: 0
+  yOffset: 0
+  enableYBoundary: 1
+  minYBoundary: -50
+  maxYBoundary: 50
   enableManualMove: 1
   manualMoveSpeed: 10
   leftMoveKey: 97
@@ -1422,7 +1426,7 @@ PrefabInstance:
     - target: {fileID: 3078458745267596294, guid: a91653eb6fee93f4694bfbc6695ec9a6,
         type: 3}
       propertyPath: maxAngularVelocity
-      value: 142
+      value: 108
       objectReference: {fileID: 0}
     - target: {fileID: 8836147628883005462, guid: a91653eb6fee93f4694bfbc6695ec9a6,
         type: 3}
@@ -3198,7 +3202,6 @@ MonoBehaviour:
   targetCamera: {fileID: 0}
   escapeCheckInterval: 0.5
   viewportMargin: 0.1
-  speedMultiplier: 1.001
 --- !u!136 &1966355605
 CapsuleCollider:
   m_ObjectHideFlags: 0

@@ -35,6 +35,7 @@ public class PlanetGravityCapture : MonoBehaviour
     private NBody planetNBody;
     private GravityEngine ge;
     private float lastDetectionTime;
+    private int frameCounter = 0; // 用于 FixedUpdate 的帧计数器
     private readonly List<SpaceshipCaptureInfo> capturedSpaceships = new List<SpaceshipCaptureInfo>();
     
     private class SpaceshipCaptureInfo
@@ -47,7 +48,7 @@ public class PlanetGravityCapture : MonoBehaviour
         {
             spaceship = ship;
             nbody = nb;
-            captureTime = Time.time;
+            captureTime = Time.fixedUnscaledTime;
         }
     }
     
@@ -62,7 +63,7 @@ public class PlanetGravityCapture : MonoBehaviour
         ge = GravityEngine.Instance();
     }
     
-    void Update()
+    void FixedUpdate()
     {
         // 如果捕获系统被禁用，直接返回
         if (!enableCapture)
@@ -70,10 +71,13 @@ public class PlanetGravityCapture : MonoBehaviour
             return;
         }
         
-        if (Time.time - lastDetectionTime < detectionInterval)
+        // 关键修复：使用 fixedUnscaledDeltaTime 和固定时间步长，确保确定性
+        // 计算检测间隔（以 FixedUpdate 次数为单位）
+        int detectionIntervalFrames = Mathf.Max(1, Mathf.RoundToInt(detectionInterval / Time.fixedUnscaledDeltaTime));
+        frameCounter++;
+        
+        if (frameCounter % detectionIntervalFrames != 0)
             return;
-            
-        lastDetectionTime = Time.time;
         
         // 检测附近的飞船
         DetectNearbySpaceships();
