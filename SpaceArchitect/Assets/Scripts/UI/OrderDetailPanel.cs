@@ -19,6 +19,9 @@ public class OrderDetailPanel : MonoBehaviour
     [Tooltip("重置所有订单访问状态的按钮")]
     [SerializeField] private Button resetVisitOrderButton; // 重置访问状态按钮
     
+    [Tooltip("下一天按钮（跳转到下一个主界面场景）")]
+    [SerializeField] private Button nextDayButton; // 下一天按钮
+    
     [Header("数据配置")]
     [Tooltip("订单数据配置（用于重置订单状态）")]
     [SerializeField] private SphereOrderDataConfig orderDataConfig; // 订单数据配置引用
@@ -78,6 +81,19 @@ public class OrderDetailPanel : MonoBehaviour
             if (enableDebugLog)
             {
                 Debug.LogWarning("OrderDetailPanel: resetVisitOrderButton未配置！如需重置功能，请在Inspector中配置。");
+            }
+        }
+        
+        // 绑定下一天按钮事件
+        if (nextDayButton != null)
+        {
+            nextDayButton.onClick.AddListener(OnNextDayClicked);
+        }
+        else
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("OrderDetailPanel: nextDayButton未配置！如需下一天功能，请在Inspector中配置。");
             }
         }
         
@@ -249,6 +265,49 @@ public class OrderDetailPanel : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log($"OrderDetailPanel: 已重置 {resetCount} 个订单的访问状态");
+        }
+    }
+    
+    /// <summary>
+    /// 下一天按钮点击事件
+    /// </summary>
+    private void OnNextDayClicked()
+    {
+        if (enableDebugLog)
+        {
+            Debug.Log("OrderDetailPanel: 点击下一天按钮，准备跳转到02_MainHub场景");
+        }
+        
+        // 跳转到下一个主界面场景
+        LoadNextDayScene();
+    }
+    
+    /// <summary>
+    /// 加载下一天场景（02_MainHub）
+    /// </summary>
+    private void LoadNextDayScene()
+    {
+        const string NEXT_DAY_SCENE = "02_MainHub";
+        
+        // 使用SceneTransitionManager（如果存在）
+        if (SceneTransitionManager.Instance != null)
+        {
+            SceneTransitionManager.Instance.LoadSceneByName(NEXT_DAY_SCENE);
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"OrderDetailPanel: 正在通过SceneTransitionManager加载{NEXT_DAY_SCENE}场景");
+            }
+        }
+        else
+        {
+            // 直接使用SceneManager加载场景
+            UnityEngine.SceneManagement.SceneManager.LoadScene(NEXT_DAY_SCENE);
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"OrderDetailPanel: SceneTransitionManager未找到，直接使用SceneManager加载{NEXT_DAY_SCENE}场景");
+            }
         }
     }
 }
