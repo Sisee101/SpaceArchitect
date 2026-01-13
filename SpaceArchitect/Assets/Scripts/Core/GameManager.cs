@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// 游戏重启管理器（单例）
@@ -40,6 +40,9 @@ public class GameRestartManager : MonoBehaviour
     [Header("成功UI设置")]
     [Tooltip("游戏成功UI弹窗（拖入成功弹窗的GameObject，如果没有则留空）")]
     [SerializeField] private GameObject successUIPanel;
+    
+    [Tooltip("成功面板控制器（如果成功面板有SuccessPanel脚本，可以配置此字段以获得更好的控制）")]
+    [SerializeField] private SuccessPanel successPanelController;
 
     private ShipState shipState;
     private bool canRestart = false; // 是否允许重启（只有在失败后才能重启）
@@ -185,10 +188,27 @@ public class GameRestartManager : MonoBehaviour
     /// </summary>
     private void ShowSuccessUI()
     {
+        // 优先使用 SuccessPanel 控制器（如果配置了）
+        if (successPanelController != null)
+        {
+            successPanelController.Show();
+            Debug.Log("游戏成功UI弹窗已显示（通过SuccessPanel控制器）");
+            return;
+        }
+        
+        // 如果没有配置控制器，使用 GameObject 直接激活（兼容旧方式）
         if (successUIPanel != null)
         {
             // 如果UI面板存在，激活它
             successUIPanel.SetActive(true);
+            
+            // 尝试获取 SuccessPanel 组件并调用 Show 方法
+            SuccessPanel panel = successUIPanel.GetComponent<SuccessPanel>();
+            if (panel != null)
+            {
+                panel.Show();
+            }
+            
             Debug.Log("游戏成功UI弹窗已显示");
         }
         else

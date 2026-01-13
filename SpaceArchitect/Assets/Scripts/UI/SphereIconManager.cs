@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
+using System;
 
 /// <summary>
 /// Sphere图标管理器
@@ -42,6 +44,14 @@ public class SphereIconManager : MonoBehaviour
     [Header("面板引用")]
     [SerializeField] private SphereInfoPanel infoPanel; // 信息面板引用（必须配置）
     
+    [Header("任务管理器引用")]
+    [Tooltip("任务管理器（用于检查任务是否已完成，如果为空则自动查找）")]
+    [SerializeField] private TaskManager taskManager; // 任务管理器引用
+    
+    [Header("气泡消失动画设置")]
+    [Tooltip("气泡消失动画的时长（秒）")]
+    [SerializeField] private float hideAnimationDuration = 0.5f; // 气泡消失动画时长
+    
     // 私有变量
     private Dictionary<GameObject, GameObject> sphereIconMap; // Sphere到Icon的映射字典
     private bool iconsVisible = false; // 图标是否显示
@@ -82,6 +92,41 @@ public class SphereIconManager : MonoBehaviour
         if (infoPanel == null)
         {
             Debug.LogWarning("SphereIconManager: infoPanel未配置！请在Inspector中指定SphereInfoPanel引用。");
+        }
+        
+        // 自动查找TaskManager（如果未配置）
+        if (taskManager == null)
+        {
+            taskManager = FindObjectOfType<TaskManager>();
+            if (taskManager == null)
+            {
+                Debug.LogWarning("SphereIconManager: 未找到TaskManager，将无法检查任务完成状态，所有气泡都会显示");
+            }
+        }
+        
+        // 场景加载后自动显示气泡
+        // 延迟一帧显示，确保所有初始化完成
+        StartCoroutine(AutoShowIconsOnStart());
+    }
+    
+    /// <summary>
+    /// 在场景加载后自动显示气泡（延迟一帧，确保所有初始化完成）
+    /// </summary>
+    private IEnumerator AutoShowIconsOnStart()
+    {
+        // 等待一帧，确保所有对象的初始化都已完成
+        yield return null;
+        
+        // 检查必要引用是否都已配置
+        if (iconPrefab != null && worldSpaceCanvas != null)
+        {
+            // 自动显示气泡
+            ShowIcons();
+            Debug.Log("SphereIconManager: 场景加载完成，气泡已自动显示");
+        }
+        else
+        {
+            Debug.LogWarning("SphereIconManager: 无法自动显示气泡，iconPrefab 或 worldSpaceCanvas 未配置");
         }
     }
     
@@ -155,7 +200,7 @@ public class SphereIconManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 显示所有图标
+    /// 显示所有图标（只显示未完成任务的气泡）
     /// </summary>
     private void ShowIcons()
     {
@@ -167,13 +212,87 @@ public class SphereIconManager : MonoBehaviour
         
         Debug.Log($"SphereIconManager: 开始显示图标，Canvas: {worldSpaceCanvas.name}, RenderMode: {worldSpaceCanvas.renderMode}, Canvas Scale: {worldSpaceCanvas.transform.localScale}");
         
-        // 为每个Sphere创建图标
-        CreateIconForSphere(sphere1);
-        CreateIconForSphere(sphere2);
-        CreateIconForSphere(sphere4);
+        // 为每个Sphere创建图标（只创建未完成任务的气泡）
+        CreateIconForSphereIfNotCompleted(sphere1);
+        CreateIconForSphereIfNotCompleted(sphere2);
+        CreateIconForSphereIfNotCompleted(sphere4);
         
         iconsVisible = true;
-        Debug.Log($"SphereIconManager: 图标已显示，共创建 {sphereIconMap.Count} 个图标");
+        Debug.Log($"SphereIconManager: 图标已显示，共创建 {sphereIconMap.Count} 个图标（已过滤已完成任务的气泡）");
+    }
+    
+    /// <summary>
+    /// 检查Sphere对应的任务是否已完成，如果未完成则创建图标
+    /// </summary>
+    private void CreateIconForSphereIfNotCompleted(GameObject sphere)
+    {
+        if (sphere == null)
+        {
+            return;
+        }
+        
+        // 检查任务是否已完成
+        if (IsSphereTaskCompleted(sphere.name))
+        {
+            Debug.Log($"SphereIconManager: Sphere {sphere.name} 的任务已完成，跳过创建气泡");
+            return;
+        }
+        
+        // 任务未完成，创建图标
+        CreateIconForSphere(sphere);
+    }
+    
+    /// <summary>
+    /// 检查指定Sphere对应的任务是否已完成
+    /// </summary>
+    /// <param name="sphereName">Sphere名称</param>
+    /// <returns>如果任务已完成返回true，否则返回false</returns>
+    private bool IsSphereTaskCompleted(string sphereName)
+    {
+        // 如果没有订单数据配置，默认返回false（显示气泡）
+        if (orderDataConfig == null)
+        {
+            return false;
+        }
+        
+        // 根据Sphere名称获取订单信息
+        var orderInfo = orderDataConfig.GetOrderInfoBySphereName(sphereName);
+        if (orderInfo == null)
+        {
+            // 如果找不到订单信息，默认返回false（显示气泡）
+            return false;
+        }
+        
+        // 检查任务是否已完成
+        int taskId = orderInfo.taskId;
+        if (taskId < 0)
+        {
+            // 如果taskId无效（-1），默认返回false（显示气泡）
+            return false;
+        }
+        
+        // 优先检查CompleteOrder状态（这是最可靠的，因为它在场景切换时会被同步）
+        if (orderInfo.CompleteOrder)
+        {
+            Debug.Log($"SphereIconManager: Sphere {sphereName} (taskId={taskId}) 的CompleteOrder为true，任务已完成");
+            return true;
+        }
+        
+        // 备用检查：通过TaskManager检查（如果TaskManager存在）
+        if (taskManager != null)
+        {
+            bool isCompleted = taskManager.IsTaskCompleted(taskId);
+            if (isCompleted)
+            {
+                Debug.Log($"SphereIconManager: Sphere {sphereName} (taskId={taskId}) 通过TaskManager检查，任务已完成");
+                // 同步CompleteOrder状态
+                orderInfo.CompleteOrder = true;
+            }
+            return isCompleted;
+        }
+        
+        // 如果TaskManager不存在，只检查CompleteOrder（已经在上面检查过了）
+        return false;
     }
     
     /// <summary>
@@ -488,6 +607,157 @@ public class SphereIconManager : MonoBehaviour
     public bool AreIconsVisible()
     {
         return iconsVisible;
+    }
+    
+    /// <summary>
+    /// 根据Sphere名称隐藏图标（播放消失动画）
+    /// </summary>
+    /// <param name="sphereName">Sphere GameObject的名称</param>
+    /// <param name="onComplete">动画完成回调</param>
+    public void HideIconForSphere(string sphereName, Action onComplete = null)
+    {
+        Debug.Log($"SphereIconManager: ====== HideIconForSphere 被调用，sphereName={sphereName} ======");
+        
+        if (string.IsNullOrEmpty(sphereName))
+        {
+            Debug.LogWarning("SphereIconManager: sphereName为空！");
+            onComplete?.Invoke();
+            return;
+        }
+        
+        // 查找对应的Sphere GameObject
+        GameObject targetSphere = null;
+        if (sphere1 != null && sphere1.name == sphereName)
+        {
+            targetSphere = sphere1;
+            Debug.Log($"SphereIconManager: 找到Sphere1，名称={sphere1.name}");
+        }
+        else if (sphere2 != null && sphere2.name == sphereName)
+        {
+            targetSphere = sphere2;
+            Debug.Log($"SphereIconManager: 找到Sphere2，名称={sphere2.name}");
+        }
+        else if (sphere4 != null && sphere4.name == sphereName)
+        {
+            targetSphere = sphere4;
+            Debug.Log($"SphereIconManager: 找到Sphere4，名称={sphere4.name}");
+        }
+        
+        if (targetSphere == null)
+        {
+            Debug.LogWarning($"SphereIconManager: 未找到名称为 {sphereName} 的Sphere！");
+            Debug.LogWarning($"SphereIconManager: 当前Sphere引用 - sphere1={sphere1?.name ?? "null"}, sphere2={sphere2?.name ?? "null"}, sphere4={sphere4?.name ?? "null"}");
+            onComplete?.Invoke();
+            return;
+        }
+        
+        // 查找对应的图标
+        if (!sphereIconMap.ContainsKey(targetSphere) || sphereIconMap[targetSphere] == null)
+        {
+            Debug.LogWarning($"SphereIconManager: 未找到 {sphereName} 的图标！");
+            Debug.LogWarning($"SphereIconManager: 当前图标字典包含 {sphereIconMap.Count} 个条目");
+            foreach (var kvp in sphereIconMap)
+            {
+                Debug.LogWarning($"SphereIconManager: 字典条目 - Sphere={kvp.Key?.name ?? "null"}, Icon={kvp.Value?.name ?? "null"}");
+            }
+            onComplete?.Invoke();
+            return;
+        }
+        
+        GameObject iconObj = sphereIconMap[targetSphere];
+        Debug.Log($"SphereIconManager: 找到图标 {iconObj.name}，开始播放消失动画");
+        
+        // 播放消失动画
+        StartCoroutine(PlayHideAnimation(iconObj, () => {
+            Debug.Log($"SphereIconManager: 消失动画完成，Sphere={sphereName}");
+            
+            // 从字典中移除
+            sphereIconMap.Remove(targetSphere);
+            
+            // 如果所有图标都隐藏了，更新状态
+            if (sphereIconMap.Count == 0)
+            {
+                iconsVisible = false;
+            }
+            
+            // 调用完成回调
+            onComplete?.Invoke();
+        }));
+    }
+    
+    /// <summary>
+    /// 播放图标消失动画（缩放 + 淡出）
+    /// </summary>
+    /// <param name="iconObj">图标GameObject</param>
+    /// <param name="onComplete">动画完成回调</param>
+    private IEnumerator PlayHideAnimation(GameObject iconObj, Action onComplete)
+    {
+        if (iconObj == null)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+        
+        // 获取Image组件（用于淡出效果）
+        Image iconImage = iconObj.GetComponent<Image>();
+        CanvasGroup canvasGroup = iconObj.GetComponent<CanvasGroup>();
+        
+        // 如果没有CanvasGroup，添加一个
+        if (canvasGroup == null)
+        {
+            canvasGroup = iconObj.AddComponent<CanvasGroup>();
+        }
+        
+        // 动画参数
+        float duration = hideAnimationDuration; // 使用Inspector中配置的动画时长
+        float elapsed = 0f;
+        Vector3 startScale = iconObj.transform.localScale;
+        float startAlpha = canvasGroup.alpha;
+        
+        // 动画循环
+        while (elapsed < duration)
+        {
+            // 检查对象是否已被销毁（可能在动画过程中被其他地方销毁）
+            if (iconObj == null)
+            {
+                Debug.LogWarning("SphereIconManager: 图标对象在动画过程中被销毁，提前结束动画");
+                onComplete?.Invoke();
+                yield break;
+            }
+            
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            
+            // 使用缓动函数（easeOut）
+            float easeT = 1f - Mathf.Pow(1f - t, 3f);
+            
+            // 缩放：从1缩放到0
+            iconObj.transform.localScale = Vector3.Lerp(startScale, Vector3.zero, easeT);
+            
+            // 淡出：透明度从1到0
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, easeT);
+            }
+            
+            yield return null;
+        }
+        
+        // 确保最终状态
+        iconObj.transform.localScale = Vector3.zero;
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+        }
+        
+        // 销毁图标
+        if (iconObj != null)
+        {
+            Destroy(iconObj);
+        }
+        
+        // 调用完成回调
+        onComplete?.Invoke();
     }
     
     void OnDestroy()

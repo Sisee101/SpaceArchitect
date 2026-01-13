@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ea41661bcc93b8418070b66e649d169, type: 3}
+  m_Name: EmployeeHandbookData
+  m_EditorClassIdentifier: 
+  sections:
+  - sectionName: "\u5165\u804C\u6307\u5357"
+    images:
+    - {fileID: 21300000, guid: 7825b1d2b46c5844a9b07fd0bc26924d, type: 3}
+    - {fileID: 21300000, guid: 7825b1d2b46c5844a9b07fd0bc26924d, type: 3}
+    - {fileID: 21300000, guid: 7825b1d2b46c5844a9b07fd0bc26924d, type: 3}
+  - sectionName: "\u4E1A\u52A1\u6D41\u7A0B"
+    images:
+    - {fileID: 21300000, guid: 7825b1d2b46c5844a9b07fd0bc26924d, type: 3}
+    - {fileID: 21300000, guid: 7825b1d2b46c5844a9b07fd0bc26924d, type: 3}
+    - {fileID: 21300000, guid: 7825b1d2b46c5844a9b07fd0bc26924d, type: 3}
+  - sectionName: "\u7CFB\u7EDF\u67B6\u6784"
+    images:
+    - {fileID: 21300000, guid: 7825b1d2b46c5844a9b07fd0bc26924d, type: 3}
+    - {fileID: 21300000, guid: 7825b1d2b46c5844a9b07fd0bc26924d, type: 3}
+    - {fileID: 21300000, guid: 7825b1d2b46c5844a9b07fd0bc26924d, type: 3}

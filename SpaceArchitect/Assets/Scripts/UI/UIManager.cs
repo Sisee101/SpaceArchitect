@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections; // 添加用于 IEnumerator 协程
 using System.Collections.Generic; // 添加用于 HashSet
 using UnityEngine.SceneManagement; // 添加用于 SceneManager
@@ -40,9 +40,6 @@ public class UIManager : MonoBehaviour
     
     [Header("行星图鉴面板")]
     [SerializeField] private PlanetEncyclopediaPanel planetEncyclopediaPanel;
-    
-    [Header("设置面板")]
-    [SerializeField] private SettingsPanel settingsPanel;
     
     [Header("员工手册面板")]
     [SerializeField] private EmployeeHandbookPanel employeeHandbookPanel;
@@ -133,11 +130,6 @@ public class UIManager : MonoBehaviour
             planetEncyclopediaPanel.Hide();
         }
         
-        if (settingsPanel != null && settingsPanel.gameObject.activeSelf && !userActivatedPanels.Contains(settingsPanel))
-        {
-            settingsPanel.Hide();
-        }
-        
         if (employeeHandbookPanel != null && employeeHandbookPanel.gameObject.activeSelf && !userActivatedPanels.Contains(employeeHandbookPanel))
         {
             employeeHandbookPanel.Hide();
@@ -191,18 +183,6 @@ public class UIManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 显示设置面板
-    /// </summary>
-    public void ShowSettings()
-    {
-        HideAllPanels();
-        if (settingsPanel != null)
-        {
-            settingsPanel.Show();
-        }
-    }
-    
-    /// <summary>
     /// 隐藏所有面板
     /// </summary>
     private void HideAllPanels()
@@ -215,11 +195,6 @@ public class UIManager : MonoBehaviour
         if (planetEncyclopediaPanel != null && planetEncyclopediaPanel.gameObject.activeSelf)
         {
             planetEncyclopediaPanel.Hide();
-        }
-        
-        if (settingsPanel != null && settingsPanel.gameObject.activeSelf)
-        {
-            settingsPanel.Hide();
         }
         
         if (employeeHandbookPanel != null && employeeHandbookPanel.gameObject.activeSelf)
@@ -246,11 +221,6 @@ public class UIManager : MonoBehaviour
         if (planetEncyclopediaPanel != null && planetEncyclopediaPanel != exceptPanel && planetEncyclopediaPanel.gameObject.activeSelf)
         {
             planetEncyclopediaPanel.Hide();
-        }
-        
-        if (settingsPanel != null && settingsPanel != exceptPanel && settingsPanel.gameObject.activeSelf)
-        {
-            settingsPanel.Hide();
         }
         
         if (employeeHandbookPanel != null && employeeHandbookPanel != exceptPanel && employeeHandbookPanel.gameObject.activeSelf)

@@ -17,4 +17,16 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/UI/Scenes/UITRY.unity
     guid: 4f0b4635ae7fe7f42a334f6159e2bfba
+  - enabled: 1
+    path: Assets/Scenes/SkillTestScene/SkillTestScene.unity
+    guid: cf162623724445b4fa09ef9527585960
+  - enabled: 1
+    path: Assets/level/level1.unity
+    guid: 763ec279c4372f24488e539f0944308f
+  - enabled: 1
+    path: Assets/UI/Scenes/TRY2.unity
+    guid: 420f5344b944c764ab4e0e6219e29101
+  - enabled: 1
+    path: Assets/UI/Scenes/02_MainHub.unity
+    guid: b04ca2820ebc92e4a8e65d9b32024cd6
   m_configObjects: {}

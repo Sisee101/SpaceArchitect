@@ -12,17 +12,23 @@ public class MainMenuPanel : MonoBehaviour
     [Header("按钮引用")]
     [SerializeField] private Button startGameButton;
     [SerializeField] private Button planetEncyclopediaButton;
-    [SerializeField] private Button settingsButton;
     [SerializeField] private Button quitButton;
     
     [Header("高亮控制器")]
     [SerializeField] private MenuHighlightController highlightController; // 高亮跟随控制器
+    
+    [Header("数据配置")]
+    [Tooltip("订单数据配置（用于重置订单状态）")]
+    [SerializeField] private SphereOrderDataConfig orderDataConfig; // 订单数据配置引用
     
     [Header("音效")]
     [SerializeField] private AudioSource audioSource;          // 音频源组件
     [SerializeField] private AudioClip buttonHoverSound;       // 按钮悬停音效
     [SerializeField] private AudioClip buttonClickSound;       // 按钮点击音效
     [SerializeField] private float clickSoundDelay = 0.15f;    // 点击音效播放后的延迟时间（秒），用于确保音效播放完成再执行后续操作
+    
+    [Header("调试")]
+    [SerializeField] private bool enableDebugLog = true; // 是否启用调试日志
     
     void Start()
     {
@@ -50,13 +56,6 @@ public class MainMenuPanel : MonoBehaviour
             planetEncyclopediaButton.onClick.AddListener(OnPlanetEncyclopediaClicked);
             // 添加鼠标悬停高亮效果
             SetupButtonHoverHighlight(planetEncyclopediaButton);
-        }
-        
-        if (settingsButton != null)
-        {
-            settingsButton.onClick.AddListener(OnSettingsClicked);
-            // 添加鼠标悬停高亮效果
-            SetupButtonHoverHighlight(settingsButton);
         }
         
         if (quitButton != null)
@@ -176,6 +175,16 @@ public class MainMenuPanel : MonoBehaviour
         // 播放点击音效
         PlayButtonClickSound();
         
+        // 重置所有订单的访问状态（在新游戏开始前）
+        try
+        {
+            ResetAllVisitOrder();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"MainMenuPanel: 重置订单状态时发生错误: {e.Message}");
+        }
+        
         // 等待一小段时间，让音效有时间播放
         yield return new WaitForSeconds(clickSoundDelay);
         
@@ -222,37 +231,6 @@ public class MainMenuPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// 设置按钮点击事件
-    /// </summary>
-    private void OnSettingsClicked()
-    {
-        // 播放点击音效并延迟打开面板，确保音效能够播放
-        StartCoroutine(PlayClickSoundAndShowSettings());
-    }
-    
-    /// <summary>
-    /// 播放点击音效并延迟显示设置（协程）
-    /// </summary>
-    private IEnumerator PlayClickSoundAndShowSettings()
-    {
-        // 播放点击音效
-        PlayButtonClickSound();
-        
-        // 等待一小段时间，让音效有时间播放
-        yield return new WaitForSeconds(clickSoundDelay);
-        
-        Debug.Log("打开设置");
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ShowSettings();
-        }
-        else
-        {
-            Debug.LogError("UIManager未找到！");
-        }
-    }
-    
-    /// <summary>
     /// 退出游戏按钮点击事件
     /// </summary>
     private void OnQuitClicked()
@@ -268,6 +246,48 @@ public class MainMenuPanel : MonoBehaviour
         else
         {
             Debug.LogError("SceneTransitionManager未找到！");
+        }
+    }
+    
+    /// <summary>
+    /// 重置所有订单的VisitOrder状态为false
+    /// </summary>
+    private void ResetAllVisitOrder()
+    {
+        if (orderDataConfig == null)
+        {
+            // 如果未配置，静默返回，不显示警告（因为这是可选功能）
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("MainMenuPanel: orderDataConfig未配置，跳过重置订单状态。如需此功能，请在Inspector中配置Order Data Config引用。");
+            }
+            return;
+        }
+        
+        if (orderDataConfig.orderDataList == null || orderDataConfig.orderDataList.Count == 0)
+        {
+            if (enableDebugLog)
+            {
+                Debug.Log("MainMenuPanel: 订单数据列表为空，无需重置。");
+            }
+            return;
+        }
+        
+        int resetCount = 0;
+        
+        // 遍历所有订单，重置VisitOrder状态
+        foreach (var orderInfo in orderDataConfig.orderDataList)
+        {
+            if (orderInfo != null && orderInfo.VisitOrder)
+            {
+                orderInfo.VisitOrder = false;
+                resetCount++;
+            }
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"MainMenuPanel: 已重置 {resetCount} 个订单的访问状态");
         }
     }
 }
