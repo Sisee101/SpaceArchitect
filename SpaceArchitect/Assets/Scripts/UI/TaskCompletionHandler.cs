@@ -14,12 +14,22 @@ public class TaskCompletionHandler : MonoBehaviour
     [SerializeField] private VictoryVideoPlayer videoPlayer;
     [SerializeField] private SphereOrderDataConfig orderDataConfig;
     
+    [Header("检测设置")]
+    [Tooltip("检测CompleteOrder变化的轮询间隔（秒）。如果为0，则每帧检测。")]
+    [SerializeField] private float checkInterval = 0.1f; // 检测间隔
+    
     [Header("执行顺序")]
     [Tooltip("视频消失后，气泡动画开始前的延迟时间（秒）")]
     [SerializeField] private float bubbleAnimationDelay = 0f;
     
     [Header("调试")]
     [SerializeField] private bool enableDebugLog = true;
+    
+    // 记录已处理的订单（避免重复处理）
+    private System.Collections.Generic.HashSet<int> processedTaskIds = new System.Collections.Generic.HashSet<int>();
+    
+    // 上次检测时间
+    private float lastCheckTime = 0f;
     
     void Start()
     {
@@ -48,12 +58,84 @@ public class TaskCompletionHandler : MonoBehaviour
             return;
         }
         
-        // 订阅任务完成事件
+        // 场景加载时，将已经完成的订单标记为已处理（避免场景切换时重复播放动画）
+        processedTaskIds.Clear();
+        if (orderDataConfig != null && orderDataConfig.orderDataList != null)
+        {
+            foreach (var orderInfo in orderDataConfig.orderDataList)
+            {
+                if (orderInfo != null && orderInfo.taskId >= 0 && orderInfo.CompleteOrder)
+                {
+                    processedTaskIds.Add(orderInfo.taskId);
+                    if (enableDebugLog)
+                    {
+                        Debug.Log($"TaskCompletionHandler: 场景加载，订单 {orderInfo.sphereName} (taskId={orderInfo.taskId}) 已完成，已标记为已处理（不会播放动画）");
+                    }
+                }
+            }
+        }
+        
+        // 订阅任务完成事件（作为备用触发方式）
         taskManager.OnTaskCompleted += OnTaskCompleted;
         
         if (enableDebugLog)
         {
-            Debug.Log("TaskCompletionHandler: 已订阅任务完成事件");
+            Debug.Log($"TaskCompletionHandler: 已订阅任务完成事件，并开始检测CompleteOrder变化（已标记 {processedTaskIds.Count} 个已完成订单为已处理）");
+        }
+    }
+    
+    void Update()
+    {
+        // 检测CompleteOrder的变化
+        if (orderDataConfig != null)
+        {
+            // 根据checkInterval决定检测频率
+            if (checkInterval <= 0 || Time.time - lastCheckTime >= checkInterval)
+            {
+                CheckCompleteOrderChanges();
+                lastCheckTime = Time.time;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 检测CompleteOrder的变化
+    /// </summary>
+    private void CheckCompleteOrderChanges()
+    {
+        if (orderDataConfig == null || orderDataConfig.orderDataList == null)
+        {
+            return;
+        }
+        
+        // 遍历所有订单，检查CompleteOrder是否变为true
+        foreach (var orderInfo in orderDataConfig.orderDataList)
+        {
+            if (orderInfo == null)
+            {
+                continue;
+            }
+            
+            // 只处理有taskId的订单（taskId >= 0）
+            if (orderInfo.taskId < 0)
+            {
+                continue;
+            }
+            
+            // 如果CompleteOrder为true且尚未处理
+            if (orderInfo.CompleteOrder && !processedTaskIds.Contains(orderInfo.taskId))
+            {
+                if (enableDebugLog)
+                {
+                    Debug.Log($"TaskCompletionHandler: 检测到订单 {orderInfo.sphereName} (taskId={orderInfo.taskId}) 的CompleteOrder变为true，开始处理");
+                }
+                
+                // 标记为已处理
+                processedTaskIds.Add(orderInfo.taskId);
+                
+                // 处理任务完成序列
+                StartCoroutine(HandleTaskCompletionSequence(orderInfo.sphereName, orderInfo.victoryVideoClip));
+            }
         }
     }
     

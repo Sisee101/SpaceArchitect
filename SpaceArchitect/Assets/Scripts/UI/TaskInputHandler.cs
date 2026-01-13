@@ -104,7 +104,24 @@ public class TaskInputHandler : MonoBehaviour
             Debug.Log($"TaskInputHandler: 键盘 {index + 1} 按下，完成任务 taskId={taskId}, Sphere={taskInfo.sphereName}");
         }
         
-        // 通过TaskManager完成任务
+        // 设置订单的CompleteOrder布尔值为true
+        if (taskInfo.CompleteOrder)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning($"TaskInputHandler: 订单 {taskInfo.sphereName} 的CompleteOrder已经是true，跳过设置");
+            }
+        }
+        else
+        {
+            taskInfo.CompleteOrder = true;
+            if (enableDebugLog)
+            {
+                Debug.Log($"TaskInputHandler: 已将订单 {taskInfo.sphereName} 的CompleteOrder设置为true");
+            }
+        }
+        
+        // 通过TaskManager完成任务（用于持久化和事件触发）
         if (taskManager != null)
         {
             taskManager.CompleteTask(taskId);

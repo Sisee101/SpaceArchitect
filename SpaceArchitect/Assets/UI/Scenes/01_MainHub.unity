@@ -2005,6 +2005,7 @@ MonoBehaviour:
   orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
   infoPanel: {fileID: 462616897363263894, guid: 20fffd2d21f0dbf49a4e61b6ed0cb309,
     type: 3}
+  taskManager: {fileID: 0}
   hideAnimationDuration: 2
 --- !u!1 &1909989934
 GameObject:
@@ -2089,6 +2090,7 @@ MonoBehaviour:
   iconManager: {fileID: 1860079810}
   videoPlayer: {fileID: 1669838860}
   orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
+  checkInterval: 0.1
   bubbleAnimationDelay: 0
   enableDebugLog: 1
 --- !u!4 &1919591023
@@ -2136,6 +2138,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
+  usePersistentStorage: 1
+  resetOnGameStart: 1
   enableDebugLog: 1
 --- !u!4 &1962398848
 Transform:
@@ -2388,6 +2392,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1628459105}
     m_Modifications:
+    - target: {fileID: 488914911634623072, guid: d224f95acfef15849b58051bde93f32c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 568917203542272924, guid: d224f95acfef15849b58051bde93f32c,
+        type: 3}
+      propertyPath: m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1880079829321417931, guid: d224f95acfef15849b58051bde93f32c,
         type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -2402,6 +2416,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: EmployeeHandbookPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 3740921927969604319, guid: d224f95acfef15849b58051bde93f32c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4087265037664365797, guid: d224f95acfef15849b58051bde93f32c,
         type: 3}

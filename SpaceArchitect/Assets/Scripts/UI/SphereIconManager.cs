@@ -44,6 +44,10 @@ public class SphereIconManager : MonoBehaviour
     [Header("面板引用")]
     [SerializeField] private SphereInfoPanel infoPanel; // 信息面板引用（必须配置）
     
+    [Header("任务管理器引用")]
+    [Tooltip("任务管理器（用于检查任务是否已完成，如果为空则自动查找）")]
+    [SerializeField] private TaskManager taskManager; // 任务管理器引用
+    
     [Header("气泡消失动画设置")]
     [Tooltip("气泡消失动画的时长（秒）")]
     [SerializeField] private float hideAnimationDuration = 0.5f; // 气泡消失动画时长
@@ -88,6 +92,41 @@ public class SphereIconManager : MonoBehaviour
         if (infoPanel == null)
         {
             Debug.LogWarning("SphereIconManager: infoPanel未配置！请在Inspector中指定SphereInfoPanel引用。");
+        }
+        
+        // 自动查找TaskManager（如果未配置）
+        if (taskManager == null)
+        {
+            taskManager = FindObjectOfType<TaskManager>();
+            if (taskManager == null)
+            {
+                Debug.LogWarning("SphereIconManager: 未找到TaskManager，将无法检查任务完成状态，所有气泡都会显示");
+            }
+        }
+        
+        // 场景加载后自动显示气泡
+        // 延迟一帧显示，确保所有初始化完成
+        StartCoroutine(AutoShowIconsOnStart());
+    }
+    
+    /// <summary>
+    /// 在场景加载后自动显示气泡（延迟一帧，确保所有初始化完成）
+    /// </summary>
+    private IEnumerator AutoShowIconsOnStart()
+    {
+        // 等待一帧，确保所有对象的初始化都已完成
+        yield return null;
+        
+        // 检查必要引用是否都已配置
+        if (iconPrefab != null && worldSpaceCanvas != null)
+        {
+            // 自动显示气泡
+            ShowIcons();
+            Debug.Log("SphereIconManager: 场景加载完成，气泡已自动显示");
+        }
+        else
+        {
+            Debug.LogWarning("SphereIconManager: 无法自动显示气泡，iconPrefab 或 worldSpaceCanvas 未配置");
         }
     }
     
@@ -161,7 +200,7 @@ public class SphereIconManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 显示所有图标
+    /// 显示所有图标（只显示未完成任务的气泡）
     /// </summary>
     private void ShowIcons()
     {
@@ -173,13 +212,87 @@ public class SphereIconManager : MonoBehaviour
         
         Debug.Log($"SphereIconManager: 开始显示图标，Canvas: {worldSpaceCanvas.name}, RenderMode: {worldSpaceCanvas.renderMode}, Canvas Scale: {worldSpaceCanvas.transform.localScale}");
         
-        // 为每个Sphere创建图标
-        CreateIconForSphere(sphere1);
-        CreateIconForSphere(sphere2);
-        CreateIconForSphere(sphere4);
+        // 为每个Sphere创建图标（只创建未完成任务的气泡）
+        CreateIconForSphereIfNotCompleted(sphere1);
+        CreateIconForSphereIfNotCompleted(sphere2);
+        CreateIconForSphereIfNotCompleted(sphere4);
         
         iconsVisible = true;
-        Debug.Log($"SphereIconManager: 图标已显示，共创建 {sphereIconMap.Count} 个图标");
+        Debug.Log($"SphereIconManager: 图标已显示，共创建 {sphereIconMap.Count} 个图标（已过滤已完成任务的气泡）");
+    }
+    
+    /// <summary>
+    /// 检查Sphere对应的任务是否已完成，如果未完成则创建图标
+    /// </summary>
+    private void CreateIconForSphereIfNotCompleted(GameObject sphere)
+    {
+        if (sphere == null)
+        {
+            return;
+        }
+        
+        // 检查任务是否已完成
+        if (IsSphereTaskCompleted(sphere.name))
+        {
+            Debug.Log($"SphereIconManager: Sphere {sphere.name} 的任务已完成，跳过创建气泡");
+            return;
+        }
+        
+        // 任务未完成，创建图标
+        CreateIconForSphere(sphere);
+    }
+    
+    /// <summary>
+    /// 检查指定Sphere对应的任务是否已完成
+    /// </summary>
+    /// <param name="sphereName">Sphere名称</param>
+    /// <returns>如果任务已完成返回true，否则返回false</returns>
+    private bool IsSphereTaskCompleted(string sphereName)
+    {
+        // 如果没有订单数据配置，默认返回false（显示气泡）
+        if (orderDataConfig == null)
+        {
+            return false;
+        }
+        
+        // 根据Sphere名称获取订单信息
+        var orderInfo = orderDataConfig.GetOrderInfoBySphereName(sphereName);
+        if (orderInfo == null)
+        {
+            // 如果找不到订单信息，默认返回false（显示气泡）
+            return false;
+        }
+        
+        // 检查任务是否已完成
+        int taskId = orderInfo.taskId;
+        if (taskId < 0)
+        {
+            // 如果taskId无效（-1），默认返回false（显示气泡）
+            return false;
+        }
+        
+        // 优先检查CompleteOrder状态（这是最可靠的，因为它在场景切换时会被同步）
+        if (orderInfo.CompleteOrder)
+        {
+            Debug.Log($"SphereIconManager: Sphere {sphereName} (taskId={taskId}) 的CompleteOrder为true，任务已完成");
+            return true;
+        }
+        
+        // 备用检查：通过TaskManager检查（如果TaskManager存在）
+        if (taskManager != null)
+        {
+            bool isCompleted = taskManager.IsTaskCompleted(taskId);
+            if (isCompleted)
+            {
+                Debug.Log($"SphereIconManager: Sphere {sphereName} (taskId={taskId}) 通过TaskManager检查，任务已完成");
+                // 同步CompleteOrder状态
+                orderInfo.CompleteOrder = true;
+            }
+            return isCompleted;
+        }
+        
+        // 如果TaskManager不存在，只检查CompleteOrder（已经在上面检查过了）
+        return false;
     }
     
     /// <summary>
