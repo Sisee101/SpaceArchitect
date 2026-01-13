@@ -4,8 +4,8 @@ using System.Collections.Generic;
 public class PolygonHoleSpawner : MonoBehaviour
 {
     [Header("必须设置")]
-    [Tooltip("请把挂载了 PolygonCollider2D 的物体拖到这里。这个碰撞器的形状就是'洞'的形状。")]
-    public PolygonCollider2D holePolygon; // 用这个来画形状
+    [Tooltip("请设置多个形状，按F键切换")]
+    public PolygonCollider2D[] holePolygons;
     public GameObject prefab;
 
     [Header("生成区域")]
@@ -13,55 +13,75 @@ public class PolygonHoleSpawner : MonoBehaviour
 
     [Header("密度与随机")]
     [Range(1f, 10f)]
-    public float gridSpacing = 2.0f; // 间距
+    public float gridSpacing = 2.0f;
     [Range(0f, 1f)]
-    public float spawnChance = 0.8f; // 生成几率
+    public float spawnChance = 0.8f;
     [Range(0f, 1f)]
-    public float positionJitter = 0.5f; // 位置抖动
+    public float positionJitter = 0.5f;
 
     [Header("调试")]
     public bool autoUpdate = true;
 
     private List<GameObject> spawnedObjects = new List<GameObject>();
+    private int currentHoleIndex = 0;
 
     void Start()
     {
         Generate();
     }
 
+    void Update()
+    {
+        // 监听 F 键，直接硬切
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            SwitchHoleShape();
+        }
+    }
+
+    void SwitchHoleShape()
+    {
+        if (holePolygons == null || holePolygons.Length == 0) return;
+
+        // 切换索引
+        currentHoleIndex = (currentHoleIndex + 1) % holePolygons.Length;
+
+        // 立即重新生成
+        Generate();
+    }
+
     [ContextMenu("生成分布")]
     public void Generate()
     {
+        // 1. 瞬间清除旧的
         ClearOldObjects();
 
-        if (prefab == null || holePolygon == null)
-        {
-            Debug.LogWarning("请设置 Prefab 和 Hole Polygon！");
-            return;
-        }
+        if (prefab == null || holePolygons == null || holePolygons.Length == 0) return;
+
+        PolygonCollider2D activeHole = holePolygons[currentHoleIndex];
+        if (activeHole == null) return;
 
         float startX = transform.position.x - areaSize.x / 2;
         float startY = transform.position.y - areaSize.y / 2;
         float endX = transform.position.x + areaSize.x / 2;
         float endY = transform.position.y + areaSize.y / 2;
 
-        // 循环遍历整个矩形区域
+        // 2. 瞬间生成新的
         for (float x = startX; x < endX; x += gridSpacing)
         {
             for (float y = startY; y < endY; y += gridSpacing)
             {
-                // 1. 随机跳过（稀疏化）
+                // 随机跳过
                 if (Random.value > spawnChance) continue;
 
-                // 2. 计算目标位置
                 Vector3 candidatePos = new Vector3(x, y, 0);
 
-                // 3. 加上随机抖动
+                // 加上抖动
                 candidatePos.x += Random.Range(-positionJitter, positionJitter);
                 candidatePos.y += Random.Range(-positionJitter, positionJitter);
 
-                // 4. 核心判断：如果点不在多边形内，则生成
-                if (!IsPointInPolygon(candidatePos))
+                // 核心判断：如果点不在当前选中的多边形内，则生成
+                if (!IsPointInPolygon(candidatePos, activeHole))
                 {
                     SpawnObject(candidatePos);
                 }
@@ -69,12 +89,11 @@ public class PolygonHoleSpawner : MonoBehaviour
         }
     }
 
-    // --- 数学算法：判断点是否在多边形内 (射线法) ---
-    bool IsPointInPolygon(Vector3 worldPos)
+    // --- 数学算法 ---
+    bool IsPointInPolygon(Vector3 worldPos, PolygonCollider2D targetHole)
     {
-        // 将世界坐标转为多边形的局部坐标（这样你移动多边形物体，洞也会跟着动）
-        Vector2 localPoint = holePolygon.transform.InverseTransformPoint(worldPos);
-        Vector2[] polyPoints = holePolygon.points; // 获取多边形顶点
+        Vector2 localPoint = targetHole.transform.InverseTransformPoint(worldPos);
+        Vector2[] polyPoints = targetHole.points;
 
         int j = polyPoints.Length - 1;
         bool inside = false;
@@ -111,7 +130,6 @@ public class PolygonHoleSpawner : MonoBehaviour
         }
         else
         {
-            // 这是一个安全的清空子物体方法
             var children = new List<GameObject>();
             foreach (Transform child in transform) children.Add(child.gameObject);
             children.ForEach(child => DestroyImmediate(child));
@@ -121,14 +139,13 @@ public class PolygonHoleSpawner : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        // 画出生成范围框
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube(transform.position, new Vector3(areaSize.x, areaSize.y, 1));
     }
 
     void OnValidate()
     {
-        if (autoUpdate && !Application.isPlaying)
+        if (autoUpdate && !Application.isPlaying && holePolygons != null && holePolygons.Length > 0)
         {
             UnityEditor.EditorApplication.delayCall += () => { if (this != null) Generate(); };
         }
