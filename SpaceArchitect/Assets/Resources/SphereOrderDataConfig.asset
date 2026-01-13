@@ -18,13 +18,19 @@ MonoBehaviour:
     targetSceneName: UITRY
     taskId: 1
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    VisitOrder: 0
+    CompleteOrder: 0
   - sphereName: Sphere (1)
     orderImage: {fileID: 21300000, guid: e43306da0591fc241a8a198e91e5e95c, type: 3}
     targetSceneName: TRY2
     taskId: 0
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    VisitOrder: 0
+    CompleteOrder: 0
   - sphereName: Sphere (3)
-    orderImage: {fileID: 21300000, guid: e8cb1c06bf0c424449f68de7dcb80a52, type: 3}
+    orderImage: {fileID: 21300000, guid: c907e8f6b1bd993408e69614f81fd3fe, type: 3}
     targetSceneName: UITRY
     taskId: 2
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    VisitOrder: 0
+    CompleteOrder: 0

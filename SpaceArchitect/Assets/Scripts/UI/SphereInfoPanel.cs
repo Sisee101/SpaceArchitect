@@ -308,7 +308,7 @@ public class SphereInfoPanel : MonoBehaviour
         {
             if (enableDebugLog)
             {
-                Debug.LogWarning("SphereInfoPanel: orderDataConfig未配置，无法更新订单状态。");
+                Debug.LogWarning("SphereInfoPanel: orderDataConfig未配置，无法更新订单状态。请在Inspector中配置Order Data Config引用。");
             }
             return;
         }
@@ -322,23 +322,64 @@ public class SphereInfoPanel : MonoBehaviour
             return;
         }
         
+        if (orderDataConfig.orderDataList == null || orderDataConfig.orderDataList.Count == 0)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("SphereInfoPanel: 订单数据列表为空，无法查找订单信息。");
+            }
+            return;
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"SphereInfoPanel: 开始查找订单信息 - 图片名称: {orderImage.name}, 订单总数: {orderDataConfig.orderDataList.Count}");
+        }
+        
         // 遍历所有订单，查找匹配的订单图片
         foreach (var orderInfo in orderDataConfig.orderDataList)
         {
-            if (orderInfo != null && orderInfo.orderImage == orderImage)
+            if (orderInfo != null)
             {
-                currentOrderInfo = orderInfo;
-                if (enableDebugLog)
+                // 先比较引用，如果引用相同，直接匹配
+                if (orderInfo.orderImage == orderImage)
                 {
-                    Debug.Log($"SphereInfoPanel: 找到当前订单信息 - Sphere: {orderInfo.sphereName}");
+                    currentOrderInfo = orderInfo;
+                    if (enableDebugLog)
+                    {
+                        Debug.Log($"SphereInfoPanel: 找到当前订单信息 - Sphere: {orderInfo.sphereName}, TaskId: {orderInfo.taskId}");
+                    }
+                    return;
                 }
-                return;
+                
+                // 如果引用不同，比较名称（备用方案）
+                if (orderInfo.orderImage != null && orderImage != null && 
+                    orderInfo.orderImage.name == orderImage.name)
+                {
+                    currentOrderInfo = orderInfo;
+                    if (enableDebugLog)
+                    {
+                        Debug.Log($"SphereInfoPanel: 通过名称匹配找到订单信息 - Sphere: {orderInfo.sphereName}, TaskId: {orderInfo.taskId} (图片引用不同，但名称相同)");
+                    }
+                    return;
+                }
             }
         }
         
         if (enableDebugLog)
         {
-            Debug.LogWarning($"SphereInfoPanel: 未找到匹配的订单信息（图片: {orderImage.name}）");
+            Debug.LogWarning($"SphereInfoPanel: 未找到匹配的订单信息（图片: {orderImage.name}）。请检查SphereOrderDataConfig中是否有订单使用了此图片。");
+            // 输出所有订单的图片名称，帮助调试
+            Debug.LogWarning("SphereInfoPanel: 当前配置的订单图片列表：");
+            for (int i = 0; i < orderDataConfig.orderDataList.Count; i++)
+            {
+                var info = orderDataConfig.orderDataList[i];
+                if (info != null)
+                {
+                    string imgName = info.orderImage != null ? info.orderImage.name : "null";
+                    Debug.LogWarning($"  订单 {i}: Sphere={info.sphereName}, 图片={imgName}");
+                }
+            }
         }
     }
     
@@ -351,17 +392,18 @@ public class SphereInfoPanel : MonoBehaviour
         {
             if (enableDebugLog)
             {
-                Debug.LogWarning("SphereInfoPanel: 当前订单信息为空，无法更新访问状态。");
+                Debug.LogWarning("SphereInfoPanel: 当前订单信息为空，无法更新访问状态。可能原因：1) orderDataConfig未配置 2) 订单图片匹配失败");
             }
             return;
         }
         
         // 设置访问状态为真
+        bool oldValue = currentOrderInfo.VisitOrder;
         currentOrderInfo.VisitOrder = true;
         
         if (enableDebugLog)
         {
-            Debug.Log($"SphereInfoPanel: 订单 {currentOrderInfo.sphereName} 已标记为已访问");
+            Debug.Log($"SphereInfoPanel: 订单 {currentOrderInfo.sphereName} (TaskId: {currentOrderInfo.taskId}) 已标记为已访问 (从 {oldValue} 变为 true)");
         }
     }
     

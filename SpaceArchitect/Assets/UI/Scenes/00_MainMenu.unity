@@ -365,10 +365,12 @@ MonoBehaviour:
   planetEncyclopediaButton: {fileID: 800639745}
   quitButton: {fileID: 1945870436}
   highlightController: {fileID: 1414264006}
+  orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
   audioSource: {fileID: 0}
   buttonHoverSound: {fileID: 8300000, guid: ff943157781de4041b426c168c55c078, type: 3}
   buttonClickSound: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b, type: 3}
   clickSoundDelay: 0.15
+  enableDebugLog: 1
 --- !u!114 &717661950
 MonoBehaviour:
   m_ObjectHideFlags: 0
