@@ -88,6 +88,12 @@ public class GlobalOverviewUI : MonoBehaviour
         {
             Hide();
         }
+        
+        // 订阅成功事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnShipSucceed += OnShipSucceed;
+        }
     }
 
     void Update()
@@ -416,8 +422,27 @@ public class GlobalOverviewUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 飞船成功事件处理（隐藏全局视窗）
+    /// </summary>
+    private void OnShipSucceed(GameObject destination, GameObject ship)
+    {
+        Hide();
+        
+        if (showDebugLog)
+        {
+            Debug.Log("GlobalOverviewUI: 飞船成功，已隐藏全局视窗");
+        }
+    }
+
     void OnDestroy()
     {
+        // 取消订阅成功事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnShipSucceed -= OnShipSucceed;
+        }
+        
         // 清理UI元素（如果需要）
         if (overviewPanel != null)
         {
