@@ -11,9 +11,8 @@ using System;
 public class SphereIconManager : MonoBehaviour
 {
     [Header("Sphere引用（需要显示图标的Sphere）")]
-    [SerializeField] private GameObject sphere1; // Sphere 1
-    [SerializeField] private GameObject sphere2; // Sphere 2
-    [SerializeField] private GameObject sphere4; // Sphere 4
+    [Tooltip("在此列表中添加需要显示图标的Sphere，可以动态调整数量")]
+    [SerializeField] private List<GameObject> spheres = new List<GameObject>();
     
     [Header("UI引用")]
     [SerializeField] private Canvas worldSpaceCanvas; // World Space Canvas（如果为空，会自动查找或创建）
@@ -91,9 +90,20 @@ public class SphereIconManager : MonoBehaviour
             Debug.LogError("SphereIconManager: iconPrefab未配置！请在Inspector中指定Icon预制体。");
         }
         
-        if (sphere1 == null || sphere2 == null || sphere4 == null)
+        if (spheres == null || spheres.Count == 0)
         {
-            Debug.LogWarning("SphereIconManager: 部分Sphere引用未配置，请确保所有Sphere引用都已设置。");
+            Debug.LogWarning("SphereIconManager: Sphere列表为空，请至少添加一个Sphere引用。");
+        }
+        else
+        {
+            // 检查是否有空引用
+            for (int i = 0; i < spheres.Count; i++)
+            {
+                if (spheres[i] == null)
+                {
+                    Debug.LogWarning($"SphereIconManager: 第 {i + 1} 个Sphere引用为空，请检查配置。");
+                }
+            }
         }
         
         if (orderDataConfig == null)
@@ -225,9 +235,13 @@ public class SphereIconManager : MonoBehaviour
         Debug.Log($"SphereIconManager: 开始显示图标，Canvas: {worldSpaceCanvas.name}, RenderMode: {worldSpaceCanvas.renderMode}, Canvas Scale: {worldSpaceCanvas.transform.localScale}");
         
         // 为每个Sphere创建图标（只创建未完成任务的气泡）
-        CreateIconForSphereIfNotCompleted(sphere1);
-        CreateIconForSphereIfNotCompleted(sphere2);
-        CreateIconForSphereIfNotCompleted(sphere4);
+        foreach (GameObject sphere in spheres)
+        {
+            if (sphere != null)
+            {
+                CreateIconForSphereIfNotCompleted(sphere);
+            }
+        }
         
         iconsVisible = true;
         Debug.Log($"SphereIconManager: 图标已显示，共创建 {sphereIconMap.Count} 个图标（已过滤已完成任务的气泡）");
@@ -675,17 +689,13 @@ public class SphereIconManager : MonoBehaviour
         
         // 查找对应的Sphere GameObject
         GameObject targetSphere = null;
-        if (sphere1 != null && sphere1.name == sphereName)
+        foreach (GameObject sphere in spheres)
         {
-            targetSphere = sphere1;
-        }
-        else if (sphere2 != null && sphere2.name == sphereName)
-        {
-            targetSphere = sphere2;
-        }
-        else if (sphere4 != null && sphere4.name == sphereName)
-        {
-            targetSphere = sphere4;
+            if (sphere != null && sphere.name == sphereName)
+            {
+                targetSphere = sphere;
+                break;
+            }
         }
         
         if (targetSphere == null)
@@ -715,26 +725,26 @@ public class SphereIconManager : MonoBehaviour
         
         // 查找对应的Sphere GameObject
         GameObject targetSphere = null;
-        if (sphere1 != null && sphere1.name == sphereName)
+        int foundIndex = -1;
+        for (int i = 0; i < spheres.Count; i++)
         {
-            targetSphere = sphere1;
-            Debug.Log($"SphereIconManager: 找到Sphere1，名称={sphere1.name}");
-        }
-        else if (sphere2 != null && sphere2.name == sphereName)
-        {
-            targetSphere = sphere2;
-            Debug.Log($"SphereIconManager: 找到Sphere2，名称={sphere2.name}");
-        }
-        else if (sphere4 != null && sphere4.name == sphereName)
-        {
-            targetSphere = sphere4;
-            Debug.Log($"SphereIconManager: 找到Sphere4，名称={sphere4.name}");
+            if (spheres[i] != null && spheres[i].name == sphereName)
+            {
+                targetSphere = spheres[i];
+                foundIndex = i;
+                Debug.Log($"SphereIconManager: 找到Sphere[{i}]，名称={spheres[i].name}");
+                break;
+            }
         }
         
         if (targetSphere == null)
         {
             Debug.LogWarning($"SphereIconManager: 未找到名称为 {sphereName} 的Sphere！");
-            Debug.LogWarning($"SphereIconManager: 当前Sphere引用 - sphere1={sphere1?.name ?? "null"}, sphere2={sphere2?.name ?? "null"}, sphere4={sphere4?.name ?? "null"}");
+            Debug.LogWarning($"SphereIconManager: 当前Sphere列表包含 {spheres.Count} 个元素");
+            for (int i = 0; i < spheres.Count; i++)
+            {
+                Debug.LogWarning($"SphereIconManager: Sphere[{i}] = {spheres[i]?.name ?? "null"}");
+            }
             onComplete?.Invoke();
             return;
         }

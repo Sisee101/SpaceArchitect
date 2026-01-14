@@ -2900,9 +2900,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33fc65a0a973cf74886072cfa858de63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sphere1: {fileID: 771400903}
-  sphere2: {fileID: 1548636091}
-  sphere4: {fileID: 1297100835}
+  spheres:
+  - {fileID: 771400903}
+  - {fileID: 1548636091}
+  - {fileID: 1297100835}
   worldSpaceCanvas: {fileID: 1113312928}
   iconPrefab: {fileID: 3346225634873011282, guid: f75d6bd54cd18614a83dba931a3e0b0c,
     type: 3}

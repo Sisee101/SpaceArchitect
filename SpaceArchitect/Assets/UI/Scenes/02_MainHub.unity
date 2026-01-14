@@ -1451,9 +1451,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33fc65a0a973cf74886072cfa858de63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sphere1: {fileID: 1633044499}
-  sphere2: {fileID: 350379036}
-  sphere4: {fileID: 1748568982}
+  spheres:
+  - {fileID: 1633044499}
+  - {fileID: 350379036}
+  - {fileID: 1748568982}
+  - {fileID: 1755752828177278725}
   worldSpaceCanvas: {fileID: 1113312928}
   iconPrefab: {fileID: 3346225634873011282, guid: f75d6bd54cd18614a83dba931a3e0b0c,
     type: 3}
@@ -2101,6 +2103,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4e3515f4a0d40e04dbdb2bb39c3b880e, type: 3}
+--- !u!1 &1755752828177278725 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7979050055123168744, guid: 4e3515f4a0d40e04dbdb2bb39c3b880e,
+    type: 3}
+  m_PrefabInstance: {fileID: 1755752828177278724}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &3238899395370898839 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5827046019345159157, guid: d224f95acfef15849b58051bde93f32c,

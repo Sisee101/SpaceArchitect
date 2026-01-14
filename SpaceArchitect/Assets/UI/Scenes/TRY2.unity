@@ -1733,7 +1733,6 @@ GameObject:
   - component: {fileID: 608847542}
   - component: {fileID: 608847541}
   - component: {fileID: 608847540}
-  - component: {fileID: 608847544}
   m_Layer: 5
   m_Name: Button (Legacy)
   m_TagString: Untagged
@@ -1860,24 +1859,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 608847538}
   m_CullTransparentMesh: 1
---- !u!114 &608847544
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 608847538}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67342fb7235588448b274796a0bf0de3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  loadSceneButton: {fileID: 608847541}
-  targetSceneName: 01_MainHub
-  audioSource: {fileID: 0}
-  buttonClickSound: {fileID: 0}
-  clickSoundDelay: 0.15
-  enableDebugLog: 1
 --- !u!1 &701385762 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5027978256956409004, guid: 3d0ce7c263056a94b9790a76be549dc9,
