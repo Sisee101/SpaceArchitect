@@ -47,6 +47,9 @@ public class UIManager : MonoBehaviour
     [Header("基站等级面板")]
     [SerializeField] private StationLevelPanel stationLevelPanel;
     
+    [Header("邮箱面板")]
+    [SerializeField] private MailPanel mailPanel;
+    
     // 初始化标志，用于防止初始化期间的时序冲突
     private bool isInitializationComplete = false;
     
@@ -140,6 +143,11 @@ public class UIManager : MonoBehaviour
             stationLevelPanel.Hide();
         }
         
+        if (mailPanel != null && mailPanel.gameObject.activeSelf && !userActivatedPanels.Contains(mailPanel))
+        {
+            mailPanel.Hide();
+        }
+        
         // 标记初始化完成（在这之后用户点击按钮，面板不会被延迟隐藏）
         isInitializationComplete = true;
         
@@ -206,6 +214,11 @@ public class UIManager : MonoBehaviour
         {
             stationLevelPanel.Hide();
         }
+        
+        if (mailPanel != null && mailPanel.gameObject.activeSelf)
+        {
+            mailPanel.Hide();
+        }
     }
     
     /// <summary>
@@ -231,6 +244,11 @@ public class UIManager : MonoBehaviour
         if (stationLevelPanel != null && stationLevelPanel != exceptPanel && stationLevelPanel.gameObject.activeSelf)
         {
             stationLevelPanel.Hide();
+        }
+        
+        if (mailPanel != null && mailPanel != exceptPanel && mailPanel.gameObject.activeSelf)
+        {
+            mailPanel.Hide();
         }
     }
     
@@ -348,6 +366,60 @@ public class UIManager : MonoBehaviour
     public void ReturnToMainMenu()
     {
         ShowMainMenu();
+    }
+    
+    /// <summary>
+    /// 显示邮箱
+    /// </summary>
+    public void ShowMail()
+    {
+        if (mailPanel != null)
+        {
+            // 如果初始化还未完成，等待初始化完成后再显示（避免与DelayedHidePanels冲突）
+            if (!isInitializationComplete)
+            {
+                StartCoroutine(ShowMailAfterInit());
+            }
+            else
+            {
+                // 初始化已完成，直接显示
+                HideAllPanelsExcept(mailPanel);
+                mailPanel.Show();
+            }
+        }
+        else
+        {
+            Debug.LogWarning("UIManager: MailPanel未配置");
+        }
+    }
+    
+    /// <summary>
+    /// 等待初始化完成后显示邮箱面板
+    /// </summary>
+    private System.Collections.IEnumerator ShowMailAfterInit()
+    {
+        // 先立即显示面板，给用户即时反馈
+        if (mailPanel != null)
+        {
+            mailPanel.Show();
+            // 记录这是用户主动显示的面板，避免被DelayedHidePanels隐藏
+            userActivatedPanels.Add(mailPanel);
+        }
+        
+        // 等待初始化完成（DelayedHidePanels执行完毕）
+        while (!isInitializationComplete)
+        {
+            yield return null;
+        }
+        
+        // 再等待一帧，确保DelayedHidePanels已经完全执行完毕
+        yield return null;
+        
+        // 初始化完成后，再隐藏其他面板（面板已经在上面显示了）
+        if (mailPanel != null && mailPanel.gameObject.activeInHierarchy)
+        {
+            HideAllPanelsExcept(mailPanel);
+        }
     }
     
     /// <summary>

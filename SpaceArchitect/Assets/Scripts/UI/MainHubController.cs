@@ -13,6 +13,7 @@ public class MainHubController : MonoBehaviour
     [SerializeField] private Button employeeHandbookButton;
     [SerializeField] private Button stationLevelButton;
     [SerializeField] private Button planetEncyclopediaButton;
+    [SerializeField] private Button mailButton;                    // 邮箱按钮
     
     [Header("返回按钮")]
     [SerializeField] private Button returnToMenuButton;            // 返回主菜单按钮
@@ -63,6 +64,11 @@ public class MainHubController : MonoBehaviour
             planetEncyclopediaButton.onClick.AddListener(OnPlanetEncyclopediaClicked);
         }
         
+        if (mailButton != null)
+        {
+            mailButton.onClick.AddListener(OnMailButtonClicked);
+        }
+        
         // 绑定返回主菜单按钮
         if (returnToMenuButton != null)
         {
@@ -111,6 +117,24 @@ public class MainHubController : MonoBehaviour
             {
                 Debug.Log("MainHubController: 按下ESC键，关闭结算界面");
                 settlementPanel.Hide();
+            }
+        }
+        
+        // 监听M键，触发插入新邮件事件（全局检测，无论哪个面板打开）
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            if (EventManager.Instance != null)
+            {
+                EventManager.Instance.TriggerMKeyPressed();
+            }
+        }
+        
+        // 监听C键，触发清空邮箱并重置事件（全局检测，用于测试）
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            if (EventManager.Instance != null)
+            {
+                EventManager.Instance.TriggerCKeyPressed();
             }
         }
         
@@ -199,6 +223,25 @@ public class MainHubController : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ShowPlanetEncyclopedia();
+        }
+        else
+        {
+            Debug.LogError("UIManager未找到！");
+        }
+    }
+    
+    /// <summary>
+    /// 邮箱按钮点击事件
+    /// </summary>
+    private void OnMailButtonClicked()
+    {
+        // 播放按钮点击音效
+        PlayButtonClickSound();
+        
+        Debug.Log("打开邮箱");
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowMail();
         }
         else
         {

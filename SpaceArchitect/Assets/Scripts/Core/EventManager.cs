@@ -174,6 +174,20 @@ public class EventManager : MonoBehaviour
     public event Action OnGameReset;
     
     #endregion
+    
+    #region 邮箱事件
+    
+    /// <summary>
+    /// M键按下事件（用于插入新邮件）
+    /// </summary>
+    public event Action OnMKeyPressed;
+    
+    /// <summary>
+    /// C键按下事件（用于清空邮箱并重置到初始状态）
+    /// </summary>
+    public event Action OnCKeyPressed;
+    
+    #endregion
 
     // ========== 事件触发方法 ==========
     
@@ -352,6 +366,26 @@ public class EventManager : MonoBehaviour
     }
     
     #endregion
+    
+    #region 邮箱事件触发
+    
+    /// <summary>
+    /// 触发M键按下事件
+    /// </summary>
+    public void TriggerMKeyPressed()
+    {
+        OnMKeyPressed?.Invoke();
+    }
+    
+    /// <summary>
+    /// 触发C键按下事件
+    /// </summary>
+    public void TriggerCKeyPressed()
+    {
+        OnCKeyPressed?.Invoke();
+    }
+    
+    #endregion
 
     // ========== Unity生命周期 ==========
     
@@ -414,6 +448,8 @@ public class EventManager : MonoBehaviour
         OnGameStart = null;
         OnGameEnd = null;
         OnGameReset = null;
+        OnMKeyPressed = null;
+        OnCKeyPressed = null;
     }
     
     /// <summary>
