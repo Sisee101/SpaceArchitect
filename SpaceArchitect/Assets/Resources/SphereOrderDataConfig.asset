@@ -46,7 +46,7 @@ MonoBehaviour:
     targetSceneName: TRY2
     taskId: 5
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
-    VisitOrder: 0
+    VisitOrder: 1
     CompleteOrder: 0
   - sphereName: Sphere (6)
     orderImage: {fileID: 21300000, guid: cf35b4b2315f7634786c54da2d8c1866, type: 3}
@@ -65,7 +65,7 @@ MonoBehaviour:
   - sphereName: Sphere (1)-2
     orderImage: {fileID: 21300000, guid: 0e691f2428a53d04bb8348b2f4180ded, type: 3}
     targetSceneName: UITRY
-    taskId: 7
+    taskId: 8
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     VisitOrder: 0
     CompleteOrder: 0
