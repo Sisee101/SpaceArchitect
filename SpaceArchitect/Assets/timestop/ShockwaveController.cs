@@ -4,16 +4,15 @@ public class ShockwaveController : MonoBehaviour
 {
     public Material shockwaveMaterial;
 
-    [Header("¶¯»­ÉèÖÃ")]
-    public float shockwaveDuration = 1f; // ³å»÷²¨³ÖĞøÊ±¼ä
-    public float maxDistance = 1.5f; // À©É¢¶àÔ¶ (¸ù¾İÆÁÄ»±ÈÀıµ÷Õû)
+    [Header("åŠ¨ç”»è®¾ç½®")]
+    public float shockwaveDuration = 1f;
+    public float maxDistance = 1.5f;
     [Range(0, 0.5f)] public float width = 0.1f;
-    [Range(-0.2f, 0.2f)] public float strength = 0.05f;
+    [Range(-1f, 1f)] public float strength = 0.05f;
 
     private float currentTimer = 0f;
     private bool isPlaying = false;
 
-    // Shader ÊôĞÔµÄ ID£¬±ÈÓÃ×Ö·û´®Ãû×Ö¸ü¿ì
     private int distancePropID = Shader.PropertyToID("_RippleDistanceFromCenter");
     private int strengthPropID = Shader.PropertyToID("_RippleStrength");
     private int widthPropID = Shader.PropertyToID("_RippleWidth");
@@ -21,31 +20,32 @@ public class ShockwaveController : MonoBehaviour
 
     void Start()
     {
-        // ¿ªÊ¼Ê±Òş²ØĞ§¹û
         if (shockwaveMaterial != null)
         {
             shockwaveMaterial.SetFloat(strengthPropID, 0);
+            // åˆå§‹åŒ–ä¸­å¿ƒç‚¹ï¼ˆå±å¹•ä¸­å¿ƒï¼‰
+            shockwaveMaterial.SetVector(centerPropID, new Vector4(0.5f, 0.5f, 0, 0));
+        }
+        else
+        {
+            Debug.LogWarning("ShockwaveController: shockwaveMaterial æœªèµ‹å€¼ï¼");
         }
     }
 
     void Update()
     {
-        // ²âÊÔ£º°´ÏÂ E ¼ü´¥·¢
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.B))
         {
-            TriggerShockwave(new Vector2(0.5f, 0.5f)); // Ä¬ÈÏ´ÓÆÁÄ»ÖĞĞÄ´¥·¢
+            TriggerShockwave(new Vector2(0.5f, 0.5f));
         }
 
         if (isPlaying)
         {
-            currentTimer += Time.unscaledDeltaTime; // Ê¹ÓÃÎ´Ëõ·ÅµÄÊ±¼ä£¬È·±£Ê±Í£Ê±Ò²ÄÜ²¥·Å
+            currentTimer += Time.unscaledDeltaTime;
 
             float progress = currentTimer / shockwaveDuration;
 
-            // ÈÃ¾àÀëËæÊ±¼äÏßĞÔÔö¼Ó
             float currentDistance = Mathf.Lerp(-width, maxDistance, progress);
-
-            // ÈÃÇ¿¶ÈËæÊ±¼äÂıÂı¼õÈõ£¬×îºóÏûÊ§
             float currentStrength = Mathf.Lerp(strength, 0f, progress);
 
             shockwaveMaterial.SetFloat(distancePropID, currentDistance);
@@ -55,17 +55,19 @@ public class ShockwaveController : MonoBehaviour
             if (progress >= 1f)
             {
                 isPlaying = false;
-                shockwaveMaterial.SetFloat(strengthPropID, 0); // È·±£ÍêÈ«¹Ø±Õ
+                shockwaveMaterial.SetFloat(strengthPropID, 0);
             }
         }
     }
 
-    // ¹«¹²·½·¨¹©Íâ²¿µ÷ÓÃ
     public void TriggerShockwave(Vector2 viewportCenter)
     {
         currentTimer = 0f;
         isPlaying = true;
-        // ÉèÖÃÖĞĞÄµã£¨Èç¹ûÄãÏëÈÃ³å»÷²¨´ÓÖ÷½Ç½ÅÏÂ±¬·¢£¬ĞèÒª°ÑÊÀ½ç×ø±ê×ªÎªÆÁÄ»ÊÓ¿Ú×ø±ê 0-1£©
-        shockwaveMaterial.SetVector(centerPropID, viewportCenter);
+        
+        // ç¡®ä¿ä¼ å…¥çš„æ˜¯ Vector4ï¼ˆshader éœ€è¦ Vector4ï¼‰
+        // viewportCenter åº”è¯¥æ˜¯å±å¹•ç©ºé—´åæ ‡ (0-1)
+        Vector4 centerPoint = new Vector4(viewportCenter.x, viewportCenter.y, 0, 0);
+        shockwaveMaterial.SetVector(centerPropID, centerPoint);
     }
 }

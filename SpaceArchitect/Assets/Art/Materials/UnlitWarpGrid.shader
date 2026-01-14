@@ -18,10 +18,10 @@ Shader "Unlit/2D/UnlitWarpGrid_Improved"
 
     SubShader
     {
-        Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" "SpriteMode"="Single" }
+        Tags { "Queue"="Geometry" "IgnoreProjector"="True" "RenderType"="Opaque" "SpriteMode"="Single" }
         Cull Off
-        ZWrite Off
-        Blend SrcAlpha OneMinusSrcAlpha
+        ZWrite On
+        // Blend SrcAlpha OneMinusSrcAlpha // 注释掉混合，因为不透明队列不需要
 
         Pass
         {
