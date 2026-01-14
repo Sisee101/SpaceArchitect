@@ -14,6 +14,14 @@ public class SphereClickHandler : MonoBehaviour
     [SerializeField] private SphereInfoPanel infoPanel; // 信息面板引用（场景中的实例或预制体）
     [SerializeField] private GameObject infoPanelPrefab; // 面板预制体（如果场景中没有实例，会从预制体创建）
     
+    [Header("气泡管理器引用")]
+    [Tooltip("气泡图标管理器（用于检查气泡是否存在，如果为空则自动查找）")]
+    [SerializeField] private SphereIconManager iconManager; // 气泡图标管理器引用
+    
+    [Header("点击行为设置")]
+    [Tooltip("是否只在存在气泡时才允许点击显示订单面板")]
+    [SerializeField] private bool requireBubbleToClick = true; // 是否要求气泡存在才能点击
+    
     [Header("射线检测设置")]
     [SerializeField] private Camera raycastCamera; // 用于射线检测的相机（如果为空，使用Main Camera）
     [SerializeField] private float maxRaycastDistance = 1000f; // 最大射线检测距离
@@ -38,6 +46,26 @@ public class SphereClickHandler : MonoBehaviour
         if (orderDataConfig == null)
         {
             Debug.LogError("SphereClickHandler: orderDataConfig未配置！请在Inspector中指定SphereOrderDataConfig资源。");
+        }
+        
+        // 如果没有指定iconManager，尝试自动查找
+        if (iconManager == null)
+        {
+            iconManager = FindObjectOfType<SphereIconManager>();
+            if (iconManager == null)
+            {
+                if (enableDebugLog)
+                {
+                    Debug.LogWarning("SphereClickHandler: 未找到SphereIconManager，如果requireBubbleToClick为true，将无法检查气泡是否存在。");
+                }
+            }
+            else
+            {
+                if (enableDebugLog)
+                {
+                    Debug.Log("SphereClickHandler: 已自动找到SphereIconManager");
+                }
+            }
         }
         
         // 如果场景中没有面板实例，尝试从预制体创建
@@ -144,6 +172,36 @@ public class SphereClickHandler : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log($"SphereClickHandler: ====== Sphere被点击：{sphereName} =====");
+        }
+        
+        // 检查是否要求气泡存在才能点击
+        if (requireBubbleToClick)
+        {
+            if (iconManager == null)
+            {
+                if (enableDebugLog)
+                {
+                    Debug.LogWarning("SphereClickHandler: requireBubbleToClick为true，但iconManager未配置，无法检查气泡是否存在。跳过点击处理。");
+                }
+                return;
+            }
+            
+            // 检查该Sphere是否有气泡存在
+            bool hasBubble = iconManager.HasIconForSphere(sphere);
+            
+            if (!hasBubble)
+            {
+                if (enableDebugLog)
+                {
+                    Debug.Log($"SphereClickHandler: Sphere {sphereName} 上不存在气泡，点击被忽略（requireBubbleToClick=true）");
+                }
+                return;
+            }
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"SphereClickHandler: Sphere {sphereName} 上存在气泡，允许显示订单面板");
+            }
         }
         
         // 检查数据配置和面板引用
