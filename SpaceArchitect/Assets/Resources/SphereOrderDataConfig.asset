@@ -13,38 +13,52 @@ MonoBehaviour:
   m_Name: SphereOrderDataConfig
   m_EditorClassIdentifier: 
   orderDataList:
-  - sphereName: Sphere (5)
-    orderImage: {fileID: 21300000, guid: e8cb1c06bf0c424449f68de7dcb80a52, type: 3}
+  - sphereName: Sphere (1)
+    orderImage: {fileID: 21300000, guid: 62a8fe0cbff6b824296d0db7d7688ce6, type: 3}
     targetSceneName: UITRY
     taskId: 1
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     VisitOrder: 0
     CompleteOrder: 0
-  - sphereName: Sphere (1)
-    orderImage: {fileID: 21300000, guid: e43306da0591fc241a8a198e91e5e95c, type: 3}
+  - sphereName: Sphere (2)
+    orderImage: {fileID: 21300000, guid: fb2ac7709bdf7a049b261eb25e41c72b, type: 3}
     targetSceneName: TRY2
-    taskId: 0
+    taskId: 2
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
-    VisitOrder: 0
+    VisitOrder: 1
     CompleteOrder: 0
   - sphereName: Sphere (3)
-    orderImage: {fileID: 21300000, guid: c907e8f6b1bd993408e69614f81fd3fe, type: 3}
+    orderImage: {fileID: 21300000, guid: 0288e3c15535cdd488731114a25a97f6, type: 3}
     targetSceneName: UITRY
-    taskId: 2
+    taskId: 3
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
-    VisitOrder: 0
-    CompleteOrder: 0
-  - sphereName: Sphere (2)
-    orderImage: {fileID: 21300000, guid: c907e8f6b1bd993408e69614f81fd3fe, type: 3}
-    targetSceneName: UITRY
-    taskId: 2
-    victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
-    VisitOrder: 0
+    VisitOrder: 1
     CompleteOrder: 0
   - sphereName: Sphere (4)
-    orderImage: {fileID: 21300000, guid: c907e8f6b1bd993408e69614f81fd3fe, type: 3}
+    orderImage: {fileID: 21300000, guid: fdc0a2eef8f2e9345af1f61ed8e01b4e, type: 3}
     targetSceneName: UITRY
-    taskId: 2
+    taskId: 4
+    victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    VisitOrder: 0
+    CompleteOrder: 0
+  - sphereName: Sphere (5)
+    orderImage: {fileID: 21300000, guid: b02b9a9a98bdf6b4f81fe216d4f67438, type: 3}
+    targetSceneName: UITRY
+    taskId: 5
+    victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    VisitOrder: 0
+    CompleteOrder: 0
+  - sphereName: Sphere (6)
+    orderImage: {fileID: 21300000, guid: cf35b4b2315f7634786c54da2d8c1866, type: 3}
+    targetSceneName: UITRY
+    taskId: 6
+    victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    VisitOrder: 0
+    CompleteOrder: 0
+  - sphereName: Sphere (7)
+    orderImage: {fileID: 21300000, guid: 33984c2ba8932b341bdc5b800f1c690a, type: 3}
+    targetSceneName: UITRY
+    taskId: 7
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     VisitOrder: 0
     CompleteOrder: 0
