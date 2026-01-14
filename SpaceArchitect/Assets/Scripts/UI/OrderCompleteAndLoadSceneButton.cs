@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 /// <summary>
 /// 订单完成并加载场景按钮脚本
@@ -53,6 +54,11 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
     
     // PlayerPrefs键名前缀（用于没有taskId的订单）
     private const string ORDER_COMPLETED_KEY_PREFIX = "OrderCompleted_";
+    
+    // 静态变量：存储场景切换时新完成的订单信息（用于在新场景中播放动画）
+    // 使用 taskId 作为键（如果有），否则使用 sphereName
+    private static HashSet<int> pendingCompletedTaskIds = new HashSet<int>();
+    private static HashSet<string> pendingCompletedSphereNames = new HashSet<string>();
     
     void Start()
     {
@@ -209,6 +215,24 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
             }
         }
         
+        // 将订单信息存储到静态变量，以便在新场景中播放动画
+        if (orderInfo.taskId >= 0)
+        {
+            pendingCompletedTaskIds.Add(orderInfo.taskId);
+            if (enableDebugLog)
+            {
+                Debug.Log($"OrderCompleteAndLoadSceneButton: 已将订单 taskId={orderInfo.taskId} 添加到待播放动画列表");
+            }
+        }
+        else
+        {
+            pendingCompletedSphereNames.Add(orderInfo.sphereName);
+            if (enableDebugLog)
+            {
+                Debug.Log($"OrderCompleteAndLoadSceneButton: 已将订单 sphereName={orderInfo.sphereName} 添加到待播放动画列表（无taskId）");
+            }
+        }
+        
         // 如果订单有 taskId 且配置了 TaskManager，通过 TaskManager 完成任务（会自动持久化）
         if (orderInfo.taskId >= 0 && taskManager != null)
         {
@@ -241,6 +265,53 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
         
         // 加载场景
         LoadScene();
+    }
+    
+    /// <summary>
+    /// 检查指定 taskId 是否在待播放动画列表中（供 TaskCompletionHandler 调用）
+    /// </summary>
+    /// <param name="taskId">任务ID</param>
+    /// <returns>如果在列表中返回true，否则返回false</returns>
+    public static bool IsPendingForAnimation(int taskId)
+    {
+        return pendingCompletedTaskIds.Contains(taskId);
+    }
+    
+    /// <summary>
+    /// 检查指定 sphereName 是否在待播放动画列表中（供 TaskCompletionHandler 调用）
+    /// </summary>
+    /// <param name="sphereName">Sphere名称</param>
+    /// <returns>如果在列表中返回true，否则返回false</returns>
+    public static bool IsPendingForAnimation(string sphereName)
+    {
+        return pendingCompletedSphereNames.Contains(sphereName);
+    }
+    
+    /// <summary>
+    /// 从待播放动画列表中移除指定 taskId（供 TaskCompletionHandler 调用）
+    /// </summary>
+    /// <param name="taskId">任务ID</param>
+    public static void RemovePendingTaskId(int taskId)
+    {
+        pendingCompletedTaskIds.Remove(taskId);
+    }
+    
+    /// <summary>
+    /// 从待播放动画列表中移除指定 sphereName（供 TaskCompletionHandler 调用）
+    /// </summary>
+    /// <param name="sphereName">Sphere名称</param>
+    public static void RemovePendingSphereName(string sphereName)
+    {
+        pendingCompletedSphereNames.Remove(sphereName);
+    }
+    
+    /// <summary>
+    /// 清除所有待播放动画的订单（用于清理，避免残留数据）
+    /// </summary>
+    public static void ClearPendingOrders()
+    {
+        pendingCompletedTaskIds.Clear();
+        pendingCompletedSphereNames.Clear();
     }
     
     /// <summary>

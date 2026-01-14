@@ -73,7 +73,56 @@ public class TaskCompletionHandler : MonoBehaviour
             }
         }
         
+        // 场景加载时，先检查是否有新完成的订单需要播放动画
+        // 在标记已处理之前，先处理待播放动画的订单
+        int pendingAnimationCount = 0;
+        if (orderDataConfig != null && orderDataConfig.orderDataList != null)
+        {
+            foreach (var orderInfo in orderDataConfig.orderDataList)
+            {
+                if (orderInfo == null)
+                {
+                    continue;
+                }
+                
+                // 检查是否是新完成的订单（需要播放动画）
+                bool isPendingForAnimation = false;
+                if (orderInfo.taskId >= 0)
+                {
+                    isPendingForAnimation = OrderCompleteAndLoadSceneButton.IsPendingForAnimation(orderInfo.taskId);
+                }
+                else
+                {
+                    isPendingForAnimation = OrderCompleteAndLoadSceneButton.IsPendingForAnimation(orderInfo.sphereName);
+                }
+                
+                if (isPendingForAnimation && orderInfo.CompleteOrder)
+                {
+                    // 这是新完成的订单，需要播放动画
+                    pendingAnimationCount++;
+                    if (enableDebugLog)
+                    {
+                        Debug.Log($"TaskCompletionHandler: 检测到新完成的订单 {orderInfo.sphereName} (taskId={orderInfo.taskId})，准备播放动画");
+                    }
+                    
+                    // 从待播放列表中移除
+                    if (orderInfo.taskId >= 0)
+                    {
+                        OrderCompleteAndLoadSceneButton.RemovePendingTaskId(orderInfo.taskId);
+                    }
+                    else
+                    {
+                        OrderCompleteAndLoadSceneButton.RemovePendingSphereName(orderInfo.sphereName);
+                    }
+                    
+                    // 直接调用 HandleTaskCompletionSequence，与按键版本完全一致
+                    StartCoroutine(HandleTaskCompletionSequence(orderInfo.sphereName));
+                }
+            }
+        }
+        
         // 场景加载时，将已经完成的订单标记为已处理（避免场景切换时重复播放动画）
+        // 注意：新完成的订单已经在上面处理了，这里只标记旧的已完成订单
         processedTaskIds.Clear();
         if (orderDataConfig != null && orderDataConfig.orderDataList != null)
         {
@@ -81,10 +130,15 @@ public class TaskCompletionHandler : MonoBehaviour
             {
                 if (orderInfo != null && orderInfo.taskId >= 0 && orderInfo.CompleteOrder)
                 {
-                    processedTaskIds.Add(orderInfo.taskId);
-                    if (enableDebugLog)
+                    // 检查是否是新完成的订单（已经在上面处理了，不需要再次标记）
+                    bool isPendingForAnimation = OrderCompleteAndLoadSceneButton.IsPendingForAnimation(orderInfo.taskId);
+                    if (!isPendingForAnimation)
                     {
-                        Debug.Log($"TaskCompletionHandler: 场景加载，订单 {orderInfo.sphereName} (taskId={orderInfo.taskId}) 已完成，已标记为已处理（不会播放动画）");
+                        processedTaskIds.Add(orderInfo.taskId);
+                        if (enableDebugLog)
+                        {
+                            Debug.Log($"TaskCompletionHandler: 场景加载，订单 {orderInfo.sphereName} (taskId={orderInfo.taskId}) 已完成，已标记为已处理（不会播放动画）");
+                        }
                     }
                 }
             }
@@ -95,8 +149,11 @@ public class TaskCompletionHandler : MonoBehaviour
         
         if (enableDebugLog)
         {
-            Debug.Log($"TaskCompletionHandler: 已订阅任务完成事件，并开始检测CompleteOrder变化（已标记 {processedTaskIds.Count} 个已完成订单为已处理）");
+            Debug.Log($"TaskCompletionHandler: 已订阅任务完成事件，并开始检测CompleteOrder变化（已标记 {processedTaskIds.Count} 个已完成订单为已处理，{pendingAnimationCount} 个新完成订单将播放动画）");
         }
+        
+        // 延迟清理待播放列表（避免残留数据，给动画一些时间开始）
+        StartCoroutine(CleanupPendingOrdersAfterDelay());
     }
     
     void Update()
@@ -342,6 +399,23 @@ public class TaskCompletionHandler : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log("TaskCompletionHandler: 收到胜利反馈隐藏事件");
+        }
+    }
+    
+    /// <summary>
+    /// 延迟清理待播放订单列表（避免残留数据）
+    /// </summary>
+    private IEnumerator CleanupPendingOrdersAfterDelay()
+    {
+        // 等待一段时间，确保所有动画都已开始
+        yield return new WaitForSeconds(1f);
+        
+        // 清理待播放列表（此时应该已经被处理完了）
+        OrderCompleteAndLoadSceneButton.ClearPendingOrders();
+        
+        if (enableDebugLog)
+        {
+            Debug.Log("TaskCompletionHandler: 已清理待播放订单列表");
         }
     }
 }
