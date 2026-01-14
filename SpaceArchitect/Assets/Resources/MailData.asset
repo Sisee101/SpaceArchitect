@@ -12,4 +12,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a33a51bb14756641a83960fb7fc646d, type: 3}
   m_Name: MailData
   m_EditorClassIdentifier: 
-  mailDataList: []
+  mailDataList:
+  - mailId: 0
+    buttonIcon: {fileID: 21300000, guid: 2f7ad6d8f01182242b9b982eefa877b6, type: 3}
+    contentImage: {fileID: 21300000, guid: 63172d139b611bf4c8f6e51a969984ae, type: 3}
+  - mailId: 1
+    buttonIcon: {fileID: 21300000, guid: 2f7ad6d8f01182242b9b982eefa877b6, type: 3}
+    contentImage: {fileID: 21300000, guid: 86781e047bce30947b8d031865e3ad8c, type: 3}
+  - mailId: 2
+    buttonIcon: {fileID: 21300000, guid: 2f7ad6d8f01182242b9b982eefa877b6, type: 3}
+    contentImage: {fileID: 21300000, guid: 07c53c1100a038540ad0c5f827265c2d, type: 3}
+  - mailId: 3
+    buttonIcon: {fileID: 21300000, guid: 2f7ad6d8f01182242b9b982eefa877b6, type: 3}
+    contentImage: {fileID: 21300000, guid: 1c4fe66e9ceb19c438a8c9cd4fa1b846, type: 3}
+  - mailId: 4
+    buttonIcon: {fileID: 21300000, guid: 2f7ad6d8f01182242b9b982eefa877b6, type: 3}
+    contentImage: {fileID: 21300000, guid: 63172d139b611bf4c8f6e51a969984ae, type: 3}
+  - mailId: 5
+    buttonIcon: {fileID: 21300000, guid: 2f7ad6d8f01182242b9b982eefa877b6, type: 3}
+    contentImage: {fileID: 21300000, guid: 870db1eb80e93bc48a81f104812387c2, type: 3}
+  - mailId: 6
+    buttonIcon: {fileID: 21300000, guid: 2f7ad6d8f01182242b9b982eefa877b6, type: 3}
+    contentImage: {fileID: 21300000, guid: 9c257767bbd67d64b90d20071bee638c, type: 3}
+  - mailId: 7
+    buttonIcon: {fileID: 21300000, guid: 2f7ad6d8f01182242b9b982eefa877b6, type: 3}
+    contentImage: {fileID: 21300000, guid: 63172d139b611bf4c8f6e51a969984ae, type: 3}
