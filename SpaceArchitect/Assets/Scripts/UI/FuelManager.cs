@@ -5,11 +5,16 @@ using UnityEngine.Events;
 /// <summary>
 /// 燃料管理器
 /// 用于管理和显示燃料数量，挂载到FuelDisplay的Panel上
+/// 燃料数据会在场景切换时保持
 /// </summary>
 public class FuelManager : MonoBehaviour
 {
+    // PlayerPrefs 保存键名
+    private const string FUEL_SAVE_KEY = "PlayerFuelNum";
+    private const int DEFAULT_FUEL = 3;
+
     [Header("燃料设置")]
-    [Tooltip("当前燃料数量")]
+    [Tooltip("当前燃料数量（初始默认值，实际值会从存档加载）")]
     [SerializeField] private int fuelNum = 3;
 
     [Header("燃料图片")]
@@ -27,9 +32,16 @@ public class FuelManager : MonoBehaviour
     [Tooltip("点击Finish按钮后要打开的Panel")]
     [SerializeField] private GameObject targetPanel;
 
+    [Header("燃料消耗按钮控制")]
+    [Tooltip("所有绑定了FuelCost()的按钮，燃料为0时会自动禁用")]
+    [SerializeField] private Button[] fuelCostButtons;
+
     [Header("事件")]
     [Tooltip("燃料消耗事件，可供其他按钮调用")]
     public UnityEvent onFuelCost;
+
+    [Tooltip("燃料重置事件，当燃料被重置为满时触发")]
+    public UnityEvent onFuelReset;
 
     /// <summary>
     /// 获取当前燃料数量
@@ -51,6 +63,14 @@ public class FuelManager : MonoBehaviour
         {
             onFuelCost = new UnityEvent();
         }
+
+        if (onFuelReset == null)
+        {
+            onFuelReset = new UnityEvent();
+        }
+
+        // 从存档加载燃料数量
+        LoadFuelData();
     }
 
     private void Start()
@@ -76,6 +96,7 @@ public class FuelManager : MonoBehaviour
         {
             fuelNum--;
             UpdateFuelDisplay();
+            SaveFuelData(); // 保存燃料数据
             Debug.Log($"燃料消耗！当前燃料: {fuelNum}");
             
             // 触发燃料消耗事件（通知其他系统燃料已被消耗）
@@ -141,6 +162,35 @@ public class FuelManager : MonoBehaviour
                 finishButton.SetActive(false);
             }
         }
+
+        // 更新燃料消耗按钮的可用状态
+        UpdateFuelCostButtonsState();
+    }
+
+    /// <summary>
+    /// 更新燃料消耗按钮的可用状态
+    /// </summary>
+    private void UpdateFuelCostButtonsState()
+    {
+        if (fuelCostButtons == null || fuelCostButtons.Length == 0)
+        {
+            return;
+        }
+
+        bool hasEnoughFuel = fuelNum > 0;
+
+        foreach (Button button in fuelCostButtons)
+        {
+            if (button != null)
+            {
+                button.interactable = hasEnoughFuel;
+            }
+        }
+
+        if (!hasEnoughFuel)
+        {
+            Debug.Log("燃料耗尽！已禁用所有燃料消耗按钮");
+        }
     }
 
     /// <summary>
@@ -150,6 +200,7 @@ public class FuelManager : MonoBehaviour
     public void AddFuel(int amount)
     {
         FuelNum = Mathf.Min(fuelNum + amount, 3);
+        SaveFuelData(); // 保存燃料数据
         Debug.Log($"燃料补充！当前燃料: {fuelNum}");
     }
 
@@ -160,6 +211,7 @@ public class FuelManager : MonoBehaviour
     public void SetFuel(int amount)
     {
         FuelNum = amount;
+        SaveFuelData(); // 保存燃料数据
         Debug.Log($"燃料设置为: {fuelNum}");
     }
 
@@ -200,18 +252,133 @@ public class FuelManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 保存燃料数据到PlayerPrefs
+    /// </summary>
+    private void SaveFuelData()
+    {
+        PlayerPrefs.SetInt(FUEL_SAVE_KEY, fuelNum);
+        PlayerPrefs.Save(); // 立即写入磁盘
+        Debug.Log($"燃料数据已保存: {fuelNum}");
+    }
+
+    /// <summary>
+    /// 从PlayerPrefs加载燃料数据
+    /// </summary>
+    private void LoadFuelData()
+    {
+        if (PlayerPrefs.HasKey(FUEL_SAVE_KEY))
+        {
+            fuelNum = PlayerPrefs.GetInt(FUEL_SAVE_KEY, DEFAULT_FUEL);
+            Debug.Log($"燃料数据已加载: {fuelNum}");
+        }
+        else
+        {
+            // 首次运行，使用默认值
+            fuelNum = DEFAULT_FUEL;
+            SaveFuelData(); // 保存初始值
+            Debug.Log($"首次运行，使用默认燃料值: {fuelNum}");
+        }
+    }
+
+    /// <summary>
+    /// 重置燃料为满（3）
+    /// 此方法可以被按钮的OnClick事件调用
+    /// </summary>
+    public void ResetFuel()
+    {
+        fuelNum = DEFAULT_FUEL;
+        SaveFuelData();
+        UpdateFuelDisplay();
+        Debug.Log($"燃料已重置为满！当前燃料: {fuelNum}");
+        
+        // 触发燃料重置事件（通知其他系统燃料已被重置）
+        onFuelReset?.Invoke();
+    }
+
+    /// <summary>
+    /// 重置燃料数据为默认值（与ResetFuel功能相同）
+    /// </summary>
+    public void ResetFuelData()
+    {
+        ResetFuel();
+    }
+
+    /// <summary>
+    /// 清除保存的燃料数据
+    /// </summary>
+    public void ClearSavedData()
+    {
+        if (PlayerPrefs.HasKey(FUEL_SAVE_KEY))
+        {
+            PlayerPrefs.DeleteKey(FUEL_SAVE_KEY);
+            PlayerPrefs.Save();
+            Debug.Log("已清除保存的燃料数据");
+        }
+    }
+
 #if UNITY_EDITOR
     // 编辑器中调试用
-    [ContextMenu("测试消耗燃料")]
+    [ContextMenu("测试/消耗燃料")]
     private void TestFuelCost()
     {
         FuelCost();
     }
 
-    [ContextMenu("测试补充燃料")]
+    [ContextMenu("测试/补充燃料")]
     private void TestAddFuel()
     {
         AddFuel(1);
+    }
+
+    [ContextMenu("测试/重置燃料为默认值")]
+    private void TestResetFuel()
+    {
+        ResetFuelData();
+    }
+
+    [ContextMenu("测试/清除存档数据")]
+    private void TestClearSaveData()
+    {
+        ClearSavedData();
+        Debug.Log("存档已清除，下次运行将使用默认值");
+    }
+
+    [ContextMenu("测试/查看当前燃料值")]
+    private void TestViewFuelValue()
+    {
+        Debug.Log($"当前燃料值: {fuelNum}");
+        Debug.Log($"存档中的燃料值: {PlayerPrefs.GetInt(FUEL_SAVE_KEY, -1)}");
+    }
+
+    [ContextMenu("测试/查看按钮状态")]
+    private void TestViewButtonsState()
+    {
+        if (fuelCostButtons == null || fuelCostButtons.Length == 0)
+        {
+            Debug.LogWarning("未配置燃料消耗按钮数组");
+            return;
+        }
+
+        Debug.Log($"燃料消耗按钮数量: {fuelCostButtons.Length}");
+        for (int i = 0; i < fuelCostButtons.Length; i++)
+        {
+            if (fuelCostButtons[i] != null)
+            {
+                Debug.Log($"按钮 [{i}] {fuelCostButtons[i].name}: {(fuelCostButtons[i].interactable ? "可用" : "禁用")}");
+            }
+            else
+            {
+                Debug.LogWarning($"按钮 [{i}] 为空");
+            }
+        }
+    }
+
+    [ContextMenu("测试/强制更新按钮状态")]
+    private void TestForceUpdateButtons()
+    {
+        UpdateFuelCostButtonsState();
+        Debug.Log("已强制更新按钮状态");
     }
 #endif
 }
