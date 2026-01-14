@@ -34,3 +34,17 @@ MonoBehaviour:
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     VisitOrder: 0
     CompleteOrder: 0
+  - sphereName: Sphere (2)
+    orderImage: {fileID: 21300000, guid: c907e8f6b1bd993408e69614f81fd3fe, type: 3}
+    targetSceneName: UITRY
+    taskId: 2
+    victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    VisitOrder: 0
+    CompleteOrder: 0
+  - sphereName: Sphere (4)
+    orderImage: {fileID: 21300000, guid: c907e8f6b1bd993408e69614f81fd3fe, type: 3}
+    targetSceneName: UITRY
+    taskId: 2
+    victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    VisitOrder: 0
+    CompleteOrder: 0

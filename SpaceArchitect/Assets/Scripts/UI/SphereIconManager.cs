@@ -52,8 +52,18 @@ public class SphereIconManager : MonoBehaviour
     [Tooltip("气泡消失动画的时长（秒）")]
     [SerializeField] private float hideAnimationDuration = 0.5f; // 气泡消失动画时长
     
+    [Header("Sphere发光设置")]
+    [Tooltip("是否启用Sphere发光效果")]
+    [SerializeField] private bool enableSphereGlow = true; // 是否启用Sphere发光
+    [Tooltip("发光颜色（HDR颜色，值可以超过1.0以获得更亮的效果）")]
+    [SerializeField] private Color glowColor = new Color(0.3f, 0.5f, 1f, 1f); // 发光颜色（默认淡蓝色）
+    [Tooltip("发光强度（0-2，值越大越亮）")]
+    [SerializeField] private float glowIntensity = 0.3f; // 发光强度
+    
     // 私有变量
     private Dictionary<GameObject, GameObject> sphereIconMap; // Sphere到Icon的映射字典
+    private Dictionary<GameObject, Material> sphereOriginalMaterials; // Sphere原始材质字典（用于恢复）
+    private Dictionary<GameObject, Color> sphereOriginalEmissionColors; // Sphere原始发光颜色字典
     private bool iconsVisible = false; // 图标是否显示
     private float lastUpdateTime = 0f; // 上次更新时间
     
@@ -61,6 +71,8 @@ public class SphereIconManager : MonoBehaviour
     {
         // 初始化字典
         sphereIconMap = new Dictionary<GameObject, GameObject>();
+        sphereOriginalMaterials = new Dictionary<GameObject, Material>();
+        sphereOriginalEmissionColors = new Dictionary<GameObject, Color>();
         
         // 如果没有指定World Space Canvas，尝试自动查找或创建
         if (worldSpaceCanvas == null)
@@ -300,6 +312,18 @@ public class SphereIconManager : MonoBehaviour
     /// </summary>
     private void HideIcons()
     {
+        // 关闭所有Sphere的发光效果
+        if (enableSphereGlow)
+        {
+            foreach (var kvp in sphereIconMap)
+            {
+                if (kvp.Key != null)
+                {
+                    DisableSphereGlow(kvp.Key);
+                }
+            }
+        }
+        
         // 销毁所有图标
         foreach (var kvp in sphereIconMap)
         {
@@ -401,6 +425,12 @@ public class SphereIconManager : MonoBehaviour
         
         // 保存到字典
         sphereIconMap[sphere] = iconObj;
+        
+        // 启用Sphere发光效果
+        if (enableSphereGlow)
+        {
+            EnableSphereGlow(sphere);
+        }
     }
     
     /// <summary>
@@ -610,6 +640,64 @@ public class SphereIconManager : MonoBehaviour
     }
     
     /// <summary>
+    /// 检查指定Sphere是否有气泡存在
+    /// </summary>
+    /// <param name="sphere">Sphere GameObject</param>
+    /// <returns>如果存在气泡返回true，否则返回false</returns>
+    public bool HasIconForSphere(GameObject sphere)
+    {
+        if (sphere == null)
+        {
+            return false;
+        }
+        
+        // 检查字典中是否存在该Sphere的图标，且图标对象不为空
+        if (sphereIconMap.ContainsKey(sphere))
+        {
+            GameObject icon = sphereIconMap[sphere];
+            return icon != null && icon.activeInHierarchy;
+        }
+        
+        return false;
+    }
+    
+    /// <summary>
+    /// 根据Sphere名称检查是否有气泡存在
+    /// </summary>
+    /// <param name="sphereName">Sphere GameObject的名称</param>
+    /// <returns>如果存在气泡返回true，否则返回false</returns>
+    public bool HasIconForSphere(string sphereName)
+    {
+        if (string.IsNullOrEmpty(sphereName))
+        {
+            return false;
+        }
+        
+        // 查找对应的Sphere GameObject
+        GameObject targetSphere = null;
+        if (sphere1 != null && sphere1.name == sphereName)
+        {
+            targetSphere = sphere1;
+        }
+        else if (sphere2 != null && sphere2.name == sphereName)
+        {
+            targetSphere = sphere2;
+        }
+        else if (sphere4 != null && sphere4.name == sphereName)
+        {
+            targetSphere = sphere4;
+        }
+        
+        if (targetSphere == null)
+        {
+            return false;
+        }
+        
+        // 检查是否有气泡
+        return HasIconForSphere(targetSphere);
+    }
+    
+    /// <summary>
     /// 根据Sphere名称隐藏图标（播放消失动画）
     /// </summary>
     /// <param name="sphereName">Sphere GameObject的名称</param>
@@ -670,6 +758,12 @@ public class SphereIconManager : MonoBehaviour
         // 播放消失动画
         StartCoroutine(PlayHideAnimation(iconObj, () => {
             Debug.Log($"SphereIconManager: 消失动画完成，Sphere={sphereName}");
+            
+            // 关闭Sphere的发光效果
+            if (enableSphereGlow)
+            {
+                DisableSphereGlow(targetSphere);
+            }
             
             // 从字典中移除
             sphereIconMap.Remove(targetSphere);
@@ -760,8 +854,115 @@ public class SphereIconManager : MonoBehaviour
         onComplete?.Invoke();
     }
     
+    /// <summary>
+    /// 启用Sphere发光效果
+    /// </summary>
+    /// <param name="sphere">Sphere GameObject</param>
+    private void EnableSphereGlow(GameObject sphere)
+    {
+        if (sphere == null) return;
+        
+        Renderer renderer = sphere.GetComponent<Renderer>();
+        if (renderer == null)
+        {
+            Debug.LogWarning($"SphereIconManager: Sphere {sphere.name} 没有Renderer组件，无法启用发光效果");
+            return;
+        }
+        
+        Material material = renderer.material;
+        if (material == null)
+        {
+            Debug.LogWarning($"SphereIconManager: Sphere {sphere.name} 的材质为空，无法启用发光效果");
+            return;
+        }
+        
+        // 保存原始材质和发光颜色（如果还没有保存）
+        if (!sphereOriginalMaterials.ContainsKey(sphere))
+        {
+            sphereOriginalMaterials[sphere] = new Material(material);
+            
+            // 尝试获取原始发光颜色
+            Color originalEmission = Color.black;
+            if (material.HasProperty("_EmissionColor"))
+            {
+                originalEmission = material.GetColor("_EmissionColor");
+            }
+            sphereOriginalEmissionColors[sphere] = originalEmission;
+        }
+        
+        // 启用Emission关键字
+        material.EnableKeyword("_EMISSION");
+        
+        // 设置发光颜色（使用HDR颜色，强度由glowIntensity控制）
+        if (material.HasProperty("_EmissionColor"))
+        {
+            Color emissionColor = glowColor * glowIntensity;
+            material.SetColor("_EmissionColor", emissionColor);
+            
+            // 如果是URP材质，可能需要设置不同的属性
+            if (material.HasProperty("_Emission"))
+            {
+                material.SetFloat("_Emission", glowIntensity);
+            }
+        }
+        
+        Debug.Log($"SphereIconManager: 已为 {sphere.name} 启用发光效果，颜色: {glowColor}, 强度: {glowIntensity}");
+    }
+    
+    /// <summary>
+    /// 关闭Sphere发光效果
+    /// </summary>
+    /// <param name="sphere">Sphere GameObject</param>
+    private void DisableSphereGlow(GameObject sphere)
+    {
+        if (sphere == null) return;
+        
+        Renderer renderer = sphere.GetComponent<Renderer>();
+        if (renderer == null) return;
+        
+        Material material = renderer.material;
+        if (material == null) return;
+        
+        // 恢复原始发光颜色
+        if (sphereOriginalEmissionColors.ContainsKey(sphere))
+        {
+            Color originalEmission = sphereOriginalEmissionColors[sphere];
+            
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.SetColor("_EmissionColor", originalEmission);
+            }
+            
+            // 如果原始发光颜色是黑色，禁用Emission关键字
+            if (originalEmission == Color.black || originalEmission == new Color(0, 0, 0, 0))
+            {
+                material.DisableKeyword("_EMISSION");
+            }
+            
+            // 如果是URP材质
+            if (material.HasProperty("_Emission"))
+            {
+                material.SetFloat("_Emission", 0f);
+            }
+            
+            Debug.Log($"SphereIconManager: 已为 {sphere.name} 关闭发光效果");
+        }
+    }
+    
     void OnDestroy()
     {
+        // 恢复所有Sphere的原始材质
+        if (enableSphereGlow)
+        {
+            foreach (var kvp in sphereOriginalMaterials)
+            {
+                if (kvp.Key != null)
+                {
+                    DisableSphereGlow(kvp.Key);
+                }
+            }
+        }
+        
         // 清理所有图标
         HideIcons();
     }
