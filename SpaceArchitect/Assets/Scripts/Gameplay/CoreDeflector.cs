@@ -46,8 +46,12 @@ public class CoreDeflector : MonoBehaviour
     private Collider triggerCollider;
     
     // 跟踪已进入trigger的飞船
-    private System.Collections.Generic.Dictionary<GameObject, float> shipsInTrigger = 
-        new System.Collections.Generic.Dictionary<GameObject, float>();
+    // 修复：使用帧计数器而不是时间，确保确定性
+    private System.Collections.Generic.Dictionary<GameObject, int> shipsInTrigger = 
+        new System.Collections.Generic.Dictionary<GameObject, int>();
+    
+    // FixedUpdate 帧计数器（用于确定性更新间隔）
+    private int fixedUpdateCounter = 0;
     
     void Start()
     {
@@ -84,11 +88,17 @@ public class CoreDeflector : MonoBehaviour
         }
         
         GameObject shipRoot = shipNBody.gameObject;
-        shipsInTrigger[shipRoot] = Time.unscaledTime; // 使用未缩放时间，避免时停影响
+        // 修复：使用帧计数器，确保确定性
+        shipsInTrigger[shipRoot] = fixedUpdateCounter;
+        
+        // 获取飞船位置（用于调试）
+        Vector3 shipPos = gravityEngine != null ? gravityEngine.GetScenePosition(shipNBody) : ship.transform.position;
+        Vector3 toCore = shipPos - transform.position;
+        float dist = toCore.magnitude;
         
         if (showDebugLogs)
         {
-            Debug.Log($"[CoreDeflector] 飞船 {ship.name} 进入trigger，开始受到Core引力影响");
+            Debug.Log($"[CoreDeflector] OnTriggerEnter - 飞船 {ship.name} 进入trigger，帧数={fixedUpdateCounter}, 距离={dist:F2}, 位置=({shipPos.x:F2},{shipPos.y:F2})");
         }
     }
     
@@ -110,7 +120,8 @@ public class CoreDeflector : MonoBehaviour
         GameObject shipRoot = shipNBody.gameObject;
         if (!shipsInTrigger.ContainsKey(shipRoot))
         {
-            shipsInTrigger[shipRoot] = Time.unscaledTime; // 使用未缩放时间，避免时停影响
+            // 修复：使用帧计数器，确保确定性
+            shipsInTrigger[shipRoot] = fixedUpdateCounter;
         }
     }
     
@@ -141,10 +152,17 @@ public class CoreDeflector : MonoBehaviour
     
     void FixedUpdate()
     {
+        // 修复：使用帧计数器，确保确定性
+        fixedUpdateCounter++;
+        
         if (gravityEngine == null || shipsInTrigger.Count == 0)
         {
             return;
         }
+        
+        // 计算更新间隔（以帧数为单位）
+        // 如果physicsUpdateInterval <= fixedDeltaTime，则每帧都应用
+        int updateIntervalFrames = Mathf.Max(1, Mathf.RoundToInt(physicsUpdateInterval / Time.fixedUnscaledDeltaTime));
         
         // 复制keys避免迭代时修改
         var shipsToProcess = new System.Collections.Generic.List<GameObject>(shipsInTrigger.Keys);
@@ -157,9 +175,12 @@ public class CoreDeflector : MonoBehaviour
                 continue;
             }
             
-            // 检查更新间隔（使用未缩放时间，避免时停影响）
-            float lastUpdateTime = shipsInTrigger[shipRoot];
-            if (Time.unscaledTime - lastUpdateTime < physicsUpdateInterval)
+            // 修复：使用帧计数器检查更新间隔，确保确定性
+            int lastUpdateFrame = shipsInTrigger[shipRoot];
+            int framesSinceLastUpdate = fixedUpdateCounter - lastUpdateFrame;
+            
+            // 如果距离上次更新的帧数小于更新间隔，跳过
+            if (framesSinceLastUpdate < updateIntervalFrames)
             {
                 continue;
             }
@@ -180,7 +201,17 @@ public class CoreDeflector : MonoBehaviour
             
             // 应用引力加速度
             ApplyGravityAcceleration(shipRoot, shipNBody);
-            shipsInTrigger[shipRoot] = Time.unscaledTime; // 使用未缩放时间，避免时停影响
+            // 修复：使用帧计数器，确保确定性
+            shipsInTrigger[shipRoot] = fixedUpdateCounter;
+            
+            // 调试：记录实际应用效果的时机
+            if (showDebugLogs && Time.frameCount % 10 == 0)
+            {
+                Vector3 shipPos = gravityEngine != null ? gravityEngine.GetScenePosition(shipNBody) : shipRoot.transform.position;
+                Vector3 toCore = shipPos - transform.position;
+                float dist = toCore.magnitude;
+                Debug.Log($"[CoreDeflector] FixedUpdate应用 - 飞船 {shipRoot.name}, 帧数={fixedUpdateCounter}, 距离={dist:F2}, 位置=({shipPos.x:F2},{shipPos.y:F2})");
+            }
         }
     }
     
@@ -207,8 +238,16 @@ public class CoreDeflector : MonoBehaviour
     void ApplyGravityAcceleration(GameObject ship, NBody shipNBody)
     {
         // 获取飞船当前速度和位置
+        // 关键修复：使用 GravityEngine 的物理位置，而不是 transform.position
+        // 因为 transform.position 可能还没有同步到最新的物理位置
         Vector3 shipVelocity = gravityEngine.GetVelocity(shipNBody);
-        Vector3 shipPosition = ship.transform.position;
+        Vector3 shipPosition = gravityEngine.GetScenePosition(shipNBody);
+        
+        // 如果 GetScenePosition 返回零向量（可能未初始化），回退到 transform.position
+        if (shipPosition.magnitude < 0.001f && ship.transform.position.magnitude > 0.001f)
+        {
+            shipPosition = ship.transform.position;
+        }
         
         // 计算Core到飞船的向量
         Vector3 coreToShip = shipPosition - transform.position;
@@ -290,14 +329,28 @@ public class CoreDeflector : MonoBehaviour
         // 验证并应用
         if (IsVelocityValid(newVelocity))
         {
+            Vector3 finalVelocityChange = newVelocity - shipVelocity;
             gravityEngine.SetVelocity(shipNBody, newVelocity);
             
-            if (showDebugLogs && Time.frameCount % 30 == 0)
+            // 详细日志（用于分析）
+            if (showDebugLogs || Time.frameCount % 10 == 0) // 更频繁的日志
             {
                 float angleChange = Vector3.Angle(shipVelocity.normalized, newVelocity.normalized);
-                Debug.Log($"[CoreDeflector] 飞船 {ship.name} - 距离: {distance:F2}, " +
-                         $"引力: {gravitationalAcceleration:F3}, 引导强度: {guidanceStrength:F2}, " +
-                         $"角度改变: {angleChange:F1}°");
+                Vector3 radialDir = coreToShip.normalized;
+                Vector3 tangentDir = GetTangentialDirection(radialDir, shipVelocity.normalized);
+                
+                Debug.Log($"[CoreDeflector详细] 飞船={ship.name} 时间={Time.unscaledTime:F4} " +
+                         $"位置=({shipPosition.x:F3},{shipPosition.y:F3}) " +
+                         $"距离={distance:F3} " +
+                         $"原速度=({shipVelocity.x:F3},{shipVelocity.y:F3}) 大小={shipVelocity.magnitude:F3} " +
+                         $"新速度=({newVelocity.x:F3},{newVelocity.y:F3}) 大小={newVelocity.magnitude:F3} " +
+                         $"速度变化=({finalVelocityChange.x:F3},{finalVelocityChange.y:F3}) 大小={finalVelocityChange.magnitude:F3} " +
+                         $"径向方向=({radialDir.x:F3},{radialDir.y:F3}) " +
+                         $"切向方向=({tangentDir.x:F3},{tangentDir.y:F3}) " +
+                         $"引力加速度={gravitationalAcceleration:F3} " +
+                         $"引导强度={guidanceStrength:F2} " +
+                         $"角度改变={angleChange:F1}° " +
+                         $"coreEffectiveMass={coreEffectiveMass:F1}");
             }
         }
     }

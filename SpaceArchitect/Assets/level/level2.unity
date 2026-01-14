@@ -606,6 +606,10 @@ MonoBehaviour:
   followSpeed: 5
   useSmoothing: 1
   xOffset: 0
+  yOffset: 0
+  enableYBoundary: 1
+  minYBoundary: -50
+  maxYBoundary: 50
   enableManualMove: 1
   manualMoveSpeed: 10
   leftMoveKey: 97
@@ -709,6 +713,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_UseGravity
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 464789725951697435, guid: 3b64a5805e6b87a468b662c36e5c2e6f,
+        type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1013152613574996126, guid: 3b64a5805e6b87a468b662c36e5c2e6f,
         type: 3}
@@ -2220,6 +2229,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_UseGravity
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 464789725951697435, guid: 3b64a5805e6b87a468b662c36e5c2e6f,
+        type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1013152613574996126, guid: 3b64a5805e6b87a468b662c36e5c2e6f,
         type: 3}

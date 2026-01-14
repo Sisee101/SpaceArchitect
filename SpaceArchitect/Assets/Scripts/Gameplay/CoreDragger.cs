@@ -11,11 +11,15 @@ public class CoreDragger : MonoBehaviour
     [Tooltip("是否产生引力（如果为false，物体不会添加到GravityEngine）")]
     public bool produceGravity = true;
 
+    // 静态变量：跟踪当前正在拖拽的 Core（确保同一时间只有一个 Core 可以被拖拽）
+    private static CoreDragger currentDraggingCore = null;
+
     private bool isDragging = false;
     private Rigidbody coreRb;
     private NBody nBody;
     private GravityEngine gravityEngine;
     private FixedObject fixedObject;
+    private ShipState shipState; // 引用飞船状态，用于限制拖拽
     private Vector3 offset;
     private float mouseZCoord;
 
@@ -24,6 +28,13 @@ public class CoreDragger : MonoBehaviour
         coreRb = GetComponent<Rigidbody>();
         nBody = GetComponent<NBody>();
         gravityEngine = GravityEngine.instance;
+
+        // 查找场景中的飞船状态
+        shipState = FindObjectOfType<ShipState>();
+        if (shipState == null)
+        {
+            Debug.LogWarning("[CoreDragger] 未能在场景中找到 ShipState，拖拽限制可能失效。");
+        }
 
         // 诊断信息
         Debug.Log($"[CoreDragger] Start: {gameObject.name}");
@@ -72,6 +83,17 @@ public class CoreDragger : MonoBehaviour
     /// </summary>
     private void HandleMouseInput()
     {
+        // 限制：只有在 Setup 状态下才允许开始新的拖拽
+        // 点击 READY 之后（进入 PreLaunch 或 Flying 状态），不再允许拖拽
+        if (shipState != null && shipState.CurrentState != ShipState.State.Setup)
+        {
+            if (isDragging)
+            {
+                EndDragInternal();
+            }
+            return;
+        }
+
         if (Camera.main == null)
         {
             Debug.LogWarning($"[CoreDragger] Camera.main 为 null，无法检测鼠标输入");
@@ -94,6 +116,7 @@ public class CoreDragger : MonoBehaviour
             bool foundCore = false;
             
             // 遍历所有击中的物体，找到第一个 Core 物体
+            // 注意：如果已经有其他 Core 正在被拖拽，则不允许开始新的拖拽
             foreach (RaycastHit hit in hits)
             {
                 if (hit.collider == null) continue;
@@ -112,6 +135,13 @@ public class CoreDragger : MonoBehaviour
                 if ((hitObject == gameObject || hitObject.transform.IsChildOf(transform)) && 
                     gameObject.CompareTag("Core"))
                 {
+                    // 检查是否已经有其他 Core 正在被拖拽
+                    if (currentDraggingCore != null && currentDraggingCore != this)
+                    {
+                        Debug.Log($"[CoreDragger] 已有其他 Core ({currentDraggingCore.gameObject.name}) 正在被拖拽，跳过当前 Core ({gameObject.name})");
+                        continue; // 跳过当前 Core，继续检查其他击中的物体
+                    }
+                    
                     Debug.Log($"[CoreDragger] 找到 Core 物体，开始拖拽");
                     foundCore = true;
                     StartDragInternal();
@@ -132,10 +162,19 @@ public class CoreDragger : MonoBehaviour
                 Debug.Log($"[CoreDragger] 屏幕距离检测: 物体屏幕位置={screenPos}, 鼠标位置={mousePos}, 距离={distance}");
                 
                 // 如果鼠标在物体附近（100像素内），也允许拖拽
+                // 但需要检查是否已经有其他 Core 正在被拖拽
                 if (distance < 100f && gameObject.CompareTag("Core"))
                 {
-                    Debug.Log($"[CoreDragger] 使用屏幕距离检测，开始拖拽");
-                    StartDragInternal();
+                    // 检查是否已经有其他 Core 正在被拖拽
+                    if (currentDraggingCore != null && currentDraggingCore != this)
+                    {
+                        Debug.Log($"[CoreDragger] 已有其他 Core ({currentDraggingCore.gameObject.name}) 正在被拖拽，跳过当前 Core ({gameObject.name})");
+                    }
+                    else
+                    {
+                        Debug.Log($"[CoreDragger] 使用屏幕距离检测，开始拖拽");
+                        StartDragInternal();
+                    }
                 }
             }
         }
@@ -152,7 +191,17 @@ public class CoreDragger : MonoBehaviour
     /// </summary>
     private void StartDragInternal()
     {
+        // 如果已经有其他 Core 正在被拖拽，不允许开始新的拖拽
+        if (currentDraggingCore != null && currentDraggingCore != this)
+        {
+            Debug.Log($"[CoreDragger] 无法开始拖拽：已有其他 Core ({currentDraggingCore.gameObject.name}) 正在被拖拽");
+            return;
+        }
+        
         Debug.Log($"[CoreDragger] 开始拖拽（射线检测）: {gameObject.name}");
+        
+        // 设置为当前正在拖拽的 Core
+        currentDraggingCore = this;
         
         // 如果启用引力，确保物体在引力引擎中
         if (produceGravity)
@@ -200,6 +249,12 @@ public class CoreDragger : MonoBehaviour
     {
         Debug.Log($"[CoreDragger] 结束拖拽: {gameObject.name}");
         isDragging = false;
+        
+        // 如果当前 Core 是正在拖拽的 Core，清除静态引用
+        if (currentDraggingCore == this)
+        {
+            currentDraggingCore = null;
+        }
 
         // 保持运动学模式（先设置速度，再设置为运动学，避免警告）
         if (coreRb != null)
@@ -322,6 +377,13 @@ public class CoreDragger : MonoBehaviour
             Debug.LogWarning($"[CoreDragger] Tag 不是 'Core'，当前 Tag: {gameObject.tag}");
             return;
         }
+        
+        // 检查是否已经有其他 Core 正在被拖拽
+        if (currentDraggingCore != null && currentDraggingCore != this)
+        {
+            Debug.Log($"[CoreDragger] 已有其他 Core ({currentDraggingCore.gameObject.name}) 正在被拖拽，忽略 OnMouseDown");
+            return;
+        }
 
         // 检查是否有Collider（OnMouseDown事件需要Collider）
         Collider col = GetComponent<Collider>();
@@ -332,6 +394,9 @@ public class CoreDragger : MonoBehaviour
         }
 
         Debug.Log($"[CoreDragger] 开始拖拽: {gameObject.name}");
+        
+        // 设置为当前正在拖拽的 Core
+        currentDraggingCore = this;
 
         // 如果启用引力，确保物体在引力引擎中
         if (produceGravity)
@@ -419,6 +484,12 @@ public class CoreDragger : MonoBehaviour
 
         Debug.Log($"[CoreDragger] OnMouseUp 被调用: {gameObject.name}");
         isDragging = false;
+        
+        // 如果当前 Core 是正在拖拽的 Core，清除静态引用
+        if (currentDraggingCore == this)
+        {
+            currentDraggingCore = null;
+        }
 
         // 保持运动学模式，物体留在拖拽结束的位置
         // 不恢复物理模拟，确保位置完全由拖拽决定（先设置速度，再设置为运动学，避免警告）

@@ -42,7 +42,7 @@ Material:
     - _QueueOffset: -5
     - _RippleDistanceFromCenter: 1.5
     - _RippleStrength: 0
-    - _RippleWidth: 0.025
+    - _RippleWidth: 0.1
     m_Colors:
     - _CenterPoint: {r: 0.5, g: 0.5, b: 0, a: 0}
   m_BuildTextureStacks: []
