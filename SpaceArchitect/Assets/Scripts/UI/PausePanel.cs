@@ -12,6 +12,10 @@ public class PausePanel : MonoBehaviour
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private Button restartButton;
     
+    [Header("同步显示/隐藏的Panel")]
+    [Tooltip("与暂停面板同时显示/隐藏的Panel（可选）")]
+    [SerializeField] private GameObject syncPanel;
+    
     private bool isPaused = false;
     
     void Start()
@@ -58,6 +62,12 @@ public class PausePanel : MonoBehaviour
     public void Show()
     {
         gameObject.SetActive(true);
+        
+        // 同时显示同步的Panel
+        if (syncPanel != null)
+        {
+            syncPanel.SetActive(true);
+        }
     }
     
     /// <summary>
@@ -66,6 +76,12 @@ public class PausePanel : MonoBehaviour
     public void Hide()
     {
         gameObject.SetActive(false);
+        
+        // 同时隐藏同步的Panel
+        if (syncPanel != null)
+        {
+            syncPanel.SetActive(false);
+        }
     }
     
     /// <summary>
