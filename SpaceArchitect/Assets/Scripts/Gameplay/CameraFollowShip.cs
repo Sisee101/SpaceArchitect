@@ -33,6 +33,22 @@ public class CameraFollowShip : MonoBehaviour
     
     [Tooltip("Y轴跟随的最大值（相机不会跟随到比这更高的Y坐标）")]
     [SerializeField] private float maxYBoundary = 50f;
+    
+    [Header("X轴跟随边界设置")]
+    [Tooltip("是否启用X轴跟随边界限制（飞行状态下）")]
+    [SerializeField] private bool enableXBoundary = true;
+    
+    [Tooltip("是否根据Station和Destination自动计算X轴边界")]
+    [SerializeField] private bool autoCalculateXBoundary = true;
+    
+    [Tooltip("X轴跟随的最小值（相机不会跟随到比这更小的X坐标）\n如果启用自动计算，此值将被忽略")]
+    [SerializeField] private float minXBoundary = -50f;
+    
+    [Tooltip("X轴跟随的最大值（相机不会跟随到比这更大的X坐标）\n如果启用自动计算，此值将被忽略")]
+    [SerializeField] private float maxXBoundary = 50f;
+    
+    [Tooltip("X轴边界边距（在Station和Destination范围基础上增加的边距）")]
+    [SerializeField] private float xBoundaryPadding = 2f;
 
     [Header("手动移动设置")]
     [Tooltip("是否启用A/D键手动移动摄像机")]
@@ -115,6 +131,9 @@ public class CameraFollowShip : MonoBehaviour
     private bool isAnimating = false; // 是否正在执行动画（动画期间禁用手动缩放）
     private Coroutine readySequenceCoroutine; // READY序列协程
     private bool hasReadyClicked = false; // 是否已经点击过READY按钮（READY后禁用手动移动和缩放）
+    private float calculatedMinX = 0f; // 自动计算的X轴最小值
+    private float calculatedMaxX = 0f; // 自动计算的X轴最大值
+    private bool xBoundaryCalculated = false; // X轴边界是否已计算
 
     void Awake()
     {
@@ -218,6 +237,12 @@ public class CameraFollowShip : MonoBehaviour
             EventManager.Instance.OnGameReset += OnGameReset;
         }
 
+        // 计算X轴边界（如果启用自动计算）
+        if (enableXBoundary && autoCalculateXBoundary)
+        {
+            CalculateXBoundary();
+        }
+
         // 初始状态：设置为总览全局的缩放值，显示整个场景
         // 这样进入场景时就可以看到所有内容，方便摆放行星
         SetOverviewZoom();
@@ -271,7 +296,13 @@ public class CameraFollowShip : MonoBehaviour
         // 3. 清除手动移动偏移
         manualMoveOffset = 0f;
 
-        // 4. 重置到总览全局的缩放值（显示整个场景）
+        // 4. 重新计算X轴边界（如果启用自动计算）
+        if (enableXBoundary && autoCalculateXBoundary)
+        {
+            CalculateXBoundary();
+        }
+
+        // 5. 重置到总览全局的缩放值（显示整个场景）
         SetOverviewZoom();
 
         // 5. 重置相机位置到初始位置（Y和Z保持初始值，X跟随飞船初始位置）
@@ -354,7 +385,37 @@ public class CameraFollowShip : MonoBehaviour
             // 计算目标位置
             // 如果飞船在Flying状态，需要同时跟随X和Y轴（时停放大会导致飞船在Y轴上移动）
             // 如果飞船不在Flying状态（PreLaunch等），只跟随X轴（保持Y轴不变）
-            float targetX = shipTransform.position.x + xOffset;
+            float shipXWithOffset = shipTransform.position.x + xOffset;
+            float targetX;
+            
+            if (isFlying)
+            {
+                // Flying状态：跟随X轴，但受边界限制
+                if (enableXBoundary)
+                {
+                    // 如果启用自动计算，使用计算出的边界值
+                    if (autoCalculateXBoundary && xBoundaryCalculated)
+                    {
+                        targetX = Mathf.Clamp(shipXWithOffset, calculatedMinX, calculatedMaxX);
+                    }
+                    else
+                    {
+                        // 使用手动设置的边界值
+                        targetX = Mathf.Clamp(shipXWithOffset, minXBoundary, maxXBoundary);
+                    }
+                }
+                else
+                {
+                    // 不限制边界，直接跟随
+                    targetX = shipXWithOffset;
+                }
+            }
+            else
+            {
+                // 非Flying状态：跟随X轴（不受边界限制，因为飞船还没起飞）
+                targetX = shipXWithOffset;
+            }
+            
             float targetY;
             
             if (isFlying)
@@ -405,10 +466,17 @@ public class CameraFollowShip : MonoBehaviour
 
             if (showDebugLogs)
             {
+                bool xClamped = isFlying && enableXBoundary && 
+                               ((autoCalculateXBoundary && xBoundaryCalculated && 
+                                 (shipTransform.position.x + xOffset < calculatedMinX || 
+                                  shipTransform.position.x + xOffset > calculatedMaxX)) ||
+                                (!autoCalculateXBoundary && 
+                                 (shipTransform.position.x + xOffset < minXBoundary || 
+                                  shipTransform.position.x + xOffset > maxXBoundary)));
                 bool yClamped = isFlying && enableYBoundary && 
                                (shipTransform.position.y + yOffset < minYBoundary || 
                                 shipTransform.position.y + yOffset > maxYBoundary);
-                Debug.Log($"摄像机跟随：飞船位置=({shipTransform.position.x:F2}, {shipTransform.position.y:F2}), 目标位置=({targetX:F2}, {targetY:F2}), 当前位置=({transform.position.x:F2}, {transform.position.y:F2}), 飞船状态={GetShipStateName()}, 跟随Y轴={isFlying}, Y轴边界限制={enableYBoundary}, Y轴被限制={yClamped}");
+                Debug.Log($"摄像机跟随：飞船位置=({shipTransform.position.x:F2}, {shipTransform.position.y:F2}), 目标位置=({targetX:F2}, {targetY:F2}), 当前位置=({transform.position.x:F2}, {transform.position.y:F2}), 飞船状态={GetShipStateName()}, 跟随Y轴={isFlying}, X轴边界限制={enableXBoundary}, X轴被限制={xClamped}, Y轴边界限制={enableYBoundary}, Y轴被限制={yClamped}");
             }
         }
         else if (!hasReadyClicked)
@@ -837,6 +905,45 @@ public class CameraFollowShip : MonoBehaviour
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// 根据Station和Destination自动计算X轴边界
+    /// </summary>
+    private void CalculateXBoundary()
+    {
+        // 查找Station和Destination
+        GameObject station = GameObject.FindGameObjectWithTag(stationTag);
+        GameObject destination = GameObject.FindGameObjectWithTag(destinationTag);
+
+        if (station == null || destination == null)
+        {
+            if (showDebugLogs)
+            {
+                if (station == null)
+                    Debug.LogWarning($"CameraFollowShip: 未找到Tag为 '{stationTag}' 的Station对象，无法计算X轴边界");
+                if (destination == null)
+                    Debug.LogWarning($"CameraFollowShip: 未找到Tag为 '{destinationTag}' 的Destination对象，无法计算X轴边界");
+            }
+            xBoundaryCalculated = false;
+            return;
+        }
+
+        Vector3 stationPos = station.transform.position;
+        Vector3 destPos = destination.transform.position;
+
+        // 计算X轴范围（添加边距）
+        float minX = Mathf.Min(stationPos.x, destPos.x) - xBoundaryPadding;
+        float maxX = Mathf.Max(stationPos.x, destPos.x) + xBoundaryPadding;
+
+        calculatedMinX = minX;
+        calculatedMaxX = maxX;
+        xBoundaryCalculated = true;
+
+        if (showDebugLogs)
+        {
+            Debug.Log($"CameraFollowShip: 自动计算X轴边界 - Station位置={stationPos.x:F2}, Destination位置={destPos.x:F2}, X轴边界=[{calculatedMinX:F2}, {calculatedMaxX:F2}]");
+        }
     }
 
     /// <summary>

@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 5543907724079563697}
   - component: {fileID: 3184748044603173404}
   - component: {fileID: 3078458745267596294}
+  - component: {fileID: 9179360641187632254}
+  - component: {fileID: 947541633138606612}
   m_Layer: 0
   m_Name: GravityCore
   m_TagString: Core
@@ -113,6 +115,40 @@ MonoBehaviour:
   targetOrbitRadius: 0
   physicsUpdateInterval: 0.02
   showDebugLogs: 1
+--- !u!114 &9179360641187632254
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8836147628883005462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66662e391a11a5042adc4d653d017d28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stationTag: Station
+  stationTriggerRadius: 10
+  showDebugLogs: 0
+--- !u!114 &947541633138606612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8836147628883005462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 426e2031418e44f4f999da20995ba72a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stationTag: Station
+  indicatorDistance: 15
+  indicatorDuration: 5
+  indicatorIcon: {fileID: 0}
+  indicatorText: "\u5F15\u529B\u67A2\u7EBD\u5728\u8FD9\u91CC\uFF01"
+  indicatorColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  showDebugLogs: 0
 --- !u!1001 &3557771389461210029
 PrefabInstance:
   m_ObjectHideFlags: 0
