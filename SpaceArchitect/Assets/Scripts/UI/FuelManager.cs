@@ -46,11 +46,11 @@ public class FuelManager : MonoBehaviour
     /// <summary>
     /// 获取当前燃料数量
     /// </summary>
-    public int FuelNum 
-    { 
+    public int FuelNum
+    {
         get { return fuelNum; }
-        private set 
-        { 
+        private set
+        {
             fuelNum = Mathf.Clamp(value, 0, 3);
             UpdateFuelDisplay();
         }
@@ -98,7 +98,7 @@ public class FuelManager : MonoBehaviour
             UpdateFuelDisplay();
             SaveFuelData(); // 保存燃料数据
             Debug.Log($"燃料消耗！当前燃料: {fuelNum}");
-            
+
             // 触发燃料消耗事件（通知其他系统燃料已被消耗）
             onFuelCost?.Invoke();
         }
@@ -291,7 +291,7 @@ public class FuelManager : MonoBehaviour
         SaveFuelData();
         UpdateFuelDisplay();
         Debug.Log($"燃料已重置为满！当前燃料: {fuelNum}");
-        
+
         // 触发燃料重置事件（通知其他系统燃料已被重置）
         onFuelReset?.Invoke();
     }

@@ -103,6 +103,9 @@ MonoBehaviour:
   preserveButtonAspect: 1
   insertAnimationDuration: 0.3
   enableInsertAnimation: 1
+  audioSource: {fileID: 0}
+  mailButtonClickSound: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b,
+    type: 3}
   enableDebugLog: 1
 --- !u!1 &2356000733854856812
 GameObject:
