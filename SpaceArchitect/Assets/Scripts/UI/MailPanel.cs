@@ -36,6 +36,12 @@ public class MailPanel : MonoBehaviour
     [SerializeField] private float insertAnimationDuration = 0.3f;  // 插入动画时长
     [SerializeField] private bool enableInsertAnimation = true;    // 是否启用插入动画
     
+    [Header("音效")]
+    [Tooltip("音频源组件（如果为空，会自动获取或创建）")]
+    [SerializeField] private AudioSource audioSource;
+    [Tooltip("邮件按钮点击音效")]
+    [SerializeField] private AudioClip mailButtonClickSound;
+    
     [Header("调试")]
     [SerializeField] private bool enableDebugLog = true;
     
@@ -53,6 +59,9 @@ public class MailPanel : MonoBehaviour
     
     void Start()
     {
+        // 初始化音频源
+        InitializeAudioSource();
+        
         // 绑定返回按钮
         if (backButton != null)
         {
@@ -487,6 +496,43 @@ public class MailPanel : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError($"MailPanel: 保存PlayerPrefs数据失败！错误：{e.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// 初始化音频源
+    /// </summary>
+    private void InitializeAudioSource()
+    {
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+                
+                if (enableDebugLog)
+                {
+                    Debug.Log("MailPanel: 已自动创建 AudioSource 组件");
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 播放邮件按钮点击音效（供 MailButtonItem 调用）
+    /// </summary>
+    public void PlayMailButtonClickSound()
+    {
+        if (mailButtonClickSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(mailButtonClickSound);
+            
+            if (enableDebugLog)
+            {
+                Debug.Log("MailPanel: 播放邮件按钮点击音效");
+            }
         }
     }
     

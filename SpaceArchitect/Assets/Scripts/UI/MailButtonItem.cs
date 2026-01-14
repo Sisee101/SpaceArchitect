@@ -80,6 +80,9 @@ public class MailButtonItem : MonoBehaviour, IPointerClickHandler
     {
         if (mailPanel != null && contentImage != null)
         {
+            // 播放点击音效
+            mailPanel.PlayMailButtonClickSound();
+            
             mailPanel.OnMailButtonClicked(mailId, contentImage);
         }
     }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 /// <summary>
 /// 基站等级面板控制器
@@ -162,6 +163,21 @@ public class StationLevelPanel : MonoBehaviour
     private void OnBackClicked()
     {
         Debug.Log("返回主界面");
+        
+        // 延迟关闭面板，确保音效播放完成
+        StartCoroutine(DelayedHide());
+    }
+    
+    /// <summary>
+    /// 延迟关闭面板（确保音效播放完成）
+    /// </summary>
+    private IEnumerator DelayedHide()
+    {
+        // 等待一小段时间，确保音效开始播放
+        // 0.1秒足够音效开始播放，但不会让用户感觉延迟
+        yield return new WaitForSeconds(0.1f);
+        
+        // 关闭面板
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ReturnToMainHub();

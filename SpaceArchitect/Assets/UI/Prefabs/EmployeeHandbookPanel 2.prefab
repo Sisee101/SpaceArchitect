@@ -517,6 +517,7 @@ GameObject:
   - component: {fileID: 2919345518941141373}
   - component: {fileID: 568917203542272924}
   - component: {fileID: 1964535885861431934}
+  - component: {fileID: 1142573204633661923}
   m_Layer: 5
   m_Name: EmployeeHandbookPanel 2
   m_TagString: Untagged
@@ -602,6 +603,35 @@ MonoBehaviour:
   backButton: {fileID: 4982617141836867642}
   dataConfig: {fileID: 11400000, guid: b98a49c75fe6f3a4795c071b79663a5f, type: 2}
   enableDebugLog: 0
+--- !u!114 &1142573204633661923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3740921927969604319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a52d5e127f80594a828275c2ffe8ccb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  soundTypeConfigs:
+  - soundTypeName: "\u70B9\u51FB"
+    clickSound: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b, type: 3}
+    buttons:
+    - {fileID: 4982617141836867642}
+    - {fileID: 7109020332290755579}
+    - {fileID: 2389367688929586840}
+    - {fileID: 3235231855277453297}
+    - {fileID: 363644817048781594}
+    - {fileID: 4387962360454433171}
+    - {fileID: 1015493895298426276}
+    isBound: 0
+  hoverSound: {fileID: 0}
+  audioSource: {fileID: 0}
+  autoFindButtons: 0
+  excludeButtonKeywords: "back,return,close,\u53D6\u6D88,\u8FD4\u56DE"
+  enableDebugLog: 1
 --- !u!1 &4848736917160452674
 GameObject:
   m_ObjectHideFlags: 0
