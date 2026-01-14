@@ -18,17 +18,33 @@ public class OrderSelectorDrawer : PropertyDrawer
             return;
         }
         
-        // 查找 OrderCompleteButton 组件（通过 property 的序列化对象）
-        OrderCompleteButton targetObject = property.serializedObject.targetObject as OrderCompleteButton;
+        // 查找支持的组件类型（通过 property 的序列化对象）
+        MonoBehaviour targetObject = property.serializedObject.targetObject as MonoBehaviour;
         
         if (targetObject == null)
         {
-            EditorGUI.LabelField(position, label.text, "OrderSelector 只能用于 OrderCompleteButton 组件");
+            EditorGUI.LabelField(position, label.text, "OrderSelector 只能用于 MonoBehaviour 组件");
+            return;
+        }
+        
+        // 检查是否是支持的组件类型
+        System.Type componentType = null;
+        if (targetObject is OrderCompleteButton)
+        {
+            componentType = typeof(OrderCompleteButton);
+        }
+        else if (targetObject is OrderCompleteAndLoadSceneButton)
+        {
+            componentType = typeof(OrderCompleteAndLoadSceneButton);
+        }
+        else
+        {
+            EditorGUI.LabelField(position, label.text, "OrderSelector 只能用于 OrderCompleteButton 或 OrderCompleteAndLoadSceneButton 组件");
             return;
         }
         
         // 使用反射获取 orderDataConfig 字段（因为它是 private）
-        var orderDataConfigField = typeof(OrderCompleteButton).GetField("orderDataConfig", 
+        var orderDataConfigField = componentType.GetField("orderDataConfig", 
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         
         if (orderDataConfigField == null)
@@ -101,16 +117,31 @@ public class OrderSelectorDrawer : PropertyDrawer
     
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
-        // 查找 OrderCompleteButton 组件
-        OrderCompleteButton targetObject = property.serializedObject.targetObject as OrderCompleteButton;
+        // 查找支持的组件类型
+        MonoBehaviour targetObject = property.serializedObject.targetObject as MonoBehaviour;
         
         if (targetObject == null)
         {
             return EditorGUIUtility.singleLineHeight;
         }
         
+        // 检查是否是支持的组件类型
+        System.Type componentType = null;
+        if (targetObject is OrderCompleteButton)
+        {
+            componentType = typeof(OrderCompleteButton);
+        }
+        else if (targetObject is OrderCompleteAndLoadSceneButton)
+        {
+            componentType = typeof(OrderCompleteAndLoadSceneButton);
+        }
+        else
+        {
+            return EditorGUIUtility.singleLineHeight;
+        }
+        
         // 使用反射获取 orderDataConfig 字段
-        var orderDataConfigField = typeof(OrderCompleteButton).GetField("orderDataConfig", 
+        var orderDataConfigField = componentType.GetField("orderDataConfig", 
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         
         if (orderDataConfigField == null)
