@@ -27,11 +27,20 @@ public class SphereClickHandler : MonoBehaviour
     [SerializeField] private float maxRaycastDistance = 1000f; // 最大射线检测距离
     [SerializeField] private LayerMask raycastLayerMask = -1; // 射线检测层级（默认所有层级）
     
+    [Header("音效")]
+    [Tooltip("音频源组件（如果为空，会自动获取或创建）")]
+    [SerializeField] private AudioSource audioSource;
+    [Tooltip("Sphere点击音效")]
+    [SerializeField] private AudioClip sphereClickSound;
+    
     [Header("调试")]
     [SerializeField] private bool enableDebugLog = true; // 是否启用调试日志
     
     void Start()
     {
+        // 初始化音频源
+        InitializeAudioSource();
+        
         // 如果没有指定相机，使用主相机
         if (raycastCamera == null)
         {
@@ -217,6 +226,9 @@ public class SphereClickHandler : MonoBehaviour
             return;
         }
         
+        // 播放点击音效（在验证通过后，显示面板之前）
+        PlaySphereClickSound();
+        
         // 从数据配置中获取订单信息
         var orderInfo = orderDataConfig.GetOrderInfoBySphereName(sphereName);
         
@@ -241,6 +253,43 @@ public class SphereClickHandler : MonoBehaviour
             if (enableDebugLog)
             {
                 Debug.LogWarning($"SphereClickHandler: 未找到 {sphereName} 的订单数据！请检查SphereOrderDataConfig配置。");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 初始化音频源
+    /// </summary>
+    private void InitializeAudioSource()
+    {
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+                
+                if (enableDebugLog)
+                {
+                    Debug.Log("SphereClickHandler: 已自动创建 AudioSource 组件");
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 播放Sphere点击音效
+    /// </summary>
+    private void PlaySphereClickSound()
+    {
+        if (sphereClickSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(sphereClickSound);
+            
+            if (enableDebugLog)
+            {
+                Debug.Log("SphereClickHandler: 播放Sphere点击音效");
             }
         }
     }
