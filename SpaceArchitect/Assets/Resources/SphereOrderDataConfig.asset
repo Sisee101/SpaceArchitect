@@ -39,7 +39,7 @@ MonoBehaviour:
     targetSceneName: TRY2
     taskId: 4
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
-    VisitOrder: 1
+    VisitOrder: 0
     CompleteOrder: 0
   - sphereName: Sphere (5)
     orderImage: {fileID: 21300000, guid: b02b9a9a98bdf6b4f81fe216d4f67438, type: 3}
@@ -57,6 +57,13 @@ MonoBehaviour:
     CompleteOrder: 0
   - sphereName: Sphere (7)
     orderImage: {fileID: 21300000, guid: 33984c2ba8932b341bdc5b800f1c690a, type: 3}
+    targetSceneName: UITRY
+    taskId: 7
+    victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    VisitOrder: 0
+    CompleteOrder: 0
+  - sphereName: Sphere (1)-2
+    orderImage: {fileID: 21300000, guid: 0e691f2428a53d04bb8348b2f4180ded, type: 3}
     targetSceneName: UITRY
     taskId: 7
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
