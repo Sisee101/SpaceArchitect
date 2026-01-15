@@ -41,7 +41,7 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 2
     - _RippleDistanceFromCenter: 10
-    - _RippleStrength: -10
+    - _RippleStrength: 0
     - _RippleWidth: 2
     m_Colors:
     - _CenterPoint: {r: 0.5, g: 0.5, b: 0, a: 0}

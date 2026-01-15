@@ -60,6 +60,16 @@ public class SceneTransitionManager : MonoBehaviour
     // 当前隐藏的MainHub场景名称（用于恢复）
     private static string currentMainHubSceneName = null;
     
+    // 当前禁用的MainHub场景相机引用（用于恢复）
+    private static Camera currentMainHubCamera = null;
+    
+    // 保存MainHub相机的Transform状态（位置和旋转）
+    private static Vector3 savedCameraPosition;
+    private static Quaternion savedCameraRotation;
+    
+    // 当前禁用的MainHub场景EventSystem引用（用于恢复）
+    private static UnityEngine.EventSystems.EventSystem currentMainHubEventSystem = null;
+    
     void Awake()
     {
         // 确保单例
@@ -254,13 +264,19 @@ public class SceneTransitionManager : MonoBehaviour
         // 隐藏MainHub场景的Canvas，避免游戏场景中看到MainHub的UI
         HideMainHubCanvas();
         
+        // 禁用MainHub场景的相机，避免相机冲突影响游戏场景交互
+        DisableMainHubCamera();
+        
+        // 禁用MainHub场景的EventSystem，避免输入冲突影响游戏场景交互
+        DisableMainHubEventSystem();
+        
         // 使用Additive模式异步加载场景
         SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
         
         // 保存当前加载的游戏场景名称
         currentLoadedGameScene = sceneName;
         
-        Debug.Log($"SceneTransitionManager: 使用Additive模式加载场景 {sceneName}，覆盖在MainHub上方，MainHub UI已隐藏");
+        Debug.Log($"SceneTransitionManager: 使用Additive模式加载场景 {sceneName}，覆盖在MainHub上方，MainHub UI已隐藏，相机已禁用，EventSystem已禁用");
     }
     
     /// <summary>
@@ -297,7 +313,13 @@ public class SceneTransitionManager : MonoBehaviour
         // 恢复MainHub场景的Canvas显示
         ShowMainHubCanvas();
         
-        Debug.Log($"SceneTransitionManager: 已卸载游戏场景 {sceneToUnload}，返回MainHub，MainHub UI已恢复显示");
+        // 恢复MainHub场景的相机
+        EnableMainHubCamera();
+        
+        // 恢复MainHub场景的EventSystem
+        EnableMainHubEventSystem();
+        
+        Debug.Log($"SceneTransitionManager: 已卸载游戏场景 {sceneToUnload}，返回MainHub，MainHub UI已恢复显示，相机已恢复，EventSystem已恢复");
     }
     
     /// <summary>
@@ -492,6 +514,248 @@ public class SceneTransitionManager : MonoBehaviour
         
         // 清空记录，为下次隐藏做准备
         currentMainHubSceneName = null;
+    }
+    
+    /// <summary>
+    /// 禁用MainHub场景的相机
+    /// </summary>
+    private void DisableMainHubCamera()
+    {
+        // 获取当前激活的MainHub场景名称
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        
+        // 检查是否是MainHub场景（01_MainHub, 02_MainHub, 03_MainHub, 04_MainHub, 05_MainHub）
+        bool isMainHubScene = currentSceneName.StartsWith("0") && currentSceneName.Contains("_MainHub");
+        
+        if (!isMainHubScene)
+        {
+            // 如果不是MainHub场景，尝试从已加载的场景中查找MainHub场景
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (scene.isLoaded && scene.name.StartsWith("0") && scene.name.Contains("_MainHub"))
+                {
+                    currentSceneName = scene.name;
+                    isMainHubScene = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!isMainHubScene)
+        {
+            Debug.LogWarning($"SceneTransitionManager: 当前场景 {currentSceneName} 不是MainHub场景，无法禁用相机");
+            return;
+        }
+        
+        // 获取MainHub场景
+        Scene mainHubScene = SceneManager.GetSceneByName(currentSceneName);
+        if (!mainHubScene.IsValid() || !mainHubScene.isLoaded)
+        {
+            Debug.LogWarning($"SceneTransitionManager: MainHub场景 {currentSceneName} 未加载，无法禁用相机");
+            return;
+        }
+        
+        // 查找场景中的所有相机
+        Camera[] cameras = FindObjectsOfType<Camera>();
+        Camera mainHubCamera = null;
+        
+        foreach (Camera cam in cameras)
+        {
+            // 检查相机是否属于MainHub场景
+            if (cam.gameObject.scene == mainHubScene)
+            {
+                mainHubCamera = cam;
+                break;
+            }
+        }
+        
+        if (mainHubCamera == null)
+        {
+            Debug.LogWarning($"SceneTransitionManager: 未找到场景 {currentSceneName} 的相机");
+            return;
+        }
+        
+        // 保存相机的Transform状态（位置和旋转）
+        savedCameraPosition = mainHubCamera.transform.position;
+        savedCameraRotation = mainHubCamera.transform.rotation;
+        
+        // 禁用相机并保存引用
+        mainHubCamera.enabled = false;
+        currentMainHubCamera = mainHubCamera;
+        
+        Debug.Log($"SceneTransitionManager: 已禁用场景 {currentSceneName} 的相机: {mainHubCamera.name}，位置: {savedCameraPosition}，旋转: {savedCameraRotation.eulerAngles}");
+    }
+    
+    /// <summary>
+    /// 恢复MainHub场景的相机
+    /// </summary>
+    private void EnableMainHubCamera()
+    {
+        if (currentMainHubCamera == null)
+        {
+            // 如果没有保存的相机引用，尝试从已加载的场景中查找
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (scene.isLoaded && scene.name.StartsWith("0") && scene.name.Contains("_MainHub"))
+                {
+                    // 查找场景中的相机
+                    Camera[] cameras = FindObjectsOfType<Camera>();
+                    foreach (Camera cam in cameras)
+                    {
+                        if (cam.gameObject.scene == scene)
+                        {
+                            currentMainHubCamera = cam;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        
+        if (currentMainHubCamera == null)
+        {
+            Debug.LogWarning("SceneTransitionManager: 未找到MainHub场景的相机引用，无法恢复相机");
+            return;
+        }
+        
+        // 验证相机引用是否有效
+        if (currentMainHubCamera == null || currentMainHubCamera.gameObject == null)
+        {
+            Debug.LogWarning("SceneTransitionManager: MainHub场景的相机引用已失效");
+            currentMainHubCamera = null;
+            return;
+        }
+        
+        // 恢复相机的Transform状态（位置和旋转）
+        currentMainHubCamera.transform.position = savedCameraPosition;
+        currentMainHubCamera.transform.rotation = savedCameraRotation;
+        
+        // 恢复相机
+        currentMainHubCamera.enabled = true;
+        string cameraName = currentMainHubCamera.name;
+        currentMainHubCamera = null; // 清空引用，为下次禁用做准备
+        
+        Debug.Log($"SceneTransitionManager: 已恢复MainHub场景的相机显示: {cameraName}，位置: {savedCameraPosition}，旋转: {savedCameraRotation.eulerAngles}");
+    }
+    
+    /// <summary>
+    /// 禁用MainHub场景的EventSystem
+    /// </summary>
+    private void DisableMainHubEventSystem()
+    {
+        // 获取当前激活的MainHub场景名称
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        
+        // 检查是否是MainHub场景（01_MainHub, 02_MainHub, 03_MainHub, 04_MainHub, 05_MainHub）
+        bool isMainHubScene = currentSceneName.StartsWith("0") && currentSceneName.Contains("_MainHub");
+        
+        if (!isMainHubScene)
+        {
+            // 如果不是MainHub场景，尝试从已加载的场景中查找MainHub场景
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (scene.isLoaded && scene.name.StartsWith("0") && scene.name.Contains("_MainHub"))
+                {
+                    currentSceneName = scene.name;
+                    isMainHubScene = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!isMainHubScene)
+        {
+            Debug.LogWarning($"SceneTransitionManager: 当前场景 {currentSceneName} 不是MainHub场景，无法禁用EventSystem");
+            return;
+        }
+        
+        // 获取MainHub场景
+        Scene mainHubScene = SceneManager.GetSceneByName(currentSceneName);
+        if (!mainHubScene.IsValid() || !mainHubScene.isLoaded)
+        {
+            Debug.LogWarning($"SceneTransitionManager: MainHub场景 {currentSceneName} 未加载，无法禁用EventSystem");
+            return;
+        }
+        
+        // 查找场景中的所有EventSystem
+        UnityEngine.EventSystems.EventSystem[] eventSystems = FindObjectsOfType<UnityEngine.EventSystems.EventSystem>();
+        UnityEngine.EventSystems.EventSystem mainHubEventSystem = null;
+        
+        foreach (UnityEngine.EventSystems.EventSystem es in eventSystems)
+        {
+            // 检查EventSystem是否属于MainHub场景
+            if (es.gameObject.scene == mainHubScene)
+            {
+                mainHubEventSystem = es;
+                break;
+            }
+        }
+        
+        if (mainHubEventSystem == null)
+        {
+            Debug.LogWarning($"SceneTransitionManager: 未找到场景 {currentSceneName} 的EventSystem");
+            return;
+        }
+        
+        // 禁用EventSystem并保存引用
+        mainHubEventSystem.enabled = false;
+        currentMainHubEventSystem = mainHubEventSystem;
+        
+        Debug.Log($"SceneTransitionManager: 已禁用场景 {currentSceneName} 的EventSystem: {mainHubEventSystem.name}");
+    }
+    
+    /// <summary>
+    /// 恢复MainHub场景的EventSystem
+    /// </summary>
+    private void EnableMainHubEventSystem()
+    {
+        if (currentMainHubEventSystem == null)
+        {
+            // 如果没有保存的EventSystem引用，尝试从已加载的场景中查找
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (scene.isLoaded && scene.name.StartsWith("0") && scene.name.Contains("_MainHub"))
+                {
+                    // 查找场景中的EventSystem
+                    UnityEngine.EventSystems.EventSystem[] eventSystems = FindObjectsOfType<UnityEngine.EventSystems.EventSystem>();
+                    foreach (UnityEngine.EventSystems.EventSystem es in eventSystems)
+                    {
+                        if (es.gameObject.scene == scene)
+                        {
+                            currentMainHubEventSystem = es;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        
+        if (currentMainHubEventSystem == null)
+        {
+            Debug.LogWarning("SceneTransitionManager: 未找到MainHub场景的EventSystem引用，无法恢复EventSystem");
+            return;
+        }
+        
+        // 验证EventSystem引用是否有效
+        if (currentMainHubEventSystem == null || currentMainHubEventSystem.gameObject == null)
+        {
+            Debug.LogWarning("SceneTransitionManager: MainHub场景的EventSystem引用已失效");
+            currentMainHubEventSystem = null;
+            return;
+        }
+        
+        // 恢复EventSystem
+        currentMainHubEventSystem.enabled = true;
+        string eventSystemName = currentMainHubEventSystem.name;
+        currentMainHubEventSystem = null; // 清空引用，为下次禁用做准备
+        
+        Debug.Log($"SceneTransitionManager: 已恢复MainHub场景的EventSystem显示: {eventSystemName}");
     }
 }
 
