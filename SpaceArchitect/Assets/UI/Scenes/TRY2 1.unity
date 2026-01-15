@@ -3745,6 +3745,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2355971481900785374, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 3212261800878524949, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
         type: 3}
       propertyPath: m_Name
@@ -3755,11 +3760,6 @@ PrefabInstance:
       propertyPath: taskManager
       value: 
       objectReference: {fileID: 96076741}
-    - target: {fileID: 3964401922105145470, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
-        type: 3}
-      propertyPath: selectedOrderIndex
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 4378510699658500064, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target

@@ -29,4 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/UI/Scenes/02_MainHub.unity
     guid: b04ca2820ebc92e4a8e65d9b32024cd6
+  - enabled: 1
+    path: Assets/UI/Scenes/TRY2 1.unity
+    guid: 301638ee26c439945803f5c919bd9154
   m_configObjects: {}
