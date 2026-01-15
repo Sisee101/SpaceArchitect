@@ -57,6 +57,15 @@ public class TrajectoryPredictor : MonoBehaviour
     [Tooltip("轨迹线的材质")]
     [SerializeField] private Material lineMaterial;
     
+    [Tooltip("是否使用虚线显示")]
+    [SerializeField] private bool useDashedLine = true;
+    
+    [Tooltip("虚线参数：每段实线的长度（单位：Unity单位）")]
+    [SerializeField] private float dashLength = 0.5f;
+    
+    [Tooltip("虚线参数：每段空白的长度（单位：Unity单位）")]
+    [SerializeField] private float gapLength = 0.3f;
+    
     [Tooltip("是否默认显示轨迹")]
     [SerializeField] private bool showOnStart = true;
 
@@ -411,10 +420,93 @@ public class TrajectoryPredictor : MonoBehaviour
             lineRenderer.material.color = lineColor;
         }
         
+        // 如果启用虚线，创建虚线材质
+        if (useDashedLine)
+        {
+            CreateDashedLineMaterial();
+        }
+        
         // 设置其他属性
         lineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         lineRenderer.receiveShadows = false;
         lineRenderer.alignment = LineAlignment.View; // 面向摄像机
+    }
+    
+    /// <summary>
+    /// 创建虚线材质（使用纹理平铺实现虚线效果）
+    /// </summary>
+    private void CreateDashedLineMaterial()
+    {
+        // 创建虚线纹理（1D纹理，用于平铺）
+        int textureWidth = 128; // 增加分辨率，让虚线更平滑
+        Texture2D dashTexture = new Texture2D(textureWidth, 1, TextureFormat.RGBA32, false);
+        dashTexture.filterMode = FilterMode.Point; // 使用点过滤，确保清晰的虚线边缘
+        dashTexture.wrapMode = TextureWrapMode.Repeat; // 重复模式，用于平铺
+        
+        // 计算实线和空白的像素比例
+        float totalLength = dashLength + gapLength;
+        int dashPixels = Mathf.RoundToInt((dashLength / totalLength) * textureWidth);
+        int gapPixels = textureWidth - dashPixels;
+        
+        // 填充纹理：实线部分为白色（不透明），空白部分为透明
+        Color[] pixels = new Color[textureWidth];
+        for (int i = 0; i < textureWidth; i++)
+        {
+            if (i < dashPixels)
+            {
+                // 实线部分：白色（不透明）
+                pixels[i] = Color.white;
+            }
+            else
+            {
+                // 空白部分：透明
+                pixels[i] = Color.clear;
+            }
+        }
+        
+        dashTexture.SetPixels(pixels);
+        dashTexture.Apply();
+        
+        // 创建材质（使用支持纹理平铺和透明的Shader）
+        // 优先使用 Unlit/Transparent，如果不支持则使用 Sprites/Default
+        Shader shader = Shader.Find("Unlit/Transparent");
+        if (shader == null)
+        {
+            shader = Shader.Find("Sprites/Default");
+        }
+        if (shader == null)
+        {
+            shader = Shader.Find("Standard");
+        }
+        
+        Material dashMaterial = new Material(shader);
+        dashMaterial.mainTexture = dashTexture;
+        dashMaterial.color = lineColor;
+        
+        // 设置纹理平铺（根据虚线参数调整）
+        // 平铺值越大，虚线越密集；平铺值越小，虚线越稀疏
+        // 使用 1 / totalLength 作为基础平铺值，让虚线长度与实际参数对应
+        float baseTiling = 1f / totalLength; // 基础平铺值
+        float tiling = baseTiling * 5f; // 放大倍数，可以根据视觉效果调整
+        dashMaterial.mainTextureScale = new Vector2(tiling, 1f);
+        
+        // 如果Shader支持，设置渲染模式为透明
+        if (dashMaterial.HasProperty("_Mode"))
+        {
+            dashMaterial.SetFloat("_Mode", 3); // 3 = Transparent
+            dashMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            dashMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            dashMaterial.SetInt("_ZWrite", 0);
+            dashMaterial.DisableKeyword("_ALPHATEST_ON");
+            dashMaterial.EnableKeyword("_ALPHABLEND_ON");
+            dashMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            dashMaterial.renderQueue = 3000;
+        }
+        
+        // 应用材质
+        lineRenderer.material = dashMaterial;
+        
+        Debug.Log($"[轨迹预测] 已创建虚线材质 - 实线长度: {dashLength}, 空白长度: {gapLength}, 平铺: {tiling:F2}");
     }
 
     /// <summary>
@@ -1662,6 +1754,31 @@ public class TrajectoryPredictor : MonoBehaviour
         {
             lineRenderer.startWidth = width;
             lineRenderer.endWidth = width;
+        }
+    }
+    
+    /// <summary>
+    /// 设置是否使用虚线
+    /// </summary>
+    public void SetUseDashedLine(bool useDashed)
+    {
+        useDashedLine = useDashed;
+        if (lineRenderer != null)
+        {
+            SetupLineRenderer();
+        }
+    }
+    
+    /// <summary>
+    /// 设置虚线参数
+    /// </summary>
+    public void SetDashedLineParams(float dashLen, float gapLen)
+    {
+        dashLength = dashLen;
+        gapLength = gapLen;
+        if (useDashedLine && lineRenderer != null)
+        {
+            CreateDashedLineMaterial();
         }
     }
 

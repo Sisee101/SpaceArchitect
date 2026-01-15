@@ -42,9 +42,17 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float minVerticalAngle = -80f; // 最小垂直角度（向上）
     [SerializeField] private float maxVerticalAngle = 80f; // 最大垂直角度（向下）
 
+    [Header("轨道相机模式（围绕目标点旋转）")]
+    [SerializeField] private bool enableOrbitMode = false; // 启用轨道模式（围绕目标点旋转）
+    [SerializeField] private Transform orbitTarget; // 轨道目标点（如果为空，使用世界原点）
+    [SerializeField] private Vector3 orbitTargetPosition = Vector3.zero; // 轨道目标点位置（当orbitTarget为空时使用）
+    [SerializeField] private float orbitRadius = 10f; // 轨道半径（相机到目标点的距离）
+    [SerializeField] private bool autoCalculateRadius = true; // 自动计算初始半径（基于当前相机位置）
+
     // 私有变量
     private float rotationX = 0f; // 垂直旋转角度
     private float rotationY = 0f; // 水平旋转角度
+    private float currentOrbitRadius = 10f; // 当前轨道半径（用于滚轮缩放）
     private Vector3 lastMousePosition; // 上一帧鼠标位置（用于旋转）
     private bool isRotating = false; // 是否正在旋转
     private Vector3 lastPanMousePosition; // 上一帧鼠标位置（用于平移）
@@ -72,6 +80,32 @@ public class CameraController : MonoBehaviour
             if (rotationX > 180f)
             {
                 rotationX -= 360f;
+            }
+
+            // 初始化轨道模式
+            if (enableOrbitMode)
+            {
+                // 获取目标点位置
+                Vector3 targetPos = GetOrbitTargetPosition();
+
+                // 如果启用自动计算半径，根据当前相机位置计算
+                if (autoCalculateRadius)
+                {
+                    currentOrbitRadius = Vector3.Distance(transform.position, targetPos);
+                    orbitRadius = currentOrbitRadius;
+                }
+                else
+                {
+                    currentOrbitRadius = orbitRadius;
+                }
+
+                // 根据当前相机位置计算旋转角度
+                Vector3 directionToCamera = (transform.position - targetPos).normalized;
+                rotationY = Mathf.Atan2(directionToCamera.x, directionToCamera.z) * Mathf.Rad2Deg;
+                rotationX = -Mathf.Asin(directionToCamera.y) * Mathf.Rad2Deg;
+
+                // 更新相机位置和朝向
+                UpdateOrbitCamera();
             }
         }
     }
@@ -153,8 +187,17 @@ public class CameraController : MonoBehaviour
                 rotationX = Mathf.Clamp(rotationX, minVerticalAngle, maxVerticalAngle);
             }
 
-            // 应用旋转
-            transform.rotation = Quaternion.Euler(rotationX, rotationY, 0f);
+            // 根据模式应用旋转
+            if (enableOrbitMode)
+            {
+                // 轨道模式：更新相机位置和朝向
+                UpdateOrbitCamera();
+            }
+            else
+            {
+                // 普通模式：只旋转相机角度
+                transform.rotation = Quaternion.Euler(rotationX, rotationY, 0f);
+            }
 
             lastMousePosition = Input.mousePosition;
         }
@@ -164,6 +207,50 @@ public class CameraController : MonoBehaviour
         {
             isRotating = false;
         }
+    }
+
+    /// <summary>
+    /// 获取轨道目标点位置
+    /// </summary>
+    private Vector3 GetOrbitTargetPosition()
+    {
+        if (orbitTarget != null)
+        {
+            return orbitTarget.position;
+        }
+        return orbitTargetPosition;
+    }
+
+    /// <summary>
+    /// 更新轨道相机的位置和朝向
+    /// </summary>
+    private void UpdateOrbitCamera()
+    {
+        Vector3 targetPos = GetOrbitTargetPosition();
+
+        // 将角度转换为弧度
+        float radX = rotationX * Mathf.Deg2Rad;
+        float radY = rotationY * Mathf.Deg2Rad;
+
+        // 计算相机位置（球坐标系）
+        // X轴旋转影响垂直角度，Y轴旋转影响水平角度
+        float cosX = Mathf.Cos(radX);
+        float sinX = Mathf.Sin(radX);
+        float cosY = Mathf.Cos(radY);
+        float sinY = Mathf.Sin(radY);
+
+        // 计算相机相对于目标点的偏移
+        Vector3 offset = new Vector3(
+            currentOrbitRadius * cosX * sinY,  // X轴：水平方向
+            currentOrbitRadius * sinX,         // Y轴：垂直方向（上下）
+            currentOrbitRadius * cosX * cosY    // Z轴：前后方向
+        );
+
+        // 设置相机位置
+        transform.position = targetPos + offset;
+
+        // 相机朝向目标点
+        transform.LookAt(targetPos);
     }
 
     /// <summary>
@@ -234,7 +321,17 @@ public class CameraController : MonoBehaviour
 
         if (Mathf.Abs(scroll) > 0.01f)
         {
-            if (targetCamera.orthographic)
+            if (enableOrbitMode)
+            {
+                // 轨道模式：调整轨道半径
+                currentOrbitRadius -= scroll * zoomSpeed;
+                currentOrbitRadius = Mathf.Clamp(currentOrbitRadius, minZoomDistance, maxZoomDistance);
+                orbitRadius = currentOrbitRadius; // 同步更新配置值
+
+                // 更新相机位置
+                UpdateOrbitCamera();
+            }
+            else if (targetCamera.orthographic)
             {
                 // 正交相机：调整Orthographic Size
                 float newSize = targetCamera.orthographicSize - scroll * zoomSpeed;

@@ -53,6 +53,15 @@ public class ShipHeatShieldSkill : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        // 订阅游戏重置事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnGameReset += HandleGameReset;
+        }
+    }
+
     void Update()
     {
         // 更新技能持续时间（使用未缩放时间，确保时停时也能正常计时）
@@ -234,10 +243,36 @@ public class ShipHeatShieldSkill : MonoBehaviour
 
     void OnDestroy()
     {
+        // 取消订阅游戏重置事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnGameReset -= HandleGameReset;
+        }
+        
         // 销毁时隐藏特效（但不销毁，因为它是场景中的对象）
         if (heatShieldVFX != null)
         {
             heatShieldVFX.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// 游戏重置事件处理（重置技能状态和特效）
+    /// </summary>
+    private void HandleGameReset()
+    {
+        // 重置技能状态
+        isHeatShieldActive = false;
+        isOnCooldown = false;
+        shieldTimer = 0f;
+        cooldownTimer = 0f;
+
+        // 隐藏特效
+        HideHeatShieldVFX();
+
+        if (showDebugLog)
+        {
+            Debug.Log("ShipHeatShieldSkill: 游戏重置，技能状态和特效已重置");
         }
     }
 }
