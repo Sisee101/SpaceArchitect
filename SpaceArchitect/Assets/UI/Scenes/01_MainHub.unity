@@ -490,6 +490,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: StationLevelPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 8851799995698968754, guid: 2016c83eb1639c04cbbd8ad1ad000495,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1034,6 +1039,89 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlanetEncyclopediaPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 709288859376153528, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[0]
+      value: 
+      objectReference: {fileID: 21300000, guid: 3a0ba85346ea1ea4f924ebeeb1efc21c,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[1]
+      value: 
+      objectReference: {fileID: 21300000, guid: 56214d9d0278d5448b3bafc82b41acff,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[2]
+      value: 
+      objectReference: {fileID: 21300000, guid: 6ccf7d83ff71fe54ba3881d03aa447f2,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[3]
+      value: 
+      objectReference: {fileID: 21300000, guid: 42950e1ce3d1dde4c9435ca867c7869c,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[4]
+      value: 
+      objectReference: {fileID: 21300000, guid: dc4f450309bdc454681aab5b493cdb96,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[5]
+      value: 
+      objectReference: {fileID: 21300000, guid: 37c5d7b7d555e1946815c3a2730cf1ac,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[6]
+      value: 
+      objectReference: {fileID: 21300000, guid: d3ad8cc8adfec1e488454af658fc38e1,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[7]
+      value: 
+      objectReference: {fileID: 21300000, guid: 28c537695ecf32849b746557058d25fc,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[8]
+      value: 
+      objectReference: {fileID: 21300000, guid: 6f2ae3aa602c1d24aaba0b0957f1478b,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[9]
+      value: 
+      objectReference: {fileID: 21300000, guid: 5d677e8e15056834cb0c9222462b9300,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[10]
+      value: 
+      objectReference: {fileID: 21300000, guid: c376e2ca32481e74bbb93f1f4f7f83f9,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[11]
+      value: 
+      objectReference: {fileID: 21300000, guid: 16de79a1d06e63748a1db8780ae5f9c9,
+        type: 3}
+    - target: {fileID: 1109261614221966485, guid: 78502e15205847142a3bb29f02f79ad1,
+        type: 3}
+      propertyPath: detailCardImages.Array.data[12]
+      value: 
+      objectReference: {fileID: 21300000, guid: d4d6ce98d12b43d408531dc3cb25a2ea,
+        type: 3}
     - target: {fileID: 6335161021169384327, guid: 78502e15205847142a3bb29f02f79ad1,
         type: 3}
       propertyPath: m_SizeDelta.x
@@ -1213,6 +1301,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SphereInfoPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 7733936528567439763, guid: 20fffd2d21f0dbf49a4e61b6ed0cb309,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9120313036496101775, guid: 20fffd2d21f0dbf49a4e61b6ed0cb309,
         type: 3}
@@ -2648,6 +2741,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainHubPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 1358478184912109104, guid: 31b9c4e93f0463d46b23dcea0855a46c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1742993191335759325, guid: 31b9c4e93f0463d46b23dcea0855a46c,
         type: 3}
       propertyPath: settlementPanel
@@ -3038,6 +3136,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: DisplayPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 3250539946466610629, guid: 051931d9ef6ed464881c61df0856743b,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6025831613419174454, guid: 051931d9ef6ed464881c61df0856743b,
         type: 3}
       propertyPath: m_Pivot.x
@@ -3203,6 +3306,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SettlementPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 4535258302976596867, guid: bb671b89f53e88d409a2efc8d3a4777d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6163648346986534025, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
@@ -3638,10 +3746,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1628459105}
     m_Modifications:
+    - target: {fileID: 39896271744250628, guid: f9465abfc6b71bf4eb3273bec7e66ea7,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 397585361e7d7874a84e3c80858adfe9,
+        type: 3}
     - target: {fileID: 2128914143541754664, guid: f9465abfc6b71bf4eb3273bec7e66ea7,
         type: 3}
       propertyPath: m_Name
       value: MailPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 2128914143541754664, guid: f9465abfc6b71bf4eb3273bec7e66ea7,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3891798027983020024, guid: f9465abfc6b71bf4eb3273bec7e66ea7,
         type: 3}
