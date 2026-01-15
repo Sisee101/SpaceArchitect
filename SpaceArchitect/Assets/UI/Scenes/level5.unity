@@ -2628,6 +2628,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1317897725038476843, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 330585548}
+    - target: {fileID: 1317897725038476843, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: StartReadySequence
+      objectReference: {fileID: 0}
+    - target: {fileID: 1317897725038476843, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: CameraFollowShip, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 2098123625998708765, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
         type: 3}
       propertyPath: m_Pivot.x
@@ -3309,6 +3324,7 @@ MonoBehaviour:
   currentUses: 0
   boostParticles: {fileID: 0}
   boostSound: {fileID: 0}
+  shockwaveController: {fileID: 0}
 --- !u!114 &1966355612
 MonoBehaviour:
   m_ObjectHideFlags: 0

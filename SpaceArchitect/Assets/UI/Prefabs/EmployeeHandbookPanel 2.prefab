@@ -1118,6 +1118,10 @@ MonoBehaviour:
   - {fileID: 3235231855277453297}
   optionIcons: []
   optionTitles: []
+  enableHoverScale: 1
+  hoverScaleAmount: 1.1
+  hoverAnimationDuration: 0.2
+  hoverEaseType: 27
   enableDebugLog: 0
 --- !u!222 &3664817897671617673
 CanvasRenderer:
