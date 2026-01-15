@@ -794,7 +794,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
+  m_Intensity: 1.1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -837,7 +837,7 @@ Light:
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 5000
+  m_ColorTemperature: 6531
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
@@ -1472,6 +1472,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2704741169772006720, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4378510699658500064, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -1485,8 +1490,51 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3647326995147907575, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 920071930}
   m_SourcePrefab: {fileID: 100100000, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379, type: 3}
+--- !u!1 &920071928 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3647326995147907575, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+    type: 3}
+  m_PrefabInstance: {fileID: 920071927}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &920071929 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9207692134649618180, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+    type: 3}
+  m_PrefabInstance: {fileID: 920071927}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920071928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &920071930
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920071928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b99d76e4d6b7f745874effe62599132, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  actionButton: {fileID: 920071929}
+  orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
+  selectedOrderIndex: 0
+  taskManager: {fileID: 0}
+  usePersistentStorage: 1
+  audioSource: {fileID: 0}
+  buttonClickSound: {fileID: 0}
+  clickSoundDelay: 0.15
+  enableDebugLog: 1
 --- !u!1001 &960208768
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2259,6 +2307,7 @@ MonoBehaviour:
   currentUses: 0
   boostParticles: {fileID: 0}
   boostSound: {fileID: 0}
+  shockwaveController: {fileID: 2102756471426175015}
 --- !u!114 &1966355612
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2293,8 +2342,7 @@ MonoBehaviour:
   shieldKey: 99
   shieldDuration: 5
   cooldownDuration: 10
-  shieldVFX: {fileID: 0}
-  followShipRotation: 1
+  shieldVFX: {fileID: 6529174490446473437}
   asteroidBeltTag: Obstacles
   showDebugLog: 1
 --- !u!114 &1966355614
@@ -2312,6 +2360,7 @@ MonoBehaviour:
   heatShieldKey: 104
   shieldDuration: 5
   cooldownDuration: 10
+  heatShieldVFX: {fileID: 6529174490446473436}
   showDebugLog: 1
 --- !u!114 &1966355615
 MonoBehaviour:
@@ -2667,6 +2716,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0f330486bd9d8694c8b8c19232e70ee8, type: 3}
+--- !u!114 &2102756471426175015 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2143566025985778515, guid: 0f330486bd9d8694c8b8c19232e70ee8,
+    type: 3}
+  m_PrefabInstance: {fileID: 2102756471426175014}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e72ffb8f13cb11c4f8c4299e58f5cc78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2151007630725675384
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2820,6 +2881,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: GlobalOverviewUI
+      objectReference: {fileID: 0}
+    - target: {fileID: 1579929135740117902, guid: a3709b086fc27ab459ba26e177cb4a38,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3881444020289578467, guid: a3709b086fc27ab459ba26e177cb4a38,
         type: 3}
@@ -3091,6 +3157,18 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1966355607}
   m_SourcePrefab: {fileID: 100100000, guid: 85df5d8f1d63d594caaf743031644e31, type: 3}
+--- !u!1 &6529174490446473436 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3118481429376495566, guid: 85df5d8f1d63d594caaf743031644e31,
+    type: 3}
+  m_PrefabInstance: {fileID: 6529174490446473435}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6529174490446473437 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7348237585426727559, guid: 85df5d8f1d63d594caaf743031644e31,
+    type: 3}
+  m_PrefabInstance: {fileID: 6529174490446473435}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7288568365160551069
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3153,6 +3231,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: GlobalOverviewCamera
+      objectReference: {fileID: 0}
+    - target: {fileID: 9116354649717262279, guid: 87159e46876aa8446b40cc15fa97bb23,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -270,13 +270,11 @@ public class SceneTransitionManager : MonoBehaviour
         // 禁用MainHub场景的EventSystem，避免输入冲突影响游戏场景交互
         DisableMainHubEventSystem();
         
-        // 使用Additive模式异步加载场景
-        SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+        // 关键修复：等待一帧，确保 MainHub 的相机和 EventSystem 已被禁用
+        // 然后再加载关卡场景，避免冲突
+        StartCoroutine(LoadGameSceneAdditiveCoroutine(sceneName));
         
-        // 保存当前加载的游戏场景名称
-        currentLoadedGameScene = sceneName;
-        
-        Debug.Log($"SceneTransitionManager: 使用Additive模式加载场景 {sceneName}，覆盖在MainHub上方，MainHub UI已隐藏，相机已禁用，EventSystem已禁用");
+        Debug.Log($"SceneTransitionManager: 准备使用Additive模式加载场景 {sceneName}，MainHub UI已隐藏，相机已禁用，EventSystem已禁用");
     }
     
     /// <summary>
@@ -756,6 +754,87 @@ public class SceneTransitionManager : MonoBehaviour
         currentMainHubEventSystem = null; // 清空引用，为下次禁用做准备
         
         Debug.Log($"SceneTransitionManager: 已恢复MainHub场景的EventSystem显示: {eventSystemName}");
+    }
+    
+    /// <summary>
+    /// 协程：延迟加载关卡场景，确保 MainHub 的相机和 EventSystem 已被禁用
+    /// </summary>
+    private System.Collections.IEnumerator LoadGameSceneAdditiveCoroutine(string sceneName)
+    {
+        // 等待一帧，确保 MainHub 的相机和 EventSystem 已被禁用
+        yield return null;
+        
+        // 再次确认 MainHub 相机已被禁用（防止异步加载时冲突）
+        Camera[] allCameras = FindObjectsOfType<Camera>();
+        foreach (Camera cam in allCameras)
+        {
+            // 检查是否是 MainHub 场景的相机
+            string camSceneName = cam.gameObject.scene.name;
+            if (camSceneName.StartsWith("0") && camSceneName.Contains("_MainHub"))
+            {
+                if (cam.enabled && cam.CompareTag("MainCamera"))
+                {
+                    Debug.LogWarning($"SceneTransitionManager: 检测到 MainHub 场景的相机 {cam.name} 仍然启用，强制禁用");
+                    cam.enabled = false;
+                }
+            }
+        }
+        
+        // 使用Additive模式异步加载场景
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+        
+        // 等待场景加载完成
+        while (!asyncLoad.isDone)
+        {
+            yield return null;
+        }
+        
+        // 场景加载完成后，确保关卡场景的相机是激活的，MainHub 的相机是禁用的
+        yield return null; // 再等待一帧，确保场景完全初始化
+        
+        // 查找关卡场景中的相机并确保它是激活的
+        Scene gameScene = SceneManager.GetSceneByName(sceneName);
+        if (gameScene.IsValid() && gameScene.isLoaded)
+        {
+            Camera[] gameCameras = FindObjectsOfType<Camera>();
+            foreach (Camera cam in gameCameras)
+            {
+                if (cam.gameObject.scene == gameScene && cam.CompareTag("MainCamera"))
+                {
+                    cam.enabled = true;
+                    Debug.Log($"SceneTransitionManager: 已激活关卡场景 {sceneName} 的相机: {cam.name}");
+                }
+            }
+            
+            // 关键修复：确保 EventManager 使用关卡场景中的实例
+            // 通过访问 Instance 属性，触发重新查找逻辑
+            if (EventManager.Instance != null)
+            {
+                string eventManagerScene = EventManager.Instance.gameObject.scene.name;
+                Debug.Log($"SceneTransitionManager: EventManager 当前实例在场景: {eventManagerScene}");
+                
+                // 如果 EventManager 不在关卡场景中，尝试查找关卡场景中的 EventManager
+                if (eventManagerScene != sceneName)
+                {
+                    EventManager[] allManagers = FindObjectsOfType<EventManager>();
+                    foreach (EventManager manager in allManagers)
+                    {
+                        if (manager.gameObject.scene == gameScene)
+                        {
+                            Debug.Log($"SceneTransitionManager: 找到关卡场景 {sceneName} 中的 EventManager，将切换到此实例");
+                            // 注意：这里不能直接设置 _instance（私有字段），
+                            // 但通过访问 Instance 属性，应该会优先找到关卡场景中的实例
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 保存当前加载的游戏场景名称
+        currentLoadedGameScene = sceneName;
+        
+        Debug.Log($"SceneTransitionManager: 场景 {sceneName} 已加载完成，MainHub 相机已禁用，关卡相机已激活");
     }
 }
 

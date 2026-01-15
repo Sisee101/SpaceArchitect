@@ -233,6 +233,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Shield (23)
       objectReference: {fileID: 0}
+    - target: {fileID: 3734967104790823009, guid: 69793d8de86251a48b6ca06eb031408a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -256,6 +261,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Shield (40)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5550417366402951593, guid: 28ac8abd5fdc5fa4d99c3af1967eef3f,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5587929932538696460, guid: 28ac8abd5fdc5fa4d99c3af1967eef3f,
         type: 3}
