@@ -120,19 +120,21 @@ public class PlanetCard : MonoBehaviour, IPointerClickHandler
     
     void OnEnable()
     {
-        // 订阅解锁事件
+        // 订阅解锁事件和重置事件
         if (EventManager.Instance != null)
         {
             EventManager.Instance.OnPlanetUnlocked += OnPlanetUnlocked;
+            EventManager.Instance.OnAllPlanetsReset += OnAllPlanetsReset;
         }
     }
     
     void OnDisable()
     {
-        // 取消订阅解锁事件
+        // 取消订阅解锁事件和重置事件
         if (EventManager.Instance != null)
         {
             EventManager.Instance.OnPlanetUnlocked -= OnPlanetUnlocked;
+            EventManager.Instance.OnAllPlanetsReset -= OnAllPlanetsReset;
         }
     }
     
@@ -146,5 +148,17 @@ public class PlanetCard : MonoBehaviour, IPointerClickHandler
         {
             SetUnlockState(true);
         }
+    }
+    
+    /// <summary>
+    /// 处理所有行星重置事件
+    /// </summary>
+    private void OnAllPlanetsReset()
+    {
+        // 重新查询自己的解锁状态并更新显示
+        bool currentUnlockState = PlanetUnlockManager.IsPlanetUnlocked(cardIndex);
+        SetUnlockState(currentUnlockState);
+        
+        Debug.Log($"PlanetCard: 索引 {cardIndex} 已响应重置事件，当前状态: {(currentUnlockState ? "已解锁" : "未解锁")}");
     }
 }

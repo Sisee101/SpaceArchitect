@@ -146,7 +146,18 @@ public class PlanetUnlockManager : MonoBehaviour
             PlayerPrefs.DeleteKey(key);
         }
         PlayerPrefs.Save();
-        Debug.Log("PlanetUnlockManager: 已重置所有行星解锁状态");
+        
+        // 触发重置事件，通知所有PlanetCard更新显示
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.TriggerAllPlanetsReset();
+            Debug.Log("PlanetUnlockManager: 已重置所有行星解锁状态并触发事件");
+        }
+        else
+        {
+            Debug.LogWarning("PlanetUnlockManager: EventManager实例不存在，无法触发重置事件！");
+            Debug.Log("PlanetUnlockManager: 已重置所有行星解锁状态（但未触发事件）");
+        }
     }
     
     /// <summary>

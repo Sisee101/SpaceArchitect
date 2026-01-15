@@ -137,6 +137,11 @@ public class EventManager : MonoBehaviour
     /// </summary>
     public event Action<int> OnPlanetUnlocked;
     
+    /// <summary>
+    /// 所有行星重置事件（所有行星解锁状态被重置为未解锁）
+    /// </summary>
+    public event Action OnAllPlanetsReset;
+    
     #endregion
     
     #region Core物体事件
@@ -323,6 +328,14 @@ public class EventManager : MonoBehaviour
         OnPlanetUnlocked?.Invoke(planetIndex);
     }
     
+    /// <summary>
+    /// 触发所有行星重置事件
+    /// </summary>
+    public void TriggerAllPlanetsReset()
+    {
+        OnAllPlanetsReset?.Invoke();
+    }
+    
     #endregion
     
     #region Core物体事件触发
@@ -457,6 +470,7 @@ public class EventManager : MonoBehaviour
         OnPlanetCaptureStart = null;
         OnPlanetCaptureEnd = null;
         OnPlanetUnlocked = null;
+        OnAllPlanetsReset = null;
         OnCoreDragStart = null;
         OnCoreDrag = null;
         OnCoreDragEnd = null;
@@ -489,6 +503,7 @@ public class EventManager : MonoBehaviour
         Debug.Log($"OnPlanetCaptureStart: {GetSubscriberCount(OnPlanetCaptureStart)}");
         Debug.Log($"OnPlanetCaptureEnd: {GetSubscriberCount(OnPlanetCaptureEnd)}");
         Debug.Log($"OnPlanetUnlocked: {GetSubscriberCount(OnPlanetUnlocked)}");
+        Debug.Log($"OnAllPlanetsReset: {GetSubscriberCount(OnAllPlanetsReset)}");
         Debug.Log($"OnCoreDragStart: {GetSubscriberCount(OnCoreDragStart)}");
         Debug.Log($"OnCoreDrag: {GetSubscriberCount(OnCoreDrag)}");
         Debug.Log($"OnCoreDragEnd: {GetSubscriberCount(OnCoreDragEnd)}");
