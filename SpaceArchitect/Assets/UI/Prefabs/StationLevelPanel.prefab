@@ -180,8 +180,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7816513571968025825}
   - {fileID: 1369395544006481720}
+  - {fileID: 7816513571968025825}
   m_Father: {fileID: 1218067486354092976}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -204,7 +204,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 367568665980284548}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -217,7 +217,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3246,8 +3246,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 400, y: 500}
+  m_AnchoredPosition: {x: -18, y: 0}
+  m_SizeDelta: {x: 400, y: 812.7}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6082201889989008791
 CanvasRenderer:
@@ -3277,7 +3277,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 890668bf2e6c081478a719c582e6a4b9, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -3341,18 +3341,18 @@ MonoBehaviour:
   informationImage: {fileID: 8796786485577700702}
   confirmUpgradeButton: {fileID: 3189100945355561712}
   skillInfoImages:
-  - {fileID: 0}
-  - {fileID: 21300000, guid: fe3f044972c11b7439648e5ad65742e6, type: 3}
-  - {fileID: 0}
-  - {fileID: 21300000, guid: 687a084a11b5ac544a1bae206d78bac7, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 21300000, guid: 890668bf2e6c081478a719c582e6a4b9, type: 3}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 21300000, guid: 5f6502407b32c4f4caea2a5f22e9fb08, type: 3}
+  - {fileID: 21300000, guid: 34022153ac075ac4791b0f2863ea49bd, type: 3}
+  - {fileID: 21300000, guid: 9fcaa32396e888643aa99a8714ba6535, type: 3}
+  - {fileID: 21300000, guid: 2572ae474a1eeab41b16ee7d25905d27, type: 3}
+  - {fileID: 21300000, guid: f0460f7578a25544d97d9436d0e533e5, type: 3}
+  - {fileID: 21300000, guid: 6969d3e6467f16e4eabd29f2285e0ef3, type: 3}
+  - {fileID: 21300000, guid: 1ce71b49ddc1a4d4a8e653ee926cfbcd, type: 3}
+  - {fileID: 21300000, guid: 2d3e2319dc025fc4fbef0928ff1c353b, type: 3}
+  - {fileID: 21300000, guid: 71a67dd6f1518904d99b0b55f2faeb64, type: 3}
+  - {fileID: 21300000, guid: e0bac98361ee5bb468f84130352f65ee, type: 3}
+  - {fileID: 21300000, guid: 2dc82a0c1320615448617f7f72426e81, type: 3}
+  - {fileID: 21300000, guid: 1da0e2bf46e524f44893c91a37879749, type: 3}
 --- !u!1 &8700054895777484245
 GameObject:
   m_ObjectHideFlags: 0
