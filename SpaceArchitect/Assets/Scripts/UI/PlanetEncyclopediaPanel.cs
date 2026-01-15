@@ -22,8 +22,10 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
     [SerializeField] private GameObject detailCardPrefab;        // 介绍卡片预制体
     
     [Header("数据配置")]
-    [SerializeField] private List<Sprite> planetCardImages = new List<Sprite>();    // 13张行星卡片图片
+    [SerializeField] private List<Sprite> planetCardImages = new List<Sprite>();    // 13张行星卡片图片（已解锁状态）
     [SerializeField] private List<Sprite> detailCardImages = new List<Sprite>();    // 13张介绍卡片图片（索引对应）
+    [Tooltip("未解锁状态共用图片（所有未解锁的行星卡片都显示这张图片）")]
+    [SerializeField] private Sprite lockedPlanetImage;                             // 未解锁状态共用图片（所有未解锁卡片都显示这张）
     
     [Header("布局参数")]
     [SerializeField] private float cardSpacing = 20f;            // 卡片间距
@@ -215,13 +217,25 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
             return;
         }
         
-        // 初始化卡片
-        Sprite cardSprite = planetCardImages[index];
-        if (cardSprite == null)
+        // 获取解锁状态
+        bool isUnlocked = PlanetUnlockManager.IsPlanetUnlocked(index);
+        
+        // 获取对应的图片
+        Sprite unlockedSprite = planetCardImages[index];
+        Sprite lockedSprite = lockedPlanetImage;
+        
+        // 检查图片配置
+        if (unlockedSprite == null)
         {
-            Debug.LogWarning($"PlanetEncyclopediaPanel: 索引 {index} 的图片为空！");
+            Debug.LogWarning($"PlanetEncyclopediaPanel: 索引 {index} 的解锁图片为空！");
         }
-        planetCard.Initialize(cardSprite, index);
+        if (lockedSprite == null)
+        {
+            Debug.LogWarning($"PlanetEncyclopediaPanel: 未解锁图片未配置！所有未解锁卡片将无法正确显示。");
+        }
+        
+        // 初始化卡片（传入解锁图片、锁定图片、索引和初始解锁状态）
+        planetCard.Initialize(unlockedSprite, lockedSprite, index, isUnlocked);
         
         // 订阅点击事件
         planetCard.OnCardClicked += OnCardClicked;
@@ -229,7 +243,7 @@ public class PlanetEncyclopediaPanel : MonoBehaviour
         // 添加到列表
         planetCards.Add(planetCard);
         
-        Debug.Log($"PlanetEncyclopediaPanel: 创建卡片 {index}, 图片: {(cardSprite != null ? cardSprite.name : "null")}");
+        Debug.Log($"PlanetEncyclopediaPanel: 创建卡片 {index}, 解锁状态: {(isUnlocked ? "已解锁" : "未解锁")}, 解锁图片: {(unlockedSprite != null ? unlockedSprite.name : "null")}, 锁定图片: {(lockedSprite != null ? lockedSprite.name : "null")}");
     }
     
     /// <summary>

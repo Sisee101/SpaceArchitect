@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -130,6 +130,12 @@ public class EventManager : MonoBehaviour
     /// 参数：行星GameObject，飞船GameObject
     /// </summary>
     public event Action<GameObject, GameObject> OnPlanetCaptureEnd;
+    
+    /// <summary>
+    /// 行星解锁事件
+    /// 参数：行星索引（0-12）
+    /// </summary>
+    public event Action<int> OnPlanetUnlocked;
     
     #endregion
     
@@ -309,6 +315,14 @@ public class EventManager : MonoBehaviour
         OnPlanetCaptureEnd?.Invoke(planet, ship);
     }
     
+    /// <summary>
+    /// 触发行星解锁事件
+    /// </summary>
+    public void TriggerPlanetUnlocked(int planetIndex)
+    {
+        OnPlanetUnlocked?.Invoke(planetIndex);
+    }
+    
     #endregion
     
     #region Core物体事件触发
@@ -442,6 +456,7 @@ public class EventManager : MonoBehaviour
         OnShipOverheated = null;
         OnPlanetCaptureStart = null;
         OnPlanetCaptureEnd = null;
+        OnPlanetUnlocked = null;
         OnCoreDragStart = null;
         OnCoreDrag = null;
         OnCoreDragEnd = null;
@@ -473,6 +488,7 @@ public class EventManager : MonoBehaviour
         Debug.Log($"OnShipOverheated: {GetSubscriberCount(OnShipOverheated)}");
         Debug.Log($"OnPlanetCaptureStart: {GetSubscriberCount(OnPlanetCaptureStart)}");
         Debug.Log($"OnPlanetCaptureEnd: {GetSubscriberCount(OnPlanetCaptureEnd)}");
+        Debug.Log($"OnPlanetUnlocked: {GetSubscriberCount(OnPlanetUnlocked)}");
         Debug.Log($"OnCoreDragStart: {GetSubscriberCount(OnCoreDragStart)}");
         Debug.Log($"OnCoreDrag: {GetSubscriberCount(OnCoreDrag)}");
         Debug.Log($"OnCoreDragEnd: {GetSubscriberCount(OnCoreDragEnd)}");
