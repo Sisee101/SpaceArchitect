@@ -97,7 +97,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerPoint: {fileID: 4773827942903836833}
-  radius: 2.7
+  radius: 13
   speed: 150
   tilt: {x: 22.5, y: 31.13, z: 0}
   showGizmo: 1
@@ -199,7 +199,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerPoint: {fileID: 1713912449819605226}
-  radius: 3.1
+  radius: 15
   speed: 40
   tilt: {x: -12.49, y: 49.3, z: -1.62}
   showGizmo: 1
@@ -344,8 +344,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -40.787216, y: 0.86289513, z: -0.78346056}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 5.19, y: 5.19, z: 5.19}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4773827942903836833}
   - {fileID: 1713912449819605226}
