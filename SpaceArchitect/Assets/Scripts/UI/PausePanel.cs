@@ -157,10 +157,10 @@ public class PausePanel : MonoBehaviour
         // 恢复时间，避免场景切换时时间仍为0
         Time.timeScale = 1f;
         
-        // 加载主界面场景（而非主菜单场景）
+        // 卸载游戏场景，返回MainHub（而不是加载MainHub场景）
         if (SceneTransitionManager.Instance != null)
         {
-            SceneTransitionManager.Instance.LoadMainHubScene();
+            SceneTransitionManager.Instance.UnloadGameScene();
         }
         else
         {
