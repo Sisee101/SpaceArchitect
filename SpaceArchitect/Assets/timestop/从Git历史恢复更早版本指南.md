@@ -130,3 +130,5 @@ git show <最早提交的hash>:Assets/timestop/SG_Shockwave.shadergraph > Assets
 
 **需要我帮你执行这些命令吗？或者你可以告诉我最早的提交 hash，我帮你恢复！**
 
+
+

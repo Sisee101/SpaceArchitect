@@ -71,3 +71,5 @@ shockwaveMaterial.SetVector(centerPropID, new Vector4(0.5f, 0.5f, 0, 0));
 4. 观察效果是否正常
 5. 如果还是不正常，检查 GameObject 的位置和 scale
 
+
+

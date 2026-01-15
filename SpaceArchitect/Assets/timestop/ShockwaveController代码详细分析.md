@@ -187,3 +187,5 @@ shockwaveMaterial.SetVector(centerPropID, new Vector4(0.5f, 0.5f, 0, 0));
 2. **添加空值检查**：确保 Material 和 Camera 不为空
 3. **考虑使用 Vector4**：如果 shader 需要 Vector4，应该传入 Vector4
 
+
+

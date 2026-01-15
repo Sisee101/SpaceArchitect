@@ -60,3 +60,5 @@
 - 如果游戏中有其他相机（如 GlobalOverviewCamera），也需要检查它们的设置
 - 星星的生成是在运行时，确保 StarSpawner GameObject 是激活的
 
+
+

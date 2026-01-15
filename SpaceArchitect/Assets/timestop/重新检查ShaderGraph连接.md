@@ -147,3 +147,5 @@ Screen Position (Default) → Split → Combine (R, G) → Sample Texture 2D (Ma
 2. 增大冲击波强度，让它更明显
 3. 单独查看冲击波效果，确认是否单色
 
+
+
