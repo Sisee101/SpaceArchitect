@@ -143,17 +143,7 @@ public class EmployeeHandbookPanel : MonoBehaviour
     {
         currentState = ViewState.OptionList;
         
-        // 显示选项列表视图
-        if (optionListView != null)
-        {
-            optionListView.SetActive(true);
-        }
-        if (optionController != null)
-        {
-            optionController.Show();
-        }
-        
-        // 隐藏图片浏览视图
+        // 先隐藏图片浏览视图（确保在显示选项列表之前隐藏）
         if (imageView != null)
         {
             imageView.SetActive(false);
@@ -163,9 +153,20 @@ public class EmployeeHandbookPanel : MonoBehaviour
             imageViewer.Hide();
         }
         
+        // 然后显示选项列表视图
+        if (optionListView != null)
+        {
+            optionListView.SetActive(true);
+        }
+        if (optionController != null)
+        {
+            optionController.Show();
+        }
+        
         if (enableDebugLog)
         {
             Debug.Log("EmployeeHandbookPanel: 显示选项列表");
+            Debug.Log("EmployeeHandbookPanel: 图片浏览视图已隐藏，选项列表视图已显示");
         }
     }
     
@@ -191,7 +192,7 @@ public class EmployeeHandbookPanel : MonoBehaviour
         
         currentState = ViewState.ImageView;
         
-        // 隐藏选项列表视图
+        // 先隐藏选项列表视图（确保在显示图片浏览之前隐藏）
         if (optionListView != null)
         {
             optionListView.SetActive(false);
@@ -201,7 +202,7 @@ public class EmployeeHandbookPanel : MonoBehaviour
             optionController.Hide();
         }
         
-        // 显示图片浏览视图
+        // 然后显示图片浏览视图
         if (imageView != null)
         {
             imageView.SetActive(true);
@@ -215,6 +216,7 @@ public class EmployeeHandbookPanel : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log($"EmployeeHandbookPanel: 显示选项 {sectionIndex} 的图片浏览，共 {images.Count} 张图片");
+            Debug.Log("EmployeeHandbookPanel: 选项列表视图已隐藏，图片浏览视图已显示");
         }
     }
     
@@ -242,7 +244,7 @@ public class EmployeeHandbookPanel : MonoBehaviour
             Debug.Log("EmployeeHandbookPanel: 从图片浏览返回选项列表");
         }
         
-        // 返回到选项列表
+        // 返回到选项列表（会隐藏图片浏览视图，显示选项列表视图）
         ShowOptionList();
     }
     
