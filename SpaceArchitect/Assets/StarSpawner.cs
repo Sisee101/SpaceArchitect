@@ -3,18 +3,18 @@ using System.Collections.Generic;
 
 public class GalaxyDistributorXY : MonoBehaviour
 {
-    [Header("È«¾ÖÉèÖÃ (XYÆ½Ãæ)")]
-    // ¾ö¶¨ÐÇÏµÔÚÆÁÄ»ÉÏµÄ¿íºÍ¸ß
+    [Header("È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (XYÆ½ï¿½ï¿½)")]
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½Ä»ï¿½ÏµÄ¿ï¿½ï¿½Í¸ï¿½
     public Vector2 areaSize = new Vector2(100, 50);
-    // ZÖáÉî¶È·¶Î§ (ÖÆÔì3D²ã´Î¸Ð£¬·ÀÖ¹ÎïÌåÍêÈ«ÖØµþ)
     public float depthVariance = 5.0f;
+    // Zï¿½ï¿½ï¿½ï¿½È·ï¿½Î§ (ï¿½ï¿½ï¿½ï¿½3Dï¿½ï¿½Î¸Ð£ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È«ï¿½Øµï¿½)
 
-    // --- ÅäÖÃÀà¶¨Òå ---
+    // --- ï¿½ï¿½ï¿½ï¿½ï¿½à¶¨ï¿½ï¿½ ---
 
     [System.Serializable]
     public class CorePlanetSetting
     {
-        public string label = "ºËÐÄÐÐÐÇ (P1/P2)";
+        public string label = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (P1/P2)";
         public GameObject prefab;
         public int count = 5;
         [Range(0.1f, 10f)] public float minScale = 2.0f;
@@ -24,40 +24,40 @@ public class GalaxyDistributorXY : MonoBehaviour
     [System.Serializable]
     public class DustLayerSetting
     {
-        public string label = "³¾°£²ã¼¶ (P3)";
+        public string label = "ï¿½ï¿½ï¿½ï¿½ï¿½ã¼¶ (P3)";
         public GameObject prefab;
         public int count = 200;
         [Range(0.01f, 5f)] public float minScale = 0.2f;
         [Range(0.01f, 5f)] public float maxScale = 0.6f;
-        [Tooltip("×î´ó·Ö²¼°ë¾¶")]
+        [Tooltip("ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ë¾¶")]
         public float clusterRadius = 10f;
-        [Tooltip("×îÐ¡±ÜÈÃ°ë¾¶ (·ÀÖ¹Éú³ÉÔÚÐÇÇòÄÚ²¿)")]
+        [Tooltip("ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½Ã°ë¾¶ (ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½)")]
         public float minRadius = 2.5f;
     }
 
-    // --- ÔÚInspectorÖÐÏÔÊ¾µÄÅäÖÃÁÐ±í ---
+    // --- ï¿½ï¿½Inspectorï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ ---
 
-    [Header("ÐÇÌåÅäÖÃ")]
-    public List<CorePlanetSetting> corePlanets; // ÓÅÏÈ¼¶ 1 & 2
-    public List<DustLayerSetting> dustLayers;   // ÓÅÏÈ¼¶ 3 (¶àÖÖ³¾°£)
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
+    public List<CorePlanetSetting> corePlanets; // ï¿½ï¿½ï¿½È¼ï¿½ 1 & 2
+    public List<DustLayerSetting> dustLayers;   // ï¿½ï¿½ï¿½È¼ï¿½ 3 (ï¿½ï¿½ï¿½Ö³ï¿½ï¿½ï¿½)
 
-    // --- ÄÚ²¿±äÁ¿ ---
-    private List<Transform> validAnchors = new List<Transform>(); // ´æ´¢ºËÐÄÐÐÐÇÎ»ÖÃ
+    // --- ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ ---
+    private List<Transform> validAnchors = new List<Transform>(); // ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 
-    // --- ÉúÃüÖÜÆÚ ---
+    // --- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ---
 
     void Start()
     {
         GenerateGalaxy();
     }
 
-    // Update±»ÒÆ³ýÁË£¬ÒòÎªÖ®Ç°ËüÖ»ÓÃÀ´¼ì²âåçÐÇÉú³É
+    // Updateï¿½ï¿½ï¿½Æ³ï¿½ï¿½Ë£ï¿½ï¿½ï¿½ÎªÖ®Ç°ï¿½ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-    // --- Ö÷ÒªÂß¼­ ---
+    // --- ï¿½ï¿½Òªï¿½ß¼ï¿½ ---
 
     public void GenerateGalaxy()
     {
-        // 1. ÇåÀí¾ÉÎïÌå (µ¹ÐòÉ¾³ý·ÀÖ¹Ë÷Òý´íÎó)
+        // 1. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
         int childCount = transform.childCount;
         for (int i = childCount - 1; i >= 0; i--)
         {
@@ -68,14 +68,14 @@ public class GalaxyDistributorXY : MonoBehaviour
         }
         validAnchors.Clear();
 
-        // 2. Éú³ÉºËÐÄÐÐÐÇ
+        // 2. ï¿½ï¿½ï¿½Éºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         SpawnCorePlanets();
 
-        // 3. Éú³É³¾°£²ã
+        // 3. ï¿½ï¿½ï¿½É³ï¿½ï¿½ï¿½ï¿½ï¿½
         SpawnDustLayers();
     }
 
-    // --- ¾ßÌåÉú³É·½·¨ ---
+    // --- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É·ï¿½ï¿½ï¿½ ---
 
     void SpawnCorePlanets()
     {
@@ -107,17 +107,17 @@ public class GalaxyDistributorXY : MonoBehaviour
 
             for (int i = 0; i < layer.count; i++)
             {
-                // A. Ëæ»úÑ¡Ò»¸öºËÐÄÐÐÐÇ
+                // A. ï¿½ï¿½ï¿½Ñ¡Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 Transform targetCenter = validAnchors[Random.Range(0, validAnchors.Count)];
 
-                // B. ¼ÆËãÔ²»·Î»ÖÃ (XYÆ½Ãæ)
+                // B. ï¿½ï¿½ï¿½ï¿½Ô²ï¿½ï¿½Î»ï¿½ï¿½ (XYÆ½ï¿½ï¿½)
                 Vector2 direction = Random.insideUnitCircle.normalized;
-                // ÔÚ×îÐ¡°ë¾¶ºÍ×î´ó°ë¾¶Ö®¼ä²åÖµ
+                // ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ë¾¶ï¿½ï¿½ï¿½ï¿½ï¿½ë¾¶Ö®ï¿½ï¿½ï¿½Öµ
                 float distance = Mathf.Lerp(layer.minRadius, layer.clusterRadius, Random.value);
 
                 Vector2 pos2D = direction * distance;
 
-                // ZÖáÎ¢µ÷
+                // Zï¿½ï¿½Î¢ï¿½ï¿½
                 float randomDepth = Random.Range(-depthVariance / 4, depthVariance / 4);
 
                 Vector3 finalPos = targetCenter.position + new Vector3(pos2D.x, pos2D.y, randomDepth);
@@ -130,7 +130,7 @@ public class GalaxyDistributorXY : MonoBehaviour
         }
     }
 
-    // --- ¸¨Öú¹¤¾ß ---
+    // --- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ---
 
     Vector3 GetRandomPosInXYPlane(Vector2 size)
     {
@@ -145,7 +145,7 @@ public class GalaxyDistributorXY : MonoBehaviour
         return Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360));
     }
 
-    // ÔÚSceneÊÓÍ¼»æÖÆ·¶Î§¿ò
+    // ï¿½ï¿½Sceneï¿½ï¿½Í¼ï¿½ï¿½ï¿½Æ·ï¿½Î§ï¿½ï¿½
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;

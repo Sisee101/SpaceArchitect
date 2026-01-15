@@ -445,7 +445,12 @@ public class ShipBoostAim : MonoBehaviour
         }
 
         isAiming = false;
-        Time.timeScale = originalTimeScale;
+        
+        // 关键修复：确保时间缩放正确恢复为1.0（而不是保存的originalTimeScale，因为可能有其他脚本修改过）
+        // 如果originalTimeScale不是1.0，说明在时停前就有问题，但我们仍然恢复到1.0以确保游戏正常运行
+        Time.timeScale = 1.0f;
+        
+        Debug.Log($"时停结束，Time.timeScale 已恢复为: {Time.timeScale} (原始值: {originalTimeScale})");
 
         // 触发时停结束事件
         if (EventManager.Instance != null)
@@ -499,6 +504,13 @@ public class ShipBoostAim : MonoBehaviour
 
         // 应用加速
         ApplyBoost(boostVelocity);
+
+        // 关键诊断：检查Time.timeScale是否正确
+        if (Time.timeScale < 0.5f)
+        {
+            Debug.LogWarning($"⚠️ 警告：Boost后 Time.timeScale = {Time.timeScale}，可能未正确恢复！强制恢复为1.0");
+            Time.timeScale = 1.0f;
+        }
 
         // 通过EventManager触发加速事件
         if (EventManager.Instance != null)
@@ -559,8 +571,9 @@ public class ShipBoostAim : MonoBehaviour
     /// </summary>
     private IEnumerator BoostCoroutine()
     {
+        // 关键修复：使用未缩放时间等待，确保即使Time.timeScale有问题也不会影响协程
         // 等待加速持续时间
-        yield return new WaitForSeconds(boostDuration);
+        yield return new WaitForSecondsRealtime(boostDuration);
 
         // 加速结束
         isBoosting = false;
@@ -1047,8 +1060,34 @@ public class ShipBoostAim : MonoBehaviour
     /// </summary>
     private void HandleGameReset()
     {
+        // 重置使用次数
         ResetUsageCount();
-        Debug.Log("ShipBoostAim: 游戏重置，Boost使用次数已清零");
+        
+        // 重置技能状态
+        isBoosting = false;
+        isOnCooldown = false;
+        cooldownTimer = 0f;
+        
+        // 如果正在瞄准，强制结束瞄准（恢复时间缩放）
+        if (isAiming)
+        {
+            EndAiming(false);
+        }
+        
+        // 停止所有协程
+        StopAllCoroutines();
+        
+        // 停止视觉效果
+        StopBoostEffects();
+        
+        // 确保时间缩放已恢复
+        if (Time.timeScale != 1.0f)
+        {
+            Time.timeScale = 1.0f;
+            Debug.LogWarning("ShipBoostAim: 游戏重置时检测到 Time.timeScale 异常，已强制恢复为 1.0");
+        }
+        
+        Debug.Log("ShipBoostAim: 游戏重置，Boost使用次数、技能状态、时停效果已全部重置");
     }
 }
 

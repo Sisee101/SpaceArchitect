@@ -150,3 +150,4 @@ Core[CoreDeflector[0]]:dist=9.51,grav=5.530,guidance=0.20,velChange=0.848,accel=
 
 
 
+

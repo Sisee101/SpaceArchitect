@@ -628,7 +628,7 @@ MonoBehaviour:
     - {fileID: 1015493895298426276}
     - {fileID: 4982617141836867642}
     isBound: 0
-  globalHoverSound: {fileID: 0}
+  globalHoverSound: {fileID: 8300000, guid: b38bfd3d52c72467b8481819543c7e41, type: 3}
   audioSource: {fileID: 0}
   autoFindButtons: 0
   excludeButtonKeywords: "back,return,close,\u53D6\u6D88,\u8FD4\u56DE"
