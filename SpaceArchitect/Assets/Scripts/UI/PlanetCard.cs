@@ -99,6 +99,20 @@ public class PlanetCard : MonoBehaviour, IPointerClickHandler
     }
     
     /// <summary>
+    /// 刷新解锁状态（从PlanetUnlockManager获取最新状态）
+    /// 供外部调用，用于场景切换后更新显示
+    /// </summary>
+    public void RefreshUnlockState()
+    {
+        if (cardIndex >= 0 && cardIndex < 13)
+        {
+            bool currentUnlockState = PlanetUnlockManager.IsPlanetUnlocked(cardIndex);
+            SetUnlockState(currentUnlockState);
+            Debug.Log($"PlanetCard: 手动刷新卡片 {cardIndex} 的解锁状态为 {(currentUnlockState ? "已解锁" : "未解锁")}");
+        }
+    }
+    
+    /// <summary>
     /// 实现IPointerClickHandler接口，处理点击事件
     /// 这样不需要Button组件，卡片本身任何部位都可以点击
     /// 未解锁的卡片点击不会触发事件

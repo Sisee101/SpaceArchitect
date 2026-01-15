@@ -235,7 +235,7 @@ MonoBehaviour:
   scrollDuration: 0.3
   insertAnimationDuration: 0.3
   audioSource: {fileID: 0}
-  buttonClickSound: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b, type: 3}
+  buttonClickSound: {fileID: 8300000, guid: acaca9a91b23e44fb8eb8b834e319a59, type: 3}
   cardToggleSound: {fileID: 8300000, guid: c6db548dd9f571744b5920016782e362, type: 3}
   clickSoundDelay: 0.15
 --- !u!1 &821973709262859091
