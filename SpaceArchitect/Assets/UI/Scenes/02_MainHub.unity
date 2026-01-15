@@ -1547,6 +1547,18 @@ PrefabInstance:
       addedObject: {fileID: 417552994}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 31b9c4e93f0463d46b23dcea0855a46c, type: 3}
+--- !u!114 &1051005603 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6444389029458445102, guid: 31b9c4e93f0463d46b23dcea0855a46c,
+    type: 3}
+  m_PrefabInstance: {fileID: 1051005602}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf5ef303e83893645bedf5bb2fa26e7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1076703828 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3331924962954869022, guid: 4e3515f4a0d40e04dbdb2bb39c3b880e,
@@ -1779,6 +1791,16 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805,
         type: 2}
+    - target: {fileID: 5805702383406040168, guid: 20fffd2d21f0dbf49a4e61b6ed0cb309,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1051005603}
+    - target: {fileID: 5805702383406040168, guid: 20fffd2d21f0dbf49a4e61b6ed0cb309,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: FuelCost
+      objectReference: {fileID: 0}
     - target: {fileID: 7733936528567439763, guid: 20fffd2d21f0dbf49a4e61b6ed0cb309,
         type: 3}
       propertyPath: m_Name
