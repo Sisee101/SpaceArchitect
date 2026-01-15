@@ -428,12 +428,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1176586794}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &48177131 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8456610609048490555, guid: 191c1fee51af1174caeb7920d988f41f,
-    type: 3}
-  m_PrefabInstance: {fileID: 1867140661}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &48177134 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7392020451687298402, guid: 191c1fee51af1174caeb7920d988f41f,
@@ -1291,6 +1285,11 @@ MonoBehaviour:
   enableYBoundary: 1
   minYBoundary: -20
   maxYBoundary: 20
+  enableXBoundary: 1
+  autoCalculateXBoundary: 1
+  minXBoundary: -50
+  maxXBoundary: 50
+  xBoundaryPadding: 2
   enableManualMove: 1
   manualMoveSpeed: 20
   leftMoveKey: 97
@@ -2608,6 +2607,7 @@ MonoBehaviour:
   restartKey: 114
   shipGameObject: {fileID: 1966355597}
   successUIPanel: {fileID: 184087288}
+  successPanelController: {fileID: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -5177,6 +5177,7 @@ MonoBehaviour:
   currentUses: 0
   boostParticles: {fileID: 0}
   boostSound: {fileID: 0}
+  shockwaveController: {fileID: 0}
 --- !u!114 &1966355612
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5211,8 +5212,7 @@ MonoBehaviour:
   shieldKey: 99
   shieldDuration: 5
   cooldownDuration: 10
-  shieldVFX: {fileID: 48177131}
-  followShipRotation: 1
+  shieldVFX: {fileID: 0}
   asteroidBeltTag: Obstacles
   showDebugLog: 1
 --- !u!114 &1966355614
@@ -5230,6 +5230,7 @@ MonoBehaviour:
   heatShieldKey: 104
   shieldDuration: 10
   cooldownDuration: 5
+  heatShieldVFX: {fileID: 0}
   showDebugLog: 1
 --- !u!114 &1966355615
 MonoBehaviour:
