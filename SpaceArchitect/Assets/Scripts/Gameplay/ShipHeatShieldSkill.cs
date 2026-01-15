@@ -16,6 +16,10 @@ public class ShipHeatShieldSkill : MonoBehaviour
     [Tooltip("技能冷却时间（秒）")]
     [SerializeField] private float cooldownDuration = 10f;
 
+    [Header("隔热特效设置")]
+    [Tooltip("隔热特效GameObject（场景中已存在的特效，直接控制其active状态）")]
+    [SerializeField] private GameObject heatShieldVFX;
+
     [Header("调试")]
     [Tooltip("是否显示调试信息")]
     [SerializeField] private bool showDebugLog = true;
@@ -39,6 +43,15 @@ public class ShipHeatShieldSkill : MonoBehaviour
     /// 获取冷却剩余时间
     /// </summary>
     public float CooldownRemainingTime => cooldownTimer;
+
+    void Awake()
+    {
+        // 初始化时确保特效是隐藏的
+        if (heatShieldVFX != null)
+        {
+            heatShieldVFX.SetActive(false);
+        }
+    }
 
     void Update()
     {
@@ -116,6 +129,9 @@ public class ShipHeatShieldSkill : MonoBehaviour
             Debug.Log($"ShipHeatShieldSkill: 隔热技能已激活，持续时间: {shieldDuration}秒");
         }
 
+        // 显示隔热特效
+        ShowHeatShieldVFX();
+
         // 触发技能激活事件（可选）
         if (EventManager.Instance != null)
         {
@@ -142,6 +158,9 @@ public class ShipHeatShieldSkill : MonoBehaviour
             Debug.Log($"ShipHeatShieldSkill: 隔热技能已停用，开始冷却，冷却时间: {cooldownDuration}秒");
         }
 
+        // 隐藏隔热特效
+        HideHeatShieldVFX();
+
         // 触发技能停用事件（可选）
         if (EventManager.Instance != null)
         {
@@ -163,6 +182,63 @@ public class ShipHeatShieldSkill : MonoBehaviour
     public void DeactivateHeatShieldManually()
     {
         DeactivateHeatShield();
+    }
+
+    /// <summary>
+    /// 显示隔热特效（直接控制已存在的特效GameObject的active状态）
+    /// </summary>
+    private void ShowHeatShieldVFX()
+    {
+        if (heatShieldVFX == null)
+        {
+            if (showDebugLog)
+            {
+                Debug.LogWarning("ShipHeatShieldSkill: 未设置隔热特效（Heat Shield VFX），特效将不显示");
+            }
+            return;
+        }
+
+        // 直接激活特效GameObject
+        heatShieldVFX.SetActive(true);
+
+        if (showDebugLog)
+        {
+            Debug.Log($"ShipHeatShieldSkill: 隔热特效已显示 - GameObject: {heatShieldVFX.name}, 位置: {heatShieldVFX.transform.position}");
+        }
+    }
+
+    /// <summary>
+    /// 隐藏隔热特效（直接控制已存在的特效GameObject的active状态）
+    /// </summary>
+    private void HideHeatShieldVFX()
+    {
+        if (heatShieldVFX != null)
+        {
+            heatShieldVFX.SetActive(false);
+
+            if (showDebugLog)
+            {
+                Debug.Log($"ShipHeatShieldSkill: 隔热特效已隐藏 - GameObject: {heatShieldVFX.name}");
+            }
+        }
+    }
+
+    void OnDisable()
+    {
+        // 禁用时隐藏特效
+        if (heatShieldVFX != null)
+        {
+            heatShieldVFX.SetActive(false);
+        }
+    }
+
+    void OnDestroy()
+    {
+        // 销毁时隐藏特效（但不销毁，因为它是场景中的对象）
+        if (heatShieldVFX != null)
+        {
+            heatShieldVFX.SetActive(false);
+        }
     }
 }
 
