@@ -59,7 +59,7 @@ MonoBehaviour:
     maxScale: 4
   - label: 
     prefab: {fileID: 100000, guid: 49d7c47dc7cd57348a3e3c342b05f0c0, type: 3}
-    count: 100
+    count: 0
     minScale: 2
     maxScale: 4
   dustLayers:

@@ -120,7 +120,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shockwaveMaterial: {fileID: 2100000, guid: f26dafd457266ee40b0ba076ef54f485, type: 2}
-  shockwaveDuration: 1
+  contractionDuration: 0.15
+  contractionStrength: -0.2
+  shockwaveDuration: 0.8
   maxDistance: 2.4
-  width: 0.063
-  strength: 0.2
+  width: 0.05
+  strength: 0.3

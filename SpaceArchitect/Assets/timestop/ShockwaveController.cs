@@ -5,10 +5,12 @@ public class ShockwaveController : MonoBehaviour
     public Material shockwaveMaterial;
 
     [Header("动画设置")]
-    public float shockwaveDuration = 1f;
-    public float maxDistance = 1.5f;
-    [Range(0, 0.5f)] public float width = 0.1f;
-    [Range(-1f, 1f)] public float strength = 0.05f;
+    public float contractionDuration = 0.15f;
+    public float contractionStrength = -0.15f;
+    public float shockwaveDuration = 0.8f;
+    public float maxDistance = 2.4f;
+    [Range(0, 0.5f)] public float width = 0.05f;
+    [Range(-1f, 1f)] public float strength = 0.2f;
 
     private float currentTimer = 0f;
     private bool isPlaying = false;
@@ -34,29 +36,42 @@ public class ShockwaveController : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            TriggerShockwave(new Vector2(0.5f, 0.5f));
-        }
-
         if (isPlaying)
         {
             currentTimer += Time.unscaledDeltaTime;
+            float totalTime = contractionDuration + shockwaveDuration;
 
-            float progress = currentTimer / shockwaveDuration;
-
-            float currentDistance = Mathf.Lerp(-width, maxDistance, progress);
-            float currentStrength = Mathf.Lerp(strength, 0f, progress);
-
-            shockwaveMaterial.SetFloat(distancePropID, currentDistance);
-            shockwaveMaterial.SetFloat(strengthPropID, currentStrength);
-            shockwaveMaterial.SetFloat(widthPropID, width);
-
-            if (progress >= 1f)
+            if (currentTimer <= contractionDuration)
             {
+                // --- 阶段 1：收缩阶段 (蓄力) ---
+                float p = currentTimer / contractionDuration;
+                // 强度从 0 变为负数，产生向内拉伸感
+                float currentDistance = Mathf.Lerp(-width, 0f, p);
+                float currentStrength = Mathf.Lerp(0f, contractionStrength, p);
+                
+                shockwaveMaterial.SetFloat(distancePropID, currentDistance);
+                shockwaveMaterial.SetFloat(strengthPropID, currentStrength);
+            }
+            else if (currentTimer <= totalTime)
+            {
+                // --- 阶段 2：释放阶段 (冲击波) ---
+                float p = (currentTimer - contractionDuration) / shockwaveDuration;
+                // 距离从中心向外扩散，强度从正值衰减到 0
+                float currentDistance = Mathf.Lerp(0f, maxDistance, p);
+                float currentStrength = Mathf.Lerp(strength, 0f, p);
+
+                shockwaveMaterial.SetFloat(distancePropID, currentDistance);
+                shockwaveMaterial.SetFloat(strengthPropID, currentStrength);
+            }
+            else
+            {
+                // 动画结束，重置状态
                 isPlaying = false;
                 shockwaveMaterial.SetFloat(strengthPropID, 0);
             }
+            
+            // 保持宽度同步
+            shockwaveMaterial.SetFloat(widthPropID, width);
         }
     }
 

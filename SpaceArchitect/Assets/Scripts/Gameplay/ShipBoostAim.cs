@@ -80,6 +80,9 @@ public class ShipBoostAim : MonoBehaviour
     [Tooltip("加速时的音效")]
     [SerializeField] private AudioSource boostSound;
 
+    [Tooltip("冲击波效果控制器")]
+    [SerializeField] private ShockwaveController shockwaveController;
+
     // 内部状态
     private ShipState shipState;
     private NBody nBody;
@@ -333,6 +336,13 @@ public class ShipBoostAim : MonoBehaviour
 
         // 4. 播放粒子效果（同时播放一次）
         PlayTimeStopParticleEffect();
+
+        // 5. 触发冲击波效果（以飞船屏幕位置为中心）
+        if (shockwaveController != null && mainCamera != null)
+        {
+            Vector3 viewportPos = mainCamera.WorldToViewportPoint(transform.position);
+            shockwaveController.TriggerShockwave(new Vector2(viewportPos.x, viewportPos.y));
+        }
         
         // ========== 以上效果同时发生 ==========
 
