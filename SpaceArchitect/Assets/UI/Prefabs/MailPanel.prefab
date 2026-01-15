@@ -104,7 +104,7 @@ MonoBehaviour:
   insertAnimationDuration: 0.3
   enableInsertAnimation: 1
   audioSource: {fileID: 0}
-  mailButtonClickSound: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b,
+  mailButtonClickSound: {fileID: 8300000, guid: acaca9a91b23e44fb8eb8b834e319a59,
     type: 3}
   enableDebugLog: 1
 --- !u!1 &2356000733854856812
@@ -382,7 +382,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -322.49966, y: 396.17624}
+  m_AnchoredPosition: {x: -322.49966, y: 201.57745}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1481784831883297249
