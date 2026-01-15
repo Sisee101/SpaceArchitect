@@ -13,67 +13,59 @@ MonoBehaviour:
   m_Name: SphereOrderDataConfig
   m_EditorClassIdentifier: 
   orderDataList:
-  - sphereName: Sphere (1)
-    orderImage: {fileID: 21300000, guid: 62a8fe0cbff6b824296d0db7d7688ce6, type: 3}
+  - sphereName: "\u9E1F\u795E\u661F-1"
+    orderImage: {fileID: 21300000, guid: 44b1fe9fd43852a45a79d583a409a072, type: 3}
     targetSceneName: level1
     orderAmount: 0
     taskId: 1
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     VisitOrder: 0
-    CompleteOrder: 0
-  - sphereName: Sphere (2)
-    orderImage: {fileID: 21300000, guid: fb2ac7709bdf7a049b261eb25e41c72b, type: 3}
+    CompleteOrder: 1
+  - sphereName: "\u971C\u6CA7\u661F-1"
+    orderImage: {fileID: 21300000, guid: 252dacd701940414688c8af5854ec5ce, type: 3}
     targetSceneName: level2
     orderAmount: 0
     taskId: 2
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     VisitOrder: 0
-    CompleteOrder: 0
-  - sphereName: Sphere (3)
-    orderImage: {fileID: 21300000, guid: 0288e3c15535cdd488731114a25a97f6, type: 3}
+    CompleteOrder: 1
+  - sphereName: "\u53E4\u5BC2\u661F-1"
+    orderImage: {fileID: 21300000, guid: 014c839098a988c4688d6885fb1a9b3b, type: 3}
     targetSceneName: level3
     orderAmount: 0
     taskId: 3
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     VisitOrder: 0
     CompleteOrder: 0
-  - sphereName: Sphere (4)
-    orderImage: {fileID: 21300000, guid: fdc0a2eef8f2e9345af1f61ed8e01b4e, type: 3}
-    targetSceneName: level1
+  - sphereName: "\u7130\u6D41\u661F-2"
+    orderImage: {fileID: 21300000, guid: d021d7f393991c64ab3063a6c8c0ef6b, type: 3}
+    targetSceneName: level5
     orderAmount: 0
     taskId: 4
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     VisitOrder: 0
     CompleteOrder: 0
-  - sphereName: Sphere (5)
-    orderImage: {fileID: 21300000, guid: b02b9a9a98bdf6b4f81fe216d4f67438, type: 3}
-    targetSceneName: level1
+  - sphereName: "\u6DA1\u5507\u661F-2"
+    orderImage: {fileID: 21300000, guid: 7ba229eb39a4aa34ba785ff7ab0d41b8, type: 3}
+    targetSceneName: level4
     orderAmount: 0
     taskId: 5
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
-    VisitOrder: 0
-    CompleteOrder: 0
-  - sphereName: Sphere (6)
-    orderImage: {fileID: 21300000, guid: cf35b4b2315f7634786c54da2d8c1866, type: 3}
+    VisitOrder: 1
+    CompleteOrder: 1
+  - sphereName: "\u9E1F\u795E\u661F-2"
+    orderImage: {fileID: 21300000, guid: e8cd138c43370064ab11d3c44b39889c, type: 3}
     targetSceneName: level1
     orderAmount: 0
     taskId: 6
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
-    VisitOrder: 0
-    CompleteOrder: 0
-  - sphereName: Sphere (7)
-    orderImage: {fileID: 21300000, guid: 33984c2ba8932b341bdc5b800f1c690a, type: 3}
-    targetSceneName: level1
+    VisitOrder: 1
+    CompleteOrder: 1
+  - sphereName: "\u53E4\u5BC2\u661F-2"
+    orderImage: {fileID: 21300000, guid: 39d933c5f323b4e49aea9b1985b81fdd, type: 3}
+    targetSceneName: level3
     orderAmount: 0
     taskId: 7
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
-    VisitOrder: 1
-    CompleteOrder: 0
-  - sphereName: Sphere (1)-2
-    orderImage: {fileID: 21300000, guid: 0e691f2428a53d04bb8348b2f4180ded, type: 3}
-    targetSceneName: level1
-    orderAmount: 0
-    taskId: 8
-    victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
-    VisitOrder: 1
+    VisitOrder: 0
     CompleteOrder: 0

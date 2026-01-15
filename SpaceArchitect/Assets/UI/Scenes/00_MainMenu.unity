@@ -558,6 +558,7 @@ GameObject:
   - component: {fileID: 800639747}
   - component: {fileID: 800639746}
   - component: {fileID: 800639745}
+  - component: {fileID: 800639748}
   m_Layer: 5
   m_Name: PlanetEncyclopediaButton
   m_TagString: Untagged
@@ -666,6 +667,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 800639743}
   m_CullTransparentMesh: 1
+--- !u!114 &800639748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800639743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edd9cee67ef16984fbe93ed98d52da7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoRefreshOnClick: 1
+  refreshDelay: 0.1
+  showDebugLogs: 1
 --- !u!1 &953399569
 GameObject:
   m_ObjectHideFlags: 0
@@ -1254,6 +1270,7 @@ MonoBehaviour:
   planetEncyclopediaPanel: {fileID: 1715883684}
   employeeHandbookPanel: {fileID: 0}
   stationLevelPanel: {fileID: 0}
+  mailPanel: {fileID: 0}
 --- !u!4 &2001402728
 Transform:
   m_ObjectHideFlags: 0

@@ -148,19 +148,54 @@ public class SphereClickHandler : MonoBehaviour
                 Debug.Log($"SphereClickHandler: 射线击中物体: {hitObject.name}, Tag: {hitObject.tag}");
             }
             
-            // 检查是否是Sphere（可以通过Tag或名称判断）
-            // 方法1：通过Tag判断（如果Sphere有特定的Tag）
-            // if (hitObject.CompareTag("Sphere"))
-            // {
-            //     OnSphereClicked(hitObject);
-            //     return;
-            // }
+            // 检查是否是Sphere（优先级：Tag > 订单配置 > 名称）
+            bool isSphere = false;
+            string detectionMethod = "";
             
-            // 方法2：通过名称判断（更灵活）
-            if (hitObject.name.StartsWith("Sphere") || hitObject.name.Contains("Sphere"))
+            // 方法1：通过Tag判断（最可靠，推荐使用）
+            // 物体可以保留中文名，只要Tag设置为"Sphere"即可
+            if (hitObject.CompareTag("Sphere"))
             {
+                isSphere = true;
+                detectionMethod = "Tag";
+            }
+            // 方法2：通过订单配置判断（支持中文名称，如"霜沧星-1", "古寂星-1"等）
+            // 如果orderDataConfig已配置，检查是否能找到对应的订单信息
+            else if (orderDataConfig != null)
+            {
+                var orderInfo = orderDataConfig.GetOrderInfoBySphereName(hitObject.name);
+                if (orderInfo != null)
+                {
+                    isSphere = true;
+                    detectionMethod = "订单配置";
+                    if (enableDebugLog)
+                    {
+                        Debug.Log($"SphereClickHandler: 通过订单配置识别为Sphere: {hitObject.name}");
+                    }
+                }
+            }
+            // 方法3：通过名称判断（向后兼容，支持英文名称，如"Sphere1", "Sphere2"等）
+            else if (hitObject.name.StartsWith("Sphere") || hitObject.name.Contains("Sphere"))
+            {
+                isSphere = true;
+                detectionMethod = "名称";
+            }
+            
+            if (isSphere)
+            {
+                if (enableDebugLog)
+                {
+                    Debug.Log($"SphereClickHandler: 识别为Sphere（方法: {detectionMethod}）: {hitObject.name}");
+                }
                 OnSphereClicked(hitObject);
                 return;
+            }
+            else
+            {
+                if (enableDebugLog)
+                {
+                    Debug.Log($"SphereClickHandler: 物体 {hitObject.name} 不是Sphere，跳过点击处理");
+                }
             }
         }
     }

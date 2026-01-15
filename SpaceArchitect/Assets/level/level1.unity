@@ -1472,11 +1472,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2704741169772006720, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4378510699658500064, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -1490,51 +1485,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3647326995147907575, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 920071930}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379, type: 3}
---- !u!1 &920071928 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3647326995147907575, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
-    type: 3}
-  m_PrefabInstance: {fileID: 920071927}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &920071929 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 9207692134649618180, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
-    type: 3}
-  m_PrefabInstance: {fileID: 920071927}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920071928}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &920071930
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 920071928}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b99d76e4d6b7f745874effe62599132, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  actionButton: {fileID: 920071929}
-  orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
-  selectedOrderIndex: 0
-  taskManager: {fileID: 0}
-  usePersistentStorage: 1
-  audioSource: {fileID: 0}
-  buttonClickSound: {fileID: 0}
-  clickSoundDelay: 0.15
-  enableDebugLog: 1
 --- !u!1001 &960208768
 PrefabInstance:
   m_ObjectHideFlags: 0
