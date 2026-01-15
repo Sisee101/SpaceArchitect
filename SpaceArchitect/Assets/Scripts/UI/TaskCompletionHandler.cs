@@ -29,11 +29,15 @@ public class TaskCompletionHandler : MonoBehaviour
     [Header("调试")]
     [SerializeField] private bool enableDebugLog = true;
     
-    // 记录已处理的订单（避免重复处理）
+    // 记录已处理的订单（避免重复处理，仅当前场景）
     private System.Collections.Generic.HashSet<int> processedTaskIds = new System.Collections.Generic.HashSet<int>();
     
     // 上次检测时间
     private float lastCheckTime = 0f;
+    
+    // 静态变量：跨场景记录已播放过动画的订单ID（防止场景切换时重复播放）
+    private static System.Collections.Generic.HashSet<int> globallyProcessedTaskIds = new System.Collections.Generic.HashSet<int>();
+    private static System.Collections.Generic.HashSet<string> globallyProcessedSphereNames = new System.Collections.Generic.HashSet<string>();
     
     void Start()
     {
@@ -96,7 +100,18 @@ public class TaskCompletionHandler : MonoBehaviour
                     isPendingForAnimation = OrderCompleteAndLoadSceneButton.IsPendingForAnimation(orderInfo.sphereName);
                 }
                 
-                if (isPendingForAnimation && orderInfo.CompleteOrder)
+                // 检查是否已经播放过动画（跨场景检查）
+                bool alreadyPlayedAnimation = false;
+                if (orderInfo.taskId >= 0)
+                {
+                    alreadyPlayedAnimation = globallyProcessedTaskIds.Contains(orderInfo.taskId);
+                }
+                else
+                {
+                    alreadyPlayedAnimation = globallyProcessedSphereNames.Contains(orderInfo.sphereName);
+                }
+                
+                if (isPendingForAnimation && orderInfo.CompleteOrder && !alreadyPlayedAnimation)
                 {
                     // 这是新完成的订单，需要播放动画
                     pendingAnimationCount++;
@@ -117,6 +132,27 @@ public class TaskCompletionHandler : MonoBehaviour
                     
                     // 直接调用 HandleTaskCompletionSequence，与按键版本完全一致
                     StartCoroutine(HandleTaskCompletionSequence(orderInfo.sphereName));
+                }
+                else if (alreadyPlayedAnimation)
+                {
+                    // 已经播放过动画，跳过
+                    if (enableDebugLog)
+                    {
+                        Debug.Log($"TaskCompletionHandler: 订单 {orderInfo.sphereName} (taskId={orderInfo.taskId}) 已播放过动画，跳过播放");
+                    }
+                    
+                    // 从待播放列表中移除（如果存在）
+                    if (isPendingForAnimation)
+                    {
+                        if (orderInfo.taskId >= 0)
+                        {
+                            OrderCompleteAndLoadSceneButton.RemovePendingTaskId(orderInfo.taskId);
+                        }
+                        else
+                        {
+                            OrderCompleteAndLoadSceneButton.RemovePendingSphereName(orderInfo.sphereName);
+                        }
+                    }
                 }
             }
         }
@@ -194,19 +230,33 @@ public class TaskCompletionHandler : MonoBehaviour
                 continue;
             }
             
-            // 如果CompleteOrder为true且尚未处理
-            if (orderInfo.CompleteOrder && !processedTaskIds.Contains(orderInfo.taskId))
+            // 检查是否已经播放过动画（跨场景检查）
+            bool alreadyPlayedAnimation = globallyProcessedTaskIds.Contains(orderInfo.taskId);
+            
+            // 如果CompleteOrder为true且尚未处理，且未播放过动画
+            if (orderInfo.CompleteOrder && !processedTaskIds.Contains(orderInfo.taskId) && !alreadyPlayedAnimation)
             {
                 if (enableDebugLog)
                 {
                     Debug.Log($"TaskCompletionHandler: 检测到订单 {orderInfo.sphereName} (taskId={orderInfo.taskId}) 的CompleteOrder变为true，开始处理");
                 }
                 
-                // 标记为已处理
+                // 标记为已处理（当前场景）
                 processedTaskIds.Add(orderInfo.taskId);
                 
                 // 处理任务完成序列
                 StartCoroutine(HandleTaskCompletionSequence(orderInfo.sphereName));
+            }
+            else if (alreadyPlayedAnimation)
+            {
+                // 已经播放过动画，跳过
+                if (enableDebugLog)
+                {
+                    Debug.Log($"TaskCompletionHandler: 订单 {orderInfo.sphereName} (taskId={orderInfo.taskId}) 已播放过动画，跳过处理");
+                }
+                
+                // 标记为已处理（当前场景），避免重复检测
+                processedTaskIds.Add(orderInfo.taskId);
             }
         }
     }
@@ -254,6 +304,18 @@ public class TaskCompletionHandler : MonoBehaviour
             return;
         }
         
+        // 检查是否已经播放过动画（跨场景检查）
+        bool alreadyPlayedAnimation = globallyProcessedTaskIds.Contains(taskId);
+        
+        if (alreadyPlayedAnimation)
+        {
+            if (enableDebugLog)
+            {
+                Debug.Log($"TaskCompletionHandler: 订单 {sphereName} (taskId={taskId}) 已播放过动画，跳过处理");
+            }
+            return;
+        }
+        
         if (enableDebugLog)
         {
             Debug.Log($"TaskCompletionHandler: 开始处理任务完成，Sphere={sphereName}");
@@ -280,6 +342,24 @@ public class TaskCompletionHandler : MonoBehaviour
         {
             Debug.LogWarning($"TaskCompletionHandler: 未找到 {sphereName} 的订单信息！");
             yield break;
+        }
+        
+        // 在开始播放动画时，将订单ID添加到静态列表（防止跨场景重复播放）
+        if (orderInfo.taskId >= 0)
+        {
+            globallyProcessedTaskIds.Add(orderInfo.taskId);
+            if (enableDebugLog)
+            {
+                Debug.Log($"TaskCompletionHandler: 已将订单 taskId={orderInfo.taskId} 添加到全局已播放列表");
+            }
+        }
+        else
+        {
+            globallyProcessedSphereNames.Add(orderInfo.sphereName);
+            if (enableDebugLog)
+            {
+                Debug.Log($"TaskCompletionHandler: 已将订单 sphereName={orderInfo.sphereName} 添加到全局已播放列表（无taskId）");
+            }
         }
         
         // 步骤1：显示胜利图片+印章（优先使用图片）

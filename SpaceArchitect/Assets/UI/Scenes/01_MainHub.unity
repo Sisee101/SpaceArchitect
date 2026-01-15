@@ -483,30 +483,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7579015989093619052, guid: 2016c83eb1639c04cbbd8ad1ad000495,
-        type: 3}
-      propertyPath: taskManager
-      value: 
-      objectReference: {fileID: 1962398847}
-    - target: {fileID: 7579015989093619052, guid: 2016c83eb1639c04cbbd8ad1ad000495,
-        type: 3}
-      propertyPath: orderDataConfig
-      value: 
-      objectReference: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805,
-        type: 2}
     - target: {fileID: 8851799995698968754, guid: 2016c83eb1639c04cbbd8ad1ad000495,
         type: 3}
       propertyPath: m_Name
       value: StationLevelPanel
       objectReference: {fileID: 0}
-    - target: {fileID: 8851799995698968754, guid: 2016c83eb1639c04cbbd8ad1ad000495,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 7244608438079400651, guid: 2016c83eb1639c04cbbd8ad1ad000495, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2016c83eb1639c04cbbd8ad1ad000495, type: 3}
@@ -1088,11 +1071,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlanetEncyclopediaPanel
       objectReference: {fileID: 0}
-    - target: {fileID: 709288859376153528, guid: 78502e15205847142a3bb29f02f79ad1,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6335161021169384327, guid: 78502e15205847142a3bb29f02f79ad1,
         type: 3}
       propertyPath: m_SizeDelta.x
@@ -1284,11 +1262,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SphereInfoPanel
-      objectReference: {fileID: 0}
-    - target: {fileID: 7733936528567439763, guid: 20fffd2d21f0dbf49a4e61b6ed0cb309,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9120313036496101775, guid: 20fffd2d21f0dbf49a4e61b6ed0cb309,
         type: 3}
@@ -1709,11 +1682,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: EmployeeHandbookPanel
       objectReference: {fileID: 0}
-    - target: {fileID: 3740921927969604319, guid: d224f95acfef15849b58051bde93f32c,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 5827046019345159157, guid: d224f95acfef15849b58051bde93f32c,
         type: 3}
       propertyPath: m_Pivot.x
@@ -1850,11 +1818,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainHubPanel
       objectReference: {fileID: 0}
-    - target: {fileID: 1358478184912109104, guid: 31b9c4e93f0463d46b23dcea0855a46c,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 1742993191335759325, guid: 31b9c4e93f0463d46b23dcea0855a46c,
         type: 3}
       propertyPath: settlementPanel
@@ -1988,11 +1951,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: DisplayPanel
       objectReference: {fileID: 0}
-    - target: {fileID: 3250539946466610629, guid: 051931d9ef6ed464881c61df0856743b,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6025831613419174454, guid: 051931d9ef6ed464881c61df0856743b,
         type: 3}
       propertyPath: m_Pivot.x
@@ -2108,39 +2066,9 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1528633754629100960, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1528633754629100960, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1528633754629100960, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1857385422}
-    - target: {fileID: 1528633754629100960, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1528633754629100960, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: ResetFuel
-      objectReference: {fileID: 0}
-    - target: {fileID: 1528633754629100960, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: FuelManager, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 1528633754629100960, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
-      objectReference: {fileID: 0}
     - target: {fileID: 1801039143933163342, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -2180,11 +2108,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SettlementPanel
-      objectReference: {fileID: 0}
-    - target: {fileID: 4535258302976596867, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6163648346986534025, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
@@ -2363,11 +2286,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: MailPanel
-      objectReference: {fileID: 0}
-    - target: {fileID: 2128914143541754664, guid: f9465abfc6b71bf4eb3273bec7e66ea7,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3891798027983020024, guid: f9465abfc6b71bf4eb3273bec7e66ea7,
         type: 3}
