@@ -424,15 +424,18 @@ public class SphereInfoPanel : MonoBehaviour
         // 等待一小段时间，让音效有时间播放
         yield return new WaitForSeconds(clickSoundDelay);
         
+        // 隐藏面板（在加载场景前隐藏）
+        Hide();
+        
         if (enableDebugLog)
         {
-            Debug.Log($"SphereInfoPanel: 跳转到场景: {currentTargetSceneName}");
+            Debug.Log($"SphereInfoPanel: 使用Additive模式加载场景: {currentTargetSceneName}（覆盖在MainHub上方），面板已隐藏");
         }
         
-        // 使用SceneTransitionManager加载场景
+        // 使用SceneTransitionManager以Additive模式加载场景，覆盖在MainHub上方
         if (SceneTransitionManager.Instance != null)
         {
-            SceneTransitionManager.Instance.LoadSceneByName(currentTargetSceneName);
+            SceneTransitionManager.Instance.LoadSceneAdditive(currentTargetSceneName);
         }
         else
         {

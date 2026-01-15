@@ -561,6 +561,15 @@ MonoBehaviour:
   followSpeed: 5
   useSmoothing: 1
   xOffset: 0
+  yOffset: 0
+  enableYBoundary: 1
+  minYBoundary: -50
+  maxYBoundary: 50
+  enableXBoundary: 1
+  autoCalculateXBoundary: 1
+  minXBoundary: -50
+  maxXBoundary: 50
+  xBoundaryPadding: 2
   enableManualMove: 1
   manualMoveSpeed: 10
   leftMoveKey: 97
@@ -570,6 +579,11 @@ MonoBehaviour:
   minZoom: 1
   maxZoom: 100
   overviewZoomScale: 3
+  overviewRangeMode: 0
+  overviewRangeObject: {fileID: 0}
+  stationTag: Station
+  destinationTag: Destination
+  overviewPadding: 2
   zoomOutDuration: 1
   overviewHoldDuration: 1.5
   zoomInDuration: 1
@@ -1845,6 +1859,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   restartKey: 114
   shipGameObject: {fileID: 1966355597}
+  successUIPanel: {fileID: 0}
+  successPanelController: {fileID: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -3170,6 +3186,7 @@ MonoBehaviour:
   arrowHead: {fileID: 0}
   arrowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   arrowWidth: 0.1
+  arrowMaterial: {fileID: 0}
 --- !u!114 &1966355604
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3186,7 +3203,6 @@ MonoBehaviour:
   targetCamera: {fileID: 0}
   escapeCheckInterval: 0.5
   viewportMargin: 0.1
-  speedMultiplier: 1.001
 --- !u!136 &1966355605
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -3314,9 +3330,18 @@ MonoBehaviour:
   updateInterval: 0.1
   onlyShowWhenFlying: 1
   minSpeedThreshold: 0.1
-  useSpeedMultiplier: 1
   gravityMultiplier: 1.1
+  maxPredictionDistance: 1000
+  maxPredictionStepsHardLimit: 10000
+  gravitySourceLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  onlyConsiderCoreDeflector: 0
   _info: "Core \u548C Planet \u4F7F\u7528\u76F8\u540C\u7684\u5F15\u529B\u8BA1\u7B97"
+  enablePredictionLogging: 0
+  triggerDelayFrames: 0
+  predictionLogFilePath: PredictionDataLog.txt
+  predictionLogInterval: 1
 --- !u!120 &1966355612
 LineRenderer:
   serializedVersion: 2
@@ -4521,7 +4546,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!1001 &8192898088282667707
 PrefabInstance:

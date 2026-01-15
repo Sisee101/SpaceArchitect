@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 /// <summary>
@@ -26,6 +27,10 @@ public class OrderDetailPanel : MonoBehaviour
     [Tooltip("订单数据配置（用于重置订单状态）")]
     [SerializeField] private SphereOrderDataConfig orderDataConfig; // 订单数据配置引用
     
+    [Header("MainHub Canvas配置")]
+    [Tooltip("当前MainHub场景的Canvas引用（用于在加载游戏场景时隐藏，卸载时恢复）。请在Inspector中手动拖拽配置。")]
+    [SerializeField] private Canvas mainHubCanvas; // MainHub场景的Canvas引用
+    
     [Header("印章动画延迟")]
     [Tooltip("结算界面显示后，延迟多少秒播放印章动画（秒）")]
     [SerializeField] private float stampAnimationDelay = 1.0f; // 延迟时间（秒）
@@ -41,8 +46,21 @@ public class OrderDetailPanel : MonoBehaviour
         // 初始化各个子组件
         InitializeComponents();
         
+        // 注册MainHub Canvas到SceneTransitionManager
+        RegisterMainHubCanvas();
+        
         // 初始隐藏面板（通过代码控制，不依赖Inspector状态）
         Hide();
+    }
+    
+    void OnDestroy()
+    {
+        // 注销Canvas引用（可选，但建议添加以保持一致性）
+        if (mainHubCanvas != null)
+        {
+            string currentSceneName = SceneManager.GetActiveScene().name;
+            SceneTransitionManager.UnregisterMainHubCanvas(currentSceneName);
+        }
     }
     
     /// <summary>
@@ -111,6 +129,33 @@ public class OrderDetailPanel : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log("OrderDetailPanel: 初始化完成");
+        }
+    }
+    
+    /// <summary>
+    /// 注册MainHub Canvas到SceneTransitionManager
+    /// </summary>
+    private void RegisterMainHubCanvas()
+    {
+        // 获取当前场景名称
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        
+        // 如果Canvas已配置，注册到SceneTransitionManager
+        if (mainHubCanvas != null)
+        {
+            SceneTransitionManager.RegisterMainHubCanvas(currentSceneName, mainHubCanvas);
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"OrderDetailPanel: 已注册场景 {currentSceneName} 的Canvas: {mainHubCanvas.name}");
+            }
+        }
+        else
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning($"OrderDetailPanel: MainHub Canvas未配置！场景 {currentSceneName} 的Canvas无法在加载游戏场景时自动隐藏。请在Inspector中配置Main Hub Canvas字段。");
+            }
         }
     }
     

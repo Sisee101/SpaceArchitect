@@ -4,12 +4,11 @@ using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// 订单完成并加载场景按钮脚本
-/// 结合订单完成和场景加载功能：
+/// 订单完成并卸载游戏场景按钮脚本
+/// 结合订单完成和场景卸载功能：
 /// 1. 在 Inspector 中选择订单，修改对应订单的 CompleteOrder 状态为 true
-/// 2. 加载到指定场景
-/// 3. 在新场景中，TaskCompletionHandler 会自动检测订单完成并播放盖章动画和气泡消失动画
-/// 4. 订单状态会通过 TaskManager 持久化保存（跨场景和跨游戏会话）
+/// 2. 卸载当前游戏场景，返回MainHub
+/// 3. 订单状态会通过 TaskManager 持久化保存（跨场景和跨游戏会话）
 /// </summary>
 public class OrderCompleteAndLoadSceneButton : MonoBehaviour
 {
@@ -26,9 +25,7 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
     [OrderSelector]
     [SerializeField] private int selectedOrderIndex = 0;
     
-    [Header("场景配置")]
-    [Tooltip("要加载的场景名称（必须在Build Settings中，区分大小写）")]
-    [SerializeField] private string targetSceneName;
+    // 注意：已移除场景配置，因为卸载场景不需要指定场景名称
     
     [Header("任务管理器（可选）")]
     [Tooltip("如果配置了 TaskManager，点击按钮时会调用 TaskManager.CompleteTask() 来同步任务状态和持久化")]
@@ -75,7 +72,7 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
             
             if (enableDebugLog)
             {
-                Debug.Log($"OrderCompleteAndLoadSceneButton: 已绑定按钮点击事件，当前选中订单索引: {selectedOrderIndex}，目标场景: {targetSceneName}");
+                Debug.Log($"OrderCompleteAndLoadSceneButton: 已绑定按钮点击事件，当前选中订单索引: {selectedOrderIndex}，将卸载游戏场景并返回MainHub");
             }
         }
         else
@@ -87,11 +84,6 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
         if (orderDataConfig == null)
         {
             Debug.LogWarning("OrderCompleteAndLoadSceneButton: Order Data Config 未配置！请在 Inspector 中设置订单数据配置。");
-        }
-        
-        if (string.IsNullOrEmpty(targetSceneName))
-        {
-            Debug.LogWarning("OrderCompleteAndLoadSceneButton: Target Scene Name 未配置！请在 Inspector 中设置目标场景名称。");
         }
         
         // 如果未手动指定 AudioSource，尝试自动获取
@@ -133,12 +125,6 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
             return;
         }
         
-        if (string.IsNullOrEmpty(targetSceneName))
-        {
-            Debug.LogError("OrderCompleteAndLoadSceneButton: 目标场景名称为空，无法加载场景！");
-            return;
-        }
-        
         // 验证索引有效性
         if (selectedOrderIndex < 0 || selectedOrderIndex >= orderDataConfig.orderDataList.Count)
         {
@@ -159,9 +145,9 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
         {
             if (enableDebugLog)
             {
-                Debug.LogWarning($"OrderCompleteAndLoadSceneButton: 订单 {orderInfo.sphereName} (索引: {selectedOrderIndex}) 已经完成，但仍会加载场景");
+                Debug.LogWarning($"OrderCompleteAndLoadSceneButton: 订单 {orderInfo.sphereName} (索引: {selectedOrderIndex}) 已经完成，但仍会卸载游戏场景");
             }
-            // 即使已完成，也继续加载场景（允许重复进入）
+            // 即使已完成，也继续卸载场景（允许重复操作）
         }
         
         // 如果配置了音效，播放音效并延迟执行
@@ -171,8 +157,8 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
         }
         else
         {
-            // 直接执行订单完成和场景加载
-            CompleteOrderAndLoadScene(orderInfo);
+            // 直接执行订单完成和场景卸载
+            CompleteOrderAndUnloadScene(orderInfo);
         }
     }
     
@@ -188,21 +174,21 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
             
             if (enableDebugLog)
             {
-                Debug.Log($"OrderCompleteAndLoadSceneButton: 播放点击音效，延迟 {clickSoundDelay} 秒后完成订单并加载场景");
+                Debug.Log($"OrderCompleteAndLoadSceneButton: 播放点击音效，延迟 {clickSoundDelay} 秒后完成订单并卸载游戏场景");
             }
         }
         
         // 等待延迟时间
         yield return new WaitForSeconds(clickSoundDelay);
         
-        // 完成订单并加载场景
-        CompleteOrderAndLoadScene(orderInfo);
+        // 完成订单并卸载游戏场景
+        CompleteOrderAndUnloadScene(orderInfo);
     }
     
     /// <summary>
-    /// 完成订单并加载场景
+    /// 完成订单并卸载游戏场景
     /// </summary>
-    private void CompleteOrderAndLoadScene(SphereOrderDataConfig.SphereOrderInfo orderInfo)
+    private void CompleteOrderAndUnloadScene(SphereOrderDataConfig.SphereOrderInfo orderInfo)
     {
         // 设置 CompleteOrder 为 true
         if (!orderInfo.CompleteOrder)
@@ -240,7 +226,7 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
             
             if (enableDebugLog)
             {
-                Debug.Log($"OrderCompleteAndLoadSceneButton: 已通过 TaskManager 完成任务 {orderInfo.taskId}（已持久化），准备加载场景 {targetSceneName}");
+                Debug.Log($"OrderCompleteAndLoadSceneButton: 已通过 TaskManager 完成任务 {orderInfo.taskId}（已持久化），准备卸载游戏场景并返回MainHub");
             }
         }
         // 如果订单没有 taskId，直接保存到 PlayerPrefs（如果启用持久化）
@@ -252,7 +238,7 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
             
             if (enableDebugLog)
             {
-                Debug.Log($"OrderCompleteAndLoadSceneButton: 订单 {orderInfo.sphereName} 没有 taskId，已直接保存到 PlayerPrefs (键: {key})，准备加载场景 {targetSceneName}");
+                Debug.Log($"OrderCompleteAndLoadSceneButton: 订单 {orderInfo.sphereName} 没有 taskId，已直接保存到 PlayerPrefs (键: {key})，准备卸载游戏场景并返回MainHub");
             }
         }
         else if (orderInfo.taskId >= 0 && taskManager == null)
@@ -263,8 +249,8 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
             }
         }
         
-        // 加载场景
-        LoadScene();
+        // 卸载游戏场景（返回MainHub）
+        UnloadGameScene();
     }
     
     /// <summary>
@@ -315,23 +301,26 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
     }
     
     /// <summary>
-    /// 加载场景
+    /// 卸载游戏场景（返回MainHub）
     /// </summary>
-    private void LoadScene()
+    private void UnloadGameScene()
     {
-        // 使用 SceneTransitionManager 加载场景
+        // 恢复时间，避免场景切换时时间仍为0
+        Time.timeScale = 1f;
+        
+        // 使用 SceneTransitionManager 卸载游戏场景
         if (SceneTransitionManager.Instance != null)
         {
             if (enableDebugLog)
             {
-                Debug.Log($"OrderCompleteAndLoadSceneButton: 正在通过 SceneTransitionManager 加载场景 {targetSceneName}");
+                Debug.Log("OrderCompleteAndLoadSceneButton: 正在通过 SceneTransitionManager 卸载游戏场景并返回MainHub");
             }
             
-            SceneTransitionManager.Instance.LoadSceneByName(targetSceneName);
+            SceneTransitionManager.Instance.UnloadGameScene();
         }
         else
         {
-            Debug.LogError("OrderCompleteAndLoadSceneButton: SceneTransitionManager 未找到！无法加载场景。");
+            Debug.LogError("OrderCompleteAndLoadSceneButton: SceneTransitionManager 未找到！无法卸载游戏场景。");
         }
     }
     
@@ -392,26 +381,5 @@ public class OrderCompleteAndLoadSceneButton : MonoBehaviour
         Debug.LogWarning($"OrderCompleteAndLoadSceneButton: 未找到 Sphere 名称为 {sphereName} 的订单！");
     }
     
-    /// <summary>
-    /// 手动设置目标场景名称（可在运行时调用）
-    /// </summary>
-    /// <param name="sceneName">场景名称</param>
-    public void SetTargetSceneName(string sceneName)
-    {
-        targetSceneName = sceneName;
-        
-        if (enableDebugLog)
-        {
-            Debug.Log($"OrderCompleteAndLoadSceneButton: 已设置目标场景名称为 {sceneName}");
-        }
-    }
-    
-    /// <summary>
-    /// 获取当前目标场景名称
-    /// </summary>
-    /// <returns>场景名称</returns>
-    public string GetTargetSceneName()
-    {
-        return targetSceneName;
-    }
+    // 注意：已移除 SetTargetSceneName 和 GetTargetSceneName 方法，因为卸载场景不需要指定场景名称
 }
