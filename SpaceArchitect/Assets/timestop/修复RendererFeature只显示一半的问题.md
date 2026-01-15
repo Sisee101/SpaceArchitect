@@ -49,3 +49,5 @@ Blit(cmd, source, tempTexture.Identifier(), shockwaveMaterial, 0);
 
 让我修改 Renderer Feature 的代码，使用全屏 Quad 渲染：
 
+
+

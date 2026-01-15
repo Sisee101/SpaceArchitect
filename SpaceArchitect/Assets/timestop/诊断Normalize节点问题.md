@@ -146,3 +146,5 @@ Screen Position → Subtract (CenterPoint) → Normalize → Length → ...
 
 **关键：先让效果能工作，再优化平滑度！**
 
+
+

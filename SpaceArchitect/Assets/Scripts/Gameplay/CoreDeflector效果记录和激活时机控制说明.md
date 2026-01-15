@@ -213,3 +213,5 @@ Core[GravityCore]:dist=9.20,grav=5.905,guidance=0.20,velChange=0.125,accel=6.250
 
 
 
+
+

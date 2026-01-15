@@ -58,3 +58,5 @@
   - `ShockwaveRing` GameObject 是否有 `Renderer` 组件
   - `ShockwaveController` 脚本是否正确引用 Material
 
+
+
