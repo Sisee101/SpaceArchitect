@@ -71,6 +71,17 @@ public class MailPanel : MonoBehaviour
         // 加载已显示的邮件ID列表
         LoadShownMailIds();
         
+        // 订阅M键事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnMKeyPressed += OnMKeyPressed;
+            EventManager.Instance.OnCKeyPressed += OnCKeyPressed;
+        }
+        else
+        {
+            Debug.LogWarning("MailPanel: EventManager实例不存在，无法订阅M键和C键事件！");
+        }
+        
         // 如果面板已激活，刷新按钮列表
         if (gameObject.activeSelf)
         {
@@ -80,7 +91,12 @@ public class MailPanel : MonoBehaviour
     
     void OnDestroy()
     {
-        // 清理工作
+        // 取消订阅M键和C键事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnMKeyPressed -= OnMKeyPressed;
+            EventManager.Instance.OnCKeyPressed -= OnCKeyPressed;
+        }
     }
     
     /// <summary>
@@ -101,9 +117,25 @@ public class MailPanel : MonoBehaviour
     }
     
     /// <summary>
+    /// M键事件处理方法（由EventManager触发）
+    /// </summary>
+    private void OnMKeyPressed()
+    {
+        InsertNewMail();
+    }
+    
+    /// <summary>
+    /// C键事件处理方法（由EventManager触发，用于测试：清空邮箱并重置到初始状态）
+    /// </summary>
+    private void OnCKeyPressed()
+    {
+        ResetMailToInitialState();
+    }
+    
+    /// <summary>
     /// 插入新邮件按钮
     /// </summary>
-    public void InsertNewMail()
+    private void InsertNewMail()
     {
         if (mailDataConfig == null || mailDataConfig.mailDataList == null || mailDataConfig.mailDataList.Count == 0)
         {
@@ -385,13 +417,13 @@ public class MailPanel : MonoBehaviour
         }
         else
         {
-            // 首次运行，初始化默认邮件
+            // 首次运行，初始化前5个邮件
             InitializeDefaultMailIds();
         }
     }
     
     /// <summary>
-    /// 初始化默认邮件ID列表（只显示id为22的邮件）
+    /// 初始化默认邮件ID列表（前5个邮件）
     /// </summary>
     private void InitializeDefaultMailIds()
     {
@@ -399,24 +431,53 @@ public class MailPanel : MonoBehaviour
         
         if (mailDataConfig != null && mailDataConfig.mailDataList != null)
         {
-            // 只查找并添加id为22的邮件
-            var mail22 = mailDataConfig.GetMailInfoById(22);
-            if (mail22 != null)
+            int count = Mathf.Min(5, mailDataConfig.mailDataList.Count);
+            for (int i = 0; i < count; i++)
             {
-                shownMailIds.Add(22);
-                
-                if (enableDebugLog)
+                if (mailDataConfig.mailDataList[i] != null)
                 {
-                    Debug.Log("MailPanel: 首次运行，初始化了id为22的邮件");
+                    shownMailIds.Add(mailDataConfig.mailDataList[i].mailId);
                 }
-            }
-            else
-            {
-                Debug.LogWarning("MailPanel: 未找到id为22的邮件！");
             }
             
             // 保存到PlayerPrefs
             SaveShownMailIds();
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"MailPanel: 首次运行，初始化了 {shownMailIds.Count} 个默认邮件ID");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 重置邮箱到初始状态（清空所有邮件，只保留前5个，用于测试）
+    /// </summary>
+    private void ResetMailToInitialState()
+    {
+        if (enableDebugLog)
+        {
+            Debug.Log("MailPanel: 按下C键，重置邮箱到初始状态");
+        }
+        
+        // 清空当前显示的邮件ID列表
+        shownMailIds.Clear();
+        
+        // 重新初始化前5个邮件
+        InitializeDefaultMailIds();
+        
+        // 如果面板已打开，刷新按钮列表
+        if (gameObject.activeSelf)
+        {
+            RefreshButtonList();
+            
+            // 滚动到顶部
+            StartCoroutine(ScrollToTopAfterFrame());
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"MailPanel: 邮箱已重置，当前显示 {shownMailIds.Count} 个初始邮件");
         }
     }
     
@@ -435,31 +496,6 @@ public class MailPanel : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError($"MailPanel: 保存PlayerPrefs数据失败！错误：{e.Message}");
-        }
-    }
-    
-    /// <summary>
-    /// 重置邮箱到初始状态（清除PlayerPrefs数据并重新初始化）
-    /// </summary>
-    [ContextMenu("重置邮箱到初始状态")]
-    public void ResetMailbox()
-    {
-        // 清除PlayerPrefs中的数据
-        PlayerPrefs.DeleteKey(MAIL_SHOWN_IDS_KEY);
-        PlayerPrefs.Save();
-        
-        // 重新初始化默认邮件
-        InitializeDefaultMailIds();
-        
-        // 如果面板已打开，刷新显示
-        if (gameObject.activeSelf)
-        {
-            RefreshButtonList();
-        }
-        
-        if (enableDebugLog)
-        {
-            Debug.Log("MailPanel: 邮箱已重置到初始状态，当前只显示id为22的邮件");
         }
     }
     
