@@ -46,6 +46,12 @@ public class SkillManager : MonoBehaviour
     [Tooltip("技能介绍图片数组，按顺序：[0]Station1, [1]Station2, [2]Station3, [3]Boost1, [4]Core1, [5]Boost2, [6]Core2, [7]AntiHeat, [8]Predict, [9]Boost3, [10]Core3, [11]AntiCollision")]
     public Sprite[] skillInfoImages = new Sprite[12];
     
+    // 音效相关
+    [Header("音效设置")]
+    [Tooltip("技能解锁成功时播放的音效")]
+    public AudioClip skillUnlockSound;  // 技能解锁音效
+    private AudioSource audioSource;     // 音频源组件
+    
     // 当前要解锁的技能类型
     private SkillType currentSkillType;
     // Station 解锁状态
@@ -91,6 +97,9 @@ public class SkillManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // 初始化音频源
+        InitializeAudioSource();
+        
         // 初始化：默认隐藏 tip panel
         if (tipPanel != null)
         {
@@ -125,6 +134,35 @@ public class SkillManager : MonoBehaviour
         if (confirmUpgradeButton != null)
         {
             confirmUpgradeButton.onClick.AddListener(ConfirmUpgrade);
+        }
+    }
+
+    /// <summary>
+    /// 初始化音频源
+    /// </summary>
+    private void InitializeAudioSource()
+    {
+        // 如果未手动指定 AudioSource，尝试自动获取
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            // 如果还是没有，自动添加一个
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 播放技能解锁音效
+    /// </summary>
+    private void PlaySkillUnlockSound()
+    {
+        if (audioSource != null && skillUnlockSound != null)
+        {
+            audioSource.PlayOneShot(skillUnlockSound);
+            Debug.Log("SkillManager: 播放技能解锁音效");
         }
     }
 
@@ -212,6 +250,9 @@ public class SkillManager : MonoBehaviour
             // 如果没有配置 tip1 panel，则使用 Console 输出作为备选方案
             Debug.Log("Successfully unlock " + skillName);
         }
+        
+        // 播放技能解锁音效
+        PlaySkillUnlockSound();
     }
 
     // 关闭 Tip1 Panel
