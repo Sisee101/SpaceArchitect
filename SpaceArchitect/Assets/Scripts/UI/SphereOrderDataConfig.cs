@@ -36,6 +36,11 @@ public class SphereOrderDataConfig : ScriptableObject
         [Tooltip("任务完成时播放的胜利结算视频")]
         public VideoClip victoryVideoClip; // 胜利视频（新增）
 
+        [Header("目的地行星")]
+        [Tooltip("订单对应的目的地行星索引（0-12），用于查询行星是否已解锁。如果为-1，表示不关联行星系统")]
+        [Range(-1, 12)]
+        public int planetIndex = -1;     // 目的地行星索引
+
         [Header("订单状态")]
         [Tooltip("是否已访问订单（是否查看过订单详情）")]
         public bool VisitOrder = false;  // 是否已访问订单
@@ -129,6 +134,43 @@ public class SphereOrderDataConfig : ScriptableObject
     }
 
     /// <summary>
+    /// 检查订单的目的地行星是否已解锁
+    /// </summary>
+    /// <param name="orderInfo">订单信息</param>
+    /// <returns>如果行星已解锁返回true；如果未解锁或未配置行星索引返回false</returns>
+    public bool IsPlanetUnlocked(SphereOrderInfo orderInfo)
+    {
+        if (orderInfo == null)
+        {
+            Debug.LogWarning("SphereOrderDataConfig: orderInfo为空！");
+            return false;
+        }
+
+        // 如果未配置行星索引（-1），返回false（表示不关联行星系统或行星未解锁）
+        if (orderInfo.planetIndex < 0 || orderInfo.planetIndex > 12)
+        {
+            return false;
+        }
+
+        // 查询PlanetUnlockManager中的解锁状态
+        return PlanetUnlockManager.IsPlanetUnlocked(orderInfo.planetIndex);
+    }
+
+    /// <summary>
+    /// 根据行星索引查询是否已解锁（静态方法）
+    /// </summary>
+    /// <param name="planetIndex">行星索引（0-12）</param>
+    /// <returns>如果行星已解锁返回true，否则返回false</returns>
+    public static bool IsPlanetUnlockedByIndex(int planetIndex)
+    {
+        if (planetIndex < 0 || planetIndex > 12)
+        {
+            return false;
+        }
+        return PlanetUnlockManager.IsPlanetUnlocked(planetIndex);
+    }
+
+    /// <summary>
     /// 检查数据配置是否完整（用于编辑器验证）
     /// </summary>
     public void ValidateData()
@@ -161,6 +203,12 @@ public class SphereOrderDataConfig : ScriptableObject
             if (string.IsNullOrEmpty(info.targetSceneName))
             {
                 Debug.LogWarning($"SphereOrderDataConfig: 第 {i} 个订单信息（{info.sphereName}）的目标场景名称为空！");
+            }
+
+            // 检查行星索引是否在有效范围内
+            if (info.planetIndex < -1 || info.planetIndex > 12)
+            {
+                Debug.LogWarning($"SphereOrderDataConfig: 第 {i} 个订单信息（{info.sphereName}）的行星索引 {info.planetIndex} 无效！有效范围：-1（不关联）或 0-12");
             }
 
             // 检查taskId唯一性（如果已配置）
