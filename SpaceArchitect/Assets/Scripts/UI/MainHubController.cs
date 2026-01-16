@@ -15,6 +15,10 @@ public class MainHubController : MonoBehaviour
     [SerializeField] private Button planetEncyclopediaButton;
     [SerializeField] private Button mailButton;                    // 邮箱按钮
     
+    [Header("额外按钮")]
+    [Tooltip("额外的Station Level按钮（可在其他位置添加第二个按钮）")]
+    [SerializeField] private Button additionalStationLevelButton;  // 额外的基站等级按钮
+    
     [Header("返回按钮")]
     [SerializeField] private Button returnToMenuButton;            // 返回主菜单按钮
     
@@ -71,6 +75,12 @@ public class MainHubController : MonoBehaviour
         if (mailButton != null)
         {
             mailButton.onClick.AddListener(OnMailButtonClicked);
+        }
+        
+        // 绑定额外的Station Level按钮
+        if (additionalStationLevelButton != null)
+        {
+            additionalStationLevelButton.onClick.AddListener(OnStationLevelClicked);
         }
         
         // 绑定返回主菜单按钮
