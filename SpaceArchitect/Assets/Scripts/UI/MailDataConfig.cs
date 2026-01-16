@@ -15,6 +15,9 @@ public class MailDataConfig : ScriptableObject
         [Tooltip("邮件唯一ID（建议从0或1开始递增，确保唯一性）")]
         public int mailId;
         
+        [Tooltip("解锁这封邮件所需的订单ID")]
+        public int unlockOrderId;
+        
         [Tooltip("按钮上显示的图标图片")]
         public Sprite buttonIcon;
         
@@ -49,6 +52,38 @@ public class MailDataConfig : ScriptableObject
         
         Debug.LogWarning($"MailDataConfig: 未找到mailId为 {mailId} 的邮件数据！");
         return null;
+    }
+    
+    /// <summary>
+    /// 自动填充订单ID（设置为与邮件ID相同）
+    /// </summary>
+    [ContextMenu("自动填充订单ID")]
+    public void AutoFillUnlockOrderIds()
+    {
+        if (mailDataList == null || mailDataList.Count == 0)
+        {
+            Debug.LogWarning("MailDataConfig: 邮件数据列表为空！");
+            return;
+        }
+        
+        int updatedCount = 0;
+        for (int i = 0; i < mailDataList.Count; i++)
+        {
+            var info = mailDataList[i];
+            if (info == null)
+            {
+                continue;
+            }
+            
+            info.unlockOrderId = info.mailId;
+            updatedCount++;
+        }
+        
+        Debug.Log($"MailDataConfig: 已自动填充 {updatedCount} 个邮件的订单ID（设置为与邮件ID相同）");
+        
+        #if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+        #endif
     }
     
     /// <summary>
