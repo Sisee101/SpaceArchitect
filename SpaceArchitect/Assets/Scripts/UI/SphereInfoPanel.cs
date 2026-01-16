@@ -19,6 +19,10 @@ public class SphereInfoPanel : MonoBehaviour
     [Tooltip("订单数据配置（用于更新订单状态）")]
     [SerializeField] private SphereOrderDataConfig orderDataConfig; // 订单数据配置引用
     
+    [Header("任务管理器")]
+    [Tooltip("任务管理器（用于触发订单完成事件）")]
+    [SerializeField] private TaskManager taskManager; // 任务管理器引用
+    
     [Header("高亮控制器")]
     [SerializeField] private MenuHighlightController highlightController; // 高亮跟随控制器
     
@@ -322,11 +326,13 @@ public class SphereInfoPanel : MonoBehaviour
         // 播放点击音效
         PlayButtonClickSound();
         
-        // TODO: 在这里添加自动配送的逻辑
         if (enableDebugLog)
         {
             Debug.Log("SphereInfoPanel: 自动配送按钮被点击，开始自动配送");
         }
+        
+        // 触发订单完成事件
+        CompleteCurrentOrder();
         
         // 隐藏面板
         Hide();
@@ -635,5 +641,50 @@ public class SphereInfoPanel : MonoBehaviour
     public bool IsVisible()
     {
         return gameObject.activeSelf;
+    }
+    
+    /// <summary>
+    /// 完成当前订单
+    /// 触发订单完成事件，执行完成动画和奖励
+    /// </summary>
+    public void CompleteCurrentOrder()
+    {
+        if (currentOrderInfo == null)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("SphereInfoPanel: 当前订单信息为空，无法完成订单。可能原因：1) orderDataConfig未配置 2) 订单图片匹配失败");
+            }
+            return;
+        }
+        
+        if (taskManager == null)
+        {
+            Debug.LogError("SphereInfoPanel: taskManager未配置！无法触发订单完成事件。请在Inspector中配置Task Manager引用。");
+            return;
+        }
+        
+        // 检查是否有有效的taskId
+        if (currentOrderInfo.taskId < 0)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning($"SphereInfoPanel: 订单 {currentOrderInfo.sphereName} 没有有效的taskId (当前值: {currentOrderInfo.taskId})，无法完成订单");
+            }
+            return;
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"SphereInfoPanel: 开始完成订单 {currentOrderInfo.sphereName} (taskId={currentOrderInfo.taskId})");
+        }
+        
+        // 通过TaskManager触发订单完成事件
+        taskManager.CompleteTask(currentOrderInfo.taskId);
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"SphereInfoPanel: 已触发订单完成事件，taskId={currentOrderInfo.taskId}");
+        }
     }
 }
