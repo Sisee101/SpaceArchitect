@@ -2458,6 +2458,54 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 762968715}
   m_Mesh: {fileID: -4383783312767753158, guid: 8e67dda1ec886ca4bbc7c7b31e3bddcc, type: 3}
+--- !u!1 &769045885
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 769045887}
+  - component: {fileID: 769045886}
+  m_Layer: 0
+  m_Name: MailTriggerManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &769045886
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769045885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c957a65cfd7152e4cb4aadfe6aff0d5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  taskManager: {fileID: 1962398847}
+  mailDataConfig: {fileID: 11400000, guid: 4ab6ea80aa647524ebb5f7b81d70000e, type: 2}
+  mailPanel: {fileID: 2139955148}
+  enableDebugLog: 1
+--- !u!4 &769045887
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769045885}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 941.7093, y: 308.61224, z: 1367.095}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &784204002
 GameObject:
   m_ObjectHideFlags: 0
@@ -6630,6 +6678,54 @@ Transform:
   - {fileID: 786339509}
   m_Father: {fileID: 389188949}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2066708682
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2066708684}
+  - component: {fileID: 2066708683}
+  m_Layer: 0
+  m_Name: MailSceneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2066708683
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2066708682}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6217b54db2ff4f546b115c88513db7e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mailDataConfig: {fileID: 11400000, guid: 4ab6ea80aa647524ebb5f7b81d70000e, type: 2}
+  taskManager: {fileID: 1962398847}
+  mailPanel: {fileID: 2139955148}
+  enableDebugLog: 1
+--- !u!4 &2066708684
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2066708682}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 941.7093, y: 308.61224, z: 1367.095}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2139769402
 GameObject:
   m_ObjectHideFlags: 0
@@ -7439,11 +7535,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: MailPanel
       objectReference: {fileID: 0}
-    - target: {fileID: 2128914143541754664, guid: f9465abfc6b71bf4eb3273bec7e66ea7,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3891798027983020024, guid: f9465abfc6b71bf4eb3273bec7e66ea7,
         type: 3}
       propertyPath: m_Pivot.x
@@ -7544,6 +7635,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4149702518554319890, guid: f9465abfc6b71bf4eb3273bec7e66ea7,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7567,3 +7663,5 @@ SceneRoots:
   - {fileID: 1431533586}
   - {fileID: 350810497}
   - {fileID: 1256351811}
+  - {fileID: 769045887}
+  - {fileID: 2066708684}

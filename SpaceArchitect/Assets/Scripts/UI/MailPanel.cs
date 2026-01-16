@@ -36,6 +36,14 @@ public class MailPanel : MonoBehaviour
     [SerializeField] private float insertAnimationDuration = 0.3f;  // 插入动画时长
     [SerializeField] private bool enableInsertAnimation = true;    // 是否启用插入动画
     
+    [Header("小红点设置")]
+    [Tooltip("小红点的尺寸（相对于按钮尺寸的比例，例如0.2表示按钮宽度的20%）")]
+    [SerializeField] private float redDotSizeRatio = 0.2f;
+    [Tooltip("小红点的颜色")]
+    [SerializeField] private Color redDotColor = Color.red;
+    [Tooltip("小红点距离右上角的偏移量（相对于按钮尺寸的比例）")]
+    [SerializeField] private Vector2 redDotOffsetRatio = new Vector2(0.05f, 0.05f);
+    
     [Header("音效")]
     [Tooltip("音频源组件（如果为空，会自动获取或创建）")]
     [SerializeField] private AudioSource audioSource;
@@ -46,7 +54,9 @@ public class MailPanel : MonoBehaviour
     [SerializeField] private bool enableDebugLog = true;
     
     // PlayerPrefs键名
-    private const string MAIL_SHOWN_IDS_KEY = "MailShownIds";
+    private const string MAIL_SHOWN_IDS_KEY = "MailShownIds"; // 已解锁且可以被添加到邮箱的邮件
+    private const string MAIL_UNLOCKED_PENDING_KEY = "MailUnlockedPending"; // 已解锁但还不能添加进邮箱的邮件（暂存）
+    private const string MAIL_CLICKED_IDS_KEY = "MailClickedIds"; // 已被点击过的邮件ID列表
     
     [Header("运行时数据（仅用于调试查看）")]
     [Tooltip("已显示的邮件ID列表（按显示顺序，最前面的是最新插入的）")]
@@ -340,8 +350,122 @@ public class MailPanel : MonoBehaviour
         MailButtonItem buttonItem = buttonObj.AddComponent<MailButtonItem>();
         buttonItem.Initialize(mailInfo.mailId, mailInfo.buttonIcon, mailInfo.contentImage, this);
         
+        // 检查邮件是否被点击过，如果没被点击过，创建小红点
+        if (!IsMailClicked(mailInfo.mailId))
+        {
+            CreateRedDot(buttonObj, rectTransform);
+        }
+        
         // 添加到列表
         mailButtonObjects.Add(buttonObj);
+    }
+    
+    /// <summary>
+    /// 创建小红点（在按钮右上角）
+    /// </summary>
+    /// <param name="buttonObj">按钮GameObject</param>
+    /// <param name="buttonRectTransform">按钮的RectTransform</param>
+    private void CreateRedDot(GameObject buttonObj, RectTransform buttonRectTransform)
+    {
+        if (buttonObj == null || buttonRectTransform == null)
+        {
+            return;
+        }
+        
+        // 创建小红点GameObject
+        GameObject redDotObj = new GameObject("RedDot");
+        redDotObj.transform.SetParent(buttonObj.transform, false);
+        redDotObj.SetActive(true);
+        
+        // 添加RectTransform
+        RectTransform redDotRect = redDotObj.AddComponent<RectTransform>();
+        
+        // 设置锚点到右上角
+        redDotRect.anchorMin = new Vector2(1f, 1f);
+        redDotRect.anchorMax = new Vector2(1f, 1f);
+        redDotRect.pivot = new Vector2(0.5f, 0.5f);
+        
+        // 计算小红点尺寸（基于按钮尺寸）
+        float buttonWidth = buttonRectTransform.rect.width;
+        float buttonHeight = buttonRectTransform.rect.height;
+        float dotSize = Mathf.Min(buttonWidth, buttonHeight) * redDotSizeRatio;
+        
+        // 设置尺寸
+        redDotRect.sizeDelta = new Vector2(dotSize, dotSize);
+        
+        // 设置位置（右上角，带偏移）
+        float offsetX = buttonWidth * redDotOffsetRatio.x;
+        float offsetY = buttonHeight * redDotOffsetRatio.y;
+        redDotRect.anchoredPosition = new Vector2(-offsetX, -offsetY);
+        
+        // 添加Image组件并设置为红色圆形
+        Image redDotImage = redDotObj.AddComponent<Image>();
+        redDotImage.color = redDotColor;
+        
+        // 创建圆形Sprite
+        Sprite circleSprite = CreateCircleSprite((int)dotSize);
+        if (circleSprite != null)
+        {
+            redDotImage.sprite = circleSprite;
+        }
+        
+        redDotImage.type = Image.Type.Simple;
+        redDotImage.preserveAspect = true;
+        
+        // 设置层级，确保小红点在按钮上方
+        redDotObj.transform.SetAsLastSibling();
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"MailPanel: 为邮件按钮 mailId={buttonObj.name} 创建小红点");
+        }
+    }
+    
+    /// <summary>
+    /// 创建圆形Sprite
+    /// </summary>
+    /// <param name="size">圆形尺寸（像素）</param>
+    /// <returns>圆形Sprite</returns>
+    private Sprite CreateCircleSprite(int size)
+    {
+        if (size <= 0)
+        {
+            size = 32; // 默认尺寸
+        }
+        
+        // 创建纹理
+        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        
+        // 计算圆心和半径
+        float centerX = size / 2f;
+        float centerY = size / 2f;
+        float radius = size / 2f - 1f; // 留1像素边距，避免锯齿
+        
+        // 填充圆形
+        Color[] pixels = new Color[size * size];
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float distance = Mathf.Sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
+                if (distance <= radius)
+                {
+                    pixels[y * size + x] = Color.white; // 使用白色，通过Image的color属性控制最终颜色
+                }
+                else
+                {
+                    pixels[y * size + x] = Color.clear; // 透明
+                }
+            }
+        }
+        
+        texture.SetPixels(pixels);
+        texture.Apply();
+        
+        // 创建Sprite
+        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
+        
+        return sprite;
     }
     
     /// <summary>
@@ -371,6 +495,12 @@ public class MailPanel : MonoBehaviour
             return;
         }
         
+        // 标记邮件为已点击
+        MarkMailAsClicked(mailId);
+        
+        // 移除该邮件按钮上的小红点
+        RemoveRedDotFromButton(mailId);
+        
         // 更新右侧图片显示
         imageDisplay.sprite = contentImage;
         
@@ -396,6 +526,114 @@ public class MailPanel : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log($"MailPanel: 邮件按钮被点击，mailId={mailId}");
+        }
+    }
+    
+    /// <summary>
+    /// 检查邮件是否被点击过
+    /// </summary>
+    /// <param name="mailId">邮件ID</param>
+    /// <returns>是否被点击过</returns>
+    private bool IsMailClicked(int mailId)
+    {
+        List<int> clickedMailIds = GetClickedMailIds();
+        return clickedMailIds.Contains(mailId);
+    }
+    
+    /// <summary>
+    /// 标记邮件为已点击
+    /// </summary>
+    /// <param name="mailId">邮件ID</param>
+    private void MarkMailAsClicked(int mailId)
+    {
+        List<int> clickedMailIds = GetClickedMailIds();
+        
+        if (!clickedMailIds.Contains(mailId))
+        {
+            clickedMailIds.Add(mailId);
+            SaveClickedMailIds(clickedMailIds);
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"MailPanel: 标记邮件 mailId={mailId} 为已点击");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 获取已点击的邮件ID列表
+    /// </summary>
+    /// <returns>已点击的邮件ID列表</returns>
+    private List<int> GetClickedMailIds()
+    {
+        string json = PlayerPrefs.GetString(MAIL_CLICKED_IDS_KEY, "");
+        List<int> clickedMailIds = new List<int>();
+        
+        if (!string.IsNullOrEmpty(json))
+        {
+            try
+            {
+                SerializableList<int> serializableList = JsonUtility.FromJson<SerializableList<int>>(json);
+                if (serializableList != null && serializableList.list != null)
+                {
+                    clickedMailIds = serializableList.list;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"MailPanel: 解析已点击邮件数据失败: {e.Message}");
+            }
+        }
+        
+        return clickedMailIds;
+    }
+    
+    /// <summary>
+    /// 保存已点击的邮件ID列表到PlayerPrefs
+    /// </summary>
+    /// <param name="clickedMailIds">已点击的邮件ID列表</param>
+    private void SaveClickedMailIds(List<int> clickedMailIds)
+    {
+        try
+        {
+            SerializableList<int> serializableList = new SerializableList<int>(clickedMailIds);
+            string json = JsonUtility.ToJson(serializableList);
+            PlayerPrefs.SetString(MAIL_CLICKED_IDS_KEY, json);
+            PlayerPrefs.Save();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"MailPanel: 保存已点击邮件数据失败！错误：{e.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// 移除指定邮件按钮上的小红点
+    /// </summary>
+    /// <param name="mailId">邮件ID</param>
+    private void RemoveRedDotFromButton(int mailId)
+    {
+        foreach (var buttonObj in mailButtonObjects)
+        {
+            if (buttonObj != null)
+            {
+                MailButtonItem buttonItem = buttonObj.GetComponent<MailButtonItem>();
+                if (buttonItem != null && buttonItem.GetMailId() == mailId)
+                {
+                    // 查找小红点子对象
+                    Transform redDotTransform = buttonObj.transform.Find("RedDot");
+                    if (redDotTransform != null)
+                    {
+                        Destroy(redDotTransform.gameObject);
+                        
+                        if (enableDebugLog)
+                        {
+                            Debug.Log($"MailPanel: 已移除邮件 mailId={mailId} 按钮上的小红点");
+                        }
+                    }
+                    break;
+                }
+            }
         }
     }
     
@@ -465,6 +703,9 @@ public class MailPanel : MonoBehaviour
                     SaveShownMailIds();
                 }
                 
+                // 确保ID为22的邮件始终在列表中（如果配置中存在）
+                EnsureMail22Exists();
+                
                 if (enableDebugLog)
                 {
                     Debug.Log($"MailPanel: 从PlayerPrefs加载了 {shownMailIds.Count} 个已显示的邮件ID");
@@ -480,6 +721,37 @@ public class MailPanel : MonoBehaviour
         {
             // 首次运行，初始化邮件
             InitializeDefaultMailIds();
+        }
+    }
+    
+    /// <summary>
+    /// 确保ID为22的邮件始终在列表中（如果配置中存在且不在列表中，则添加到列表末尾）
+    /// </summary>
+    private void EnsureMail22Exists()
+    {
+        if (mailDataConfig == null || mailDataConfig.mailDataList == null)
+        {
+            return;
+        }
+        
+        // 检查ID为22的邮件是否存在
+        var mail22 = mailDataConfig.GetMailInfoById(22);
+        if (mail22 == null)
+        {
+            // 如果配置中不存在ID为22的邮件，不需要添加
+            return;
+        }
+        
+        // 如果ID为22的邮件不在列表中，添加到列表末尾（保持原有邮件顺序，新邮件在顶部）
+        if (!shownMailIds.Contains(22))
+        {
+            shownMailIds.Add(22);
+            SaveShownMailIds();
+            
+            if (enableDebugLog)
+            {
+                Debug.Log("MailPanel: 检测到ID为22的邮件不在列表中，已自动添加到列表末尾");
+            }
         }
     }
     
@@ -514,7 +786,7 @@ public class MailPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// 重置邮箱到初始状态（清空PlayerPrefs并重新初始化）
+    /// 重置邮箱到初始状态（清空PlayerPrefs并清空所有邮件）
     /// </summary>
     [ContextMenu("重置邮箱数据")]
     public void ResetMailToInitialState()
@@ -524,28 +796,24 @@ public class MailPanel : MonoBehaviour
             Debug.Log("MailPanel: 重置邮箱到初始状态");
         }
         
-        // 删除PlayerPrefs中的数据
+        // 删除PlayerPrefs中的数据（正式列表、暂存列表和已点击记录）
         PlayerPrefs.DeleteKey(MAIL_SHOWN_IDS_KEY);
+        PlayerPrefs.DeleteKey(MAIL_UNLOCKED_PENDING_KEY);
+        PlayerPrefs.DeleteKey(MAIL_CLICKED_IDS_KEY);
         PlayerPrefs.Save();
         
         // 清空当前显示的邮件ID列表
         shownMailIds.Clear();
         
-        // 重新初始化（只显示id为22的邮件）
-        InitializeDefaultMailIds();
-        
-        // 如果面板已打开，刷新按钮列表
+        // 如果面板已打开，清空按钮列表（不创建新按钮）
         if (gameObject.activeSelf)
         {
-            RefreshButtonList();
-            
-            // 滚动到顶部
-            StartCoroutine(ScrollToTopAfterFrame());
+            ClearAllButtons();
         }
         
         if (enableDebugLog)
         {
-            Debug.Log($"MailPanel: 邮箱已重置，当前显示 {shownMailIds.Count} 个初始邮件");
+            Debug.Log($"MailPanel: 邮箱已重置，已清空所有邮件数据（包括正式列表和暂存列表）");
         }
     }
     
@@ -612,6 +880,161 @@ public class MailPanel : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ReturnToMainHub();
+        }
+    }
+    
+    /// <summary>
+    /// 将邮件添加到暂存列表（已解锁但还不能添加进邮箱）
+    /// </summary>
+    /// <param name="mailId">邮件ID</param>
+    /// <returns>是否成功添加</returns>
+    public bool AddMailToPending(int mailId)
+    {
+        // 检查是否已经在正式列表中
+        if (shownMailIds.Contains(mailId))
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning($"MailPanel: 邮件 mailId={mailId} 已在正式列表中，跳过添加到暂存");
+            }
+            return false;
+        }
+        
+        // 从PlayerPrefs加载暂存列表
+        List<int> pendingMailIds = GetPendingMailIds();
+        
+        // 检查是否已在暂存列表中
+        if (pendingMailIds.Contains(mailId))
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning($"MailPanel: 邮件 mailId={mailId} 已在暂存列表中，跳过重复添加");
+            }
+            return false;
+        }
+        
+        // 添加到暂存列表
+        pendingMailIds.Add(mailId);
+        SavePendingMailIds(pendingMailIds);
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"MailPanel: 已将邮件 mailId={mailId} 添加到暂存列表");
+        }
+        
+        return true;
+    }
+    
+    /// <summary>
+    /// 从暂存列表移除邮件并添加到正式列表
+    /// </summary>
+    /// <param name="mailId">邮件ID</param>
+    /// <returns>是否成功移动</returns>
+    public bool MoveMailFromPendingToShown(int mailId)
+    {
+        // 从PlayerPrefs加载暂存列表
+        List<int> pendingMailIds = GetPendingMailIds();
+        
+        // 检查是否在暂存列表中
+        if (!pendingMailIds.Contains(mailId))
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning($"MailPanel: 邮件 mailId={mailId} 不在暂存列表中，无法移动");
+            }
+            return false;
+        }
+        
+        // 从暂存列表移除
+        pendingMailIds.Remove(mailId);
+        SavePendingMailIds(pendingMailIds);
+        
+        // 添加到正式列表（如果尚未存在）
+        if (!shownMailIds.Contains(mailId))
+        {
+            // 确保ID为22的邮件在列表中（如果配置中存在）
+            EnsureMail22Exists();
+            
+            // 将新邮件插入到列表最前面（索引0）
+            shownMailIds.Insert(0, mailId);
+            SaveShownMailIds();
+            
+            // 如果面板已打开，刷新按钮列表
+            if (gameObject.activeSelf)
+            {
+                RefreshButtonList();
+                
+                // 滚动到顶部显示新插入的按钮
+                StartCoroutine(ScrollToTopAfterFrame());
+                
+                // 播放插入动画（可选）
+                if (enableInsertAnimation && mailButtonObjects.Count > 0)
+                {
+                    PlayInsertAnimation(mailButtonObjects[0]);
+                }
+            }
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"MailPanel: 已将邮件 mailId={mailId} 从暂存列表移动到正式列表并添加到邮箱（列表顶部）");
+            }
+            
+            return true;
+        }
+        else
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning($"MailPanel: 邮件 mailId={mailId} 已在正式列表中，仅从暂存列表移除");
+            }
+            return false;
+        }
+    }
+    
+    /// <summary>
+    /// 获取暂存邮件ID列表
+    /// </summary>
+    /// <returns>暂存邮件ID列表</returns>
+    public List<int> GetPendingMailIds()
+    {
+        string json = PlayerPrefs.GetString(MAIL_UNLOCKED_PENDING_KEY, "");
+        List<int> pendingMailIds = new List<int>();
+        
+        if (!string.IsNullOrEmpty(json))
+        {
+            try
+            {
+                SerializableList<int> serializableList = JsonUtility.FromJson<SerializableList<int>>(json);
+                if (serializableList != null && serializableList.list != null)
+                {
+                    pendingMailIds = serializableList.list;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"MailPanel: 解析暂存邮件数据失败: {e.Message}");
+            }
+        }
+        
+        return pendingMailIds;
+    }
+    
+    /// <summary>
+    /// 保存暂存邮件ID列表到PlayerPrefs
+    /// </summary>
+    /// <param name="pendingMailIds">暂存邮件ID列表</param>
+    private void SavePendingMailIds(List<int> pendingMailIds)
+    {
+        try
+        {
+            SerializableList<int> serializableList = new SerializableList<int>(pendingMailIds);
+            string json = JsonUtility.ToJson(serializableList);
+            PlayerPrefs.SetString(MAIL_UNLOCKED_PENDING_KEY, json);
+            PlayerPrefs.Save();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"MailPanel: 保存暂存邮件数据失败！错误：{e.Message}");
         }
     }
     

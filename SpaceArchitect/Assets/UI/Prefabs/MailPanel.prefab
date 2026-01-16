@@ -103,10 +103,16 @@ MonoBehaviour:
   preserveButtonAspect: 1
   insertAnimationDuration: 0.3
   enableInsertAnimation: 1
+  redDotSizeRatio: 0.15
+  redDotColor: {r: 1, g: 0, b: 0, a: 1}
+  redDotOffsetRatio: {x: 0.05, y: 0.2}
   audioSource: {fileID: 0}
   mailButtonClickSound: {fileID: 8300000, guid: acaca9a91b23e44fb8eb8b834e319a59,
     type: 3}
   enableDebugLog: 1
+  shownMailIds: 
+  mailButtonObjects: []
+  currentSelectedButton: {fileID: 0}
 --- !u!1 &2356000733854856812
 GameObject:
   m_ObjectHideFlags: 0
@@ -172,7 +178,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: c6d12e16d10841b49ab39d4a270c1310, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 5d955fbc306e57743adff4f5ed75f25e, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -217,7 +223,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 341.9865, y: -50.999}
+  m_AnchoredPosition: {x: 312, y: -50.998}
   m_SizeDelta: {x: -947.3157, y: -287.65}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1897049927211480882
@@ -400,7 +406,7 @@ MonoBehaviour:
   m_Padding:
     m_Left: 0
     m_Right: 0
-    m_Top: 0
+    m_Top: 20
     m_Bottom: 0
   m_ChildAlignment: 4
   m_Spacing: 10
@@ -460,7 +466,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 481, y: -51}
+  m_AnchoredPosition: {x: 508, y: -51}
   m_SizeDelta: {x: 645, y: -287.6469}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8557872753407618255
