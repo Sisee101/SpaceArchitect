@@ -130,7 +130,7 @@ MonoBehaviour:
     planetIndex: 8
     VisitOrder: 0
     CompleteOrder: 0
-  - sphereName: "\u7130\u7409\u661F-4"
+  - sphereName: "\u7130\u6D41\u661F-4"
     orderImage: {fileID: 21300000, guid: f04166b46b4458147a9a0e96a4f80055, type: 3}
     targetSceneName: level5
     orderAmount: 5000
