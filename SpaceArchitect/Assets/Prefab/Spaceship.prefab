@@ -9,10 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1384418770383851332}
-  - component: {fileID: 3812112337009830717}
-  - component: {fileID: 4460733837387036339}
-  - component: {fileID: 509567712308099203}
-  - component: {fileID: 6287985110842330440}
   m_Layer: 0
   m_Name: Spaceship
   m_TagString: Untagged
@@ -39,111 +35,6 @@ Transform:
   - {fileID: 1808384423509968399}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3812112337009830717
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5228303165192812008}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 654f4e6d963c52e4199c2979bb57374e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  timeScale: 0.1
-  maxAimTime: 10
-  boostForce: 25
-  boostDuration: 0.5
-  cooldownTime: 2
-  minVelocityForBoost: 0.5
-  sectorAngle: 30
-  sectorRadius: 5
-  sectorSegments: 20
-  showVisualization: 1
-  sectorColor: {r: 1, g: 0.5377357, b: 0.94168836, a: 0.8980392}
-  sectorBorderColor: {r: 0.99402523, g: 0, b: 1, a: 1}
-  arrowColor: {r: 0.44705886, g: 0.3921569, b: 0.61960787, a: 1}
-  arrowLength: 5
-  arrowWidth: 1
-  aimKey: 98
-  confirmMouseButton: 0
-  boostLevel: 1
-  maxUsesPerRound: 1
-  currentUses: 0
-  boostParticles: {fileID: 0}
-  boostSound: {fileID: 0}
-  shockwaveController: {fileID: 0}
---- !u!114 &4460733837387036339
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5228303165192812008}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 654f4e6d963c52e4199c2979bb57374e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  timeScale: 0.1
-  maxAimTime: 10
-  boostForce: 20
-  boostDuration: 0.5
-  cooldownTime: 2
-  minVelocityForBoost: 0.5
-  sectorAngle: 30
-  sectorRadius: 5
-  sectorSegments: 20
-  showVisualization: 1
-  sectorColor: {r: 1, g: 0.5377357, b: 0.94168836, a: 0.8980392}
-  sectorBorderColor: {r: 0.99402523, g: 0, b: 1, a: 1}
-  arrowColor: {r: 0.44705886, g: 0.3921569, b: 0.61960787, a: 1}
-  arrowLength: 5
-  arrowWidth: 1
-  aimKey: 98
-  confirmMouseButton: 0
-  boostLevel: 1
-  maxUsesPerRound: 1
-  currentUses: 0
-  boostParticles: {fileID: 0}
-  boostSound: {fileID: 0}
-  shockwaveController: {fileID: 0}
---- !u!114 &509567712308099203
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5228303165192812008}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 880a41c81fa4aca43958ce1bb0f67cf9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shieldKey: 99
-  shieldDuration: 5
-  cooldownDuration: 10
-  shieldVFX: {fileID: 7348237585426727559}
-  asteroidBeltTag: Obstacles
-  showDebugLog: 1
---- !u!114 &6287985110842330440
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5228303165192812008}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2bcc0176844fd154c83b292e1bf61e2e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  heatShieldKey: 104
-  shieldDuration: 10
-  cooldownDuration: 5
-  heatShieldVFX: {fileID: 3118481429376495566}
-  showDebugLog: 1
 --- !u!1001 &1638508495484594288
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -322,12 +213,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1770572837505003439}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &3118481429376495566 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3734967104790823009, guid: 69793d8de86251a48b6ca06eb031408a,
-    type: 3}
-  m_PrefabInstance: {fileID: 1770572837505003439}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2953556552957799214
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -404,12 +289,6 @@ PrefabInstance:
 --- !u!4 &7309751916474300450 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5587929932538696460, guid: 28ac8abd5fdc5fa4d99c3af1967eef3f,
-    type: 3}
-  m_PrefabInstance: {fileID: 2953556552957799214}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &7348237585426727559 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5550417366402951593, guid: 28ac8abd5fdc5fa4d99c3af1967eef3f,
     type: 3}
   m_PrefabInstance: {fileID: 2953556552957799214}
   m_PrefabAsset: {fileID: 0}

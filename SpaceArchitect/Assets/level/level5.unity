@@ -3213,9 +3213,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentState: 0
-  targetCamera: {fileID: 0}
+  targetCamera: {fileID: 330585545}
   escapeCheckInterval: 0.5
   viewportMargin: 0.1
+  escapeCheckDelayAfterLaunch: 1
 --- !u!136 &1966355605
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -3379,11 +3380,11 @@ MonoBehaviour:
   overheatMode: 0
   overheatTexture: {fileID: 2800000, guid: 7da86ad6cc487f8489287ba050fc0f20, type: 3}
   overheatColor: {r: 1, g: 0.2, b: 0.2, a: 1}
-  emissionIntensity: 30
+  emissionIntensity: 10
   enableFlicker: 1
   flickerFrequency: 10
   maxFlickerMultiplier: 10
-  enableBloomGlow: 1
+  enableBloomGlow: 0
   glowSize: 10
   glowMaterial: {fileID: 2100000, guid: f82d9468a2db59b4890afe3c8cb43828, type: 2}
   glowColor: {r: 0.98742133, g: 0.87384135, b: 0.10246814, a: 1}
@@ -3397,6 +3398,41 @@ MonoBehaviour:
   redMaterials:
   - {fileID: 2100000, guid: 0a9ba974431476a4a96dd852730825b1, type: 2}
   showDebugLog: 1
+--- !u!114 &1966355616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1966355597}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 654f4e6d963c52e4199c2979bb57374e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timeScale: 0.1
+  maxAimTime: 10
+  boostForce: 20
+  boostDuration: 0.5
+  cooldownTime: 2
+  minVelocityForBoost: 0.5
+  sectorAngle: 30
+  sectorRadius: 5
+  sectorSegments: 20
+  showVisualization: 1
+  sectorColor: {r: 1, g: 0.5377357, b: 0.94168836, a: 0.8980392}
+  sectorBorderColor: {r: 0.99402523, g: 0, b: 1, a: 1}
+  arrowColor: {r: 0.44705886, g: 0.3921569, b: 0.61960787, a: 1}
+  arrowLength: 5
+  arrowWidth: 1
+  aimKey: 98
+  confirmMouseButton: 0
+  boostLevel: 1
+  maxUsesPerRound: 1
+  currentUses: 0
+  boostParticles: {fileID: 0}
+  boostSound: {fileID: 0}
+  shockwaveController: {fileID: 0}
 --- !u!114 &2011457926 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2143566025985778515, guid: 0f330486bd9d8694c8b8c19232e70ee8,
@@ -3726,6 +3762,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3812112337009830717, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
+      propertyPath: showVisualization
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3812112337009830717, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
       propertyPath: shockwaveController
       value: 
       objectReference: {fileID: 2011457926}
@@ -3810,27 +3851,27 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
-      insertIndex: 1
+      insertIndex: -1
       addedObject: {fileID: 1966355599}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
-      insertIndex: 2
+      insertIndex: -1
       addedObject: {fileID: 1966355604}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
-      insertIndex: 3
+      insertIndex: -1
       addedObject: {fileID: 1966355605}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
-      insertIndex: 4
+      insertIndex: -1
       addedObject: {fileID: 1966355608}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
-      insertIndex: 5
+      insertIndex: -1
       addedObject: {fileID: 1966355606}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
-      insertIndex: 6
+      insertIndex: -1
       addedObject: {fileID: 1966355609}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
@@ -3848,6 +3889,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1966355614}
+    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1966355616}
   m_SourcePrefab: {fileID: 100100000, guid: 85df5d8f1d63d594caaf743031644e31, type: 3}
 --- !u!1001 &8096820995769295793
 PrefabInstance:
