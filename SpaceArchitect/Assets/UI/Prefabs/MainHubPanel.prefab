@@ -224,6 +224,7 @@ GameObject:
   - component: {fileID: 8804312006751219399}
   - component: {fileID: 7110906832708226160}
   - component: {fileID: 5894273939692522691}
+  - component: {fileID: 1607409353874944818}
   m_Layer: 5
   m_Name: PlanetEncyclopediaButton
   m_TagString: Untagged
@@ -333,6 +334,21 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1607409353874944818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1661981071787715952}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edd9cee67ef16984fbe93ed98d52da7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoRefreshOnClick: 1
+  refreshDelay: 0.1
+  showDebugLogs: 1
 --- !u!1 &1730823770934203139
 GameObject:
   m_ObjectHideFlags: 0
@@ -496,10 +512,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 6596463675095026559}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 709, y: 0.83245}
-  m_SizeDelta: {x: 110.9017, y: 77.488}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 770, y: -80}
+  m_SizeDelta: {x: 66, y: 66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2231800405926853859
 CanvasRenderer:
@@ -529,7 +545,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 8bb0d688c16fcbe43a1e93301b432485, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f66973e2a9221364988e263248d5fe54, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -1155,8 +1171,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 2.7155, y: -101.22839}
-  m_SizeDelta: {x: 1842.9646, y: 126.4567}
+  m_AnchoredPosition: {x: -0.00048637, y: -86.0921}
+  m_SizeDelta: {x: 1920, y: 172.1883}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8089425309698971905
 CanvasRenderer:
@@ -1329,6 +1345,7 @@ MonoBehaviour:
   mailButton: {fileID: 6006148750317432411}
   returnToMenuButton: {fileID: 111617491591646833}
   mainHubPanel: {fileID: 1358478184912109104}
+  introductionPanel: {fileID: 0}
   settlementPanel: {fileID: 0}
   audioSource: {fileID: 0}
   buttonClickSound: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b, type: 3}
@@ -1371,8 +1388,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -76.87903, y: -58.66693}
-  m_SizeDelta: {x: 99.7581, y: 84.9459}
+  m_AnchoredPosition: {x: -80, y: -80}
+  m_SizeDelta: {x: 66, y: 66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1525891091091510255
 CanvasRenderer:
@@ -1402,7 +1419,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 96949ab809d4de64b93ddcb6eaa0ce17, type: 3}
+  m_Sprite: {fileID: 21300000, guid: cefe6225cd845dd4e9fbc92b727c9bc8, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -1568,10 +1585,10 @@ RectTransform:
   - {fileID: 1570728863708749568}
   m_Father: {fileID: 6596463675095026559}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -456, y: 23}
-  m_SizeDelta: {x: 337.1567, y: 50.7891}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: -456, y: -80}
+  m_SizeDelta: {x: 337.1567, y: 50.789093}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7314848246685461538
 CanvasRenderer:
@@ -1642,7 +1659,7 @@ PrefabInstance:
     - target: {fileID: 181345883204583482, guid: 7fb99d23c55192446bee54d2b870e79d,
         type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 181345883204583482, guid: 7fb99d23c55192446bee54d2b870e79d,
         type: 3}
@@ -1657,17 +1674,17 @@ PrefabInstance:
     - target: {fileID: 181345883204583482, guid: 7fb99d23c55192446bee54d2b870e79d,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 181345883204583482, guid: 7fb99d23c55192446bee54d2b870e79d,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: -1502.0587
+      value: 300
       objectReference: {fileID: 0}
     - target: {fileID: 181345883204583482, guid: 7fb99d23c55192446bee54d2b870e79d,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: -75.6676
+      value: 50.789
       objectReference: {fileID: 0}
     - target: {fileID: 181345883204583482, guid: 7fb99d23c55192446bee54d2b870e79d,
         type: 3}
@@ -1707,12 +1724,12 @@ PrefabInstance:
     - target: {fileID: 181345883204583482, guid: 7fb99d23c55192446bee54d2b870e79d,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -739.0528
+      value: 229
       objectReference: {fileID: 0}
     - target: {fileID: 181345883204583482, guid: 7fb99d23c55192446bee54d2b870e79d,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 22.999966
+      value: -80
       objectReference: {fileID: 0}
     - target: {fileID: 181345883204583482, guid: 7fb99d23c55192446bee54d2b870e79d,
         type: 3}
@@ -1733,6 +1750,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: FuelDisplay
+      objectReference: {fileID: 0}
+    - target: {fileID: 6311319719066330944, guid: 7fb99d23c55192446bee54d2b870e79d,
+        type: 3}
+      propertyPath: m_Color.a
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6997034535814925665, guid: 7fb99d23c55192446bee54d2b870e79d,
         type: 3}

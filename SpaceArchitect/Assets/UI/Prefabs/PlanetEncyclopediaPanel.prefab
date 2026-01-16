@@ -211,19 +211,19 @@ MonoBehaviour:
   - {fileID: 21300000, guid: e563e7433b06dca4193ed120a5c9be50, type: 3}
   - {fileID: 21300000, guid: 382d81372bfe95440892d5c316dad8d6, type: 3}
   detailCardImages:
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
-  - {fileID: 21300000, guid: cebd70279c264d042abbbc1320ec3f90, type: 3}
+  - {fileID: 21300000, guid: 3a0ba85346ea1ea4f924ebeeb1efc21c, type: 3}
+  - {fileID: 21300000, guid: 56214d9d0278d5448b3bafc82b41acff, type: 3}
+  - {fileID: 21300000, guid: 6ccf7d83ff71fe54ba3881d03aa447f2, type: 3}
+  - {fileID: 21300000, guid: 42950e1ce3d1dde4c9435ca867c7869c, type: 3}
+  - {fileID: 21300000, guid: dc4f450309bdc454681aab5b493cdb96, type: 3}
+  - {fileID: 21300000, guid: 37c5d7b7d555e1946815c3a2730cf1ac, type: 3}
+  - {fileID: 21300000, guid: d3ad8cc8adfec1e488454af658fc38e1, type: 3}
+  - {fileID: 21300000, guid: 28c537695ecf32849b746557058d25fc, type: 3}
+  - {fileID: 21300000, guid: 6f2ae3aa602c1d24aaba0b0957f1478b, type: 3}
+  - {fileID: 21300000, guid: 5d677e8e15056834cb0c9222462b9300, type: 3}
+  - {fileID: 21300000, guid: c376e2ca32481e74bbb93f1f4f7f83f9, type: 3}
+  - {fileID: 21300000, guid: 16de79a1d06e63748a1db8780ae5f9c9, type: 3}
+  - {fileID: 21300000, guid: d4d6ce98d12b43d408531dc3cb25a2ea, type: 3}
   lockedPlanetImage: {fileID: 21300000, guid: eeed88670b375654f90cf1c7a828b06b, type: 3}
   cardSpacing: 30
   planetCardWidth: 496
@@ -1410,8 +1410,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 2.2470703, y: 437.646}
-  m_SizeDelta: {x: -114.562, y: -924.007}
+  m_AnchoredPosition: {x: 0, y: 423.0114}
+  m_SizeDelta: {x: 0, y: -846.0328}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1392783451049793175
 CanvasRenderer:
@@ -1604,10 +1604,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 7914553207792661646}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0.5}
-  m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -67, y: 0.000026703}
-  m_SizeDelta: {x: 104.03131, y: 86.213}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -80, y: -80}
+  m_SizeDelta: {x: 66, y: 66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2106779872205100202
 CanvasRenderer:
