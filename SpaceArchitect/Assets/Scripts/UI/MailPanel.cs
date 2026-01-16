@@ -48,14 +48,15 @@ public class MailPanel : MonoBehaviour
     // PlayerPrefs键名
     private const string MAIL_SHOWN_IDS_KEY = "MailShownIds";
     
-    // 已显示的邮件ID列表（按显示顺序，最前面的是最新插入的）
-    private List<int> shownMailIds = new List<int>();
+    [Header("运行时数据（仅用于调试查看）")]
+    [Tooltip("已显示的邮件ID列表（按显示顺序，最前面的是最新插入的）")]
+    [SerializeField] private List<int> shownMailIds = new List<int>();
     
-    // 当前创建的按钮列表（存储GameObject，每个包含Image和MailButtonItem组件）
-    private List<GameObject> mailButtonObjects = new List<GameObject>();
+    [Tooltip("当前创建的按钮对象列表")]
+    [SerializeField] private List<GameObject> mailButtonObjects = new List<GameObject>();
     
-    // 当前选中的按钮
-    private GameObject currentSelectedButton = null;
+    [Tooltip("当前选中的按钮")]
+    [SerializeField] private GameObject currentSelectedButton = null;
     
     void Start()
     {
@@ -71,17 +72,6 @@ public class MailPanel : MonoBehaviour
         // 加载已显示的邮件ID列表
         LoadShownMailIds();
         
-        // 订阅M键事件
-        if (EventManager.Instance != null)
-        {
-            EventManager.Instance.OnMKeyPressed += OnMKeyPressed;
-            EventManager.Instance.OnCKeyPressed += OnCKeyPressed;
-        }
-        else
-        {
-            Debug.LogWarning("MailPanel: EventManager实例不存在，无法订阅M键和C键事件！");
-        }
-        
         // 如果面板已激活，刷新按钮列表
         if (gameObject.activeSelf)
         {
@@ -91,12 +81,7 @@ public class MailPanel : MonoBehaviour
     
     void OnDestroy()
     {
-        // 取消订阅M键和C键事件
-        if (EventManager.Instance != null)
-        {
-            EventManager.Instance.OnMKeyPressed -= OnMKeyPressed;
-            EventManager.Instance.OnCKeyPressed -= OnCKeyPressed;
-        }
+        // 清理资源
     }
     
     /// <summary>
@@ -104,8 +89,12 @@ public class MailPanel : MonoBehaviour
     /// </summary>
     public void Show()
     {
-        gameObject.SetActive(true);
-        RefreshButtonList();
+        // 只设置激活状态，不重复刷新（Start已经刷新过了）
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+            RefreshButtonList();
+        }
     }
     
     /// <summary>
@@ -117,25 +106,9 @@ public class MailPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// M键事件处理方法（由EventManager触发）
-    /// </summary>
-    private void OnMKeyPressed()
-    {
-        InsertNewMail();
-    }
-    
-    /// <summary>
-    /// C键事件处理方法（由EventManager触发，用于测试：清空邮箱并重置到初始状态）
-    /// </summary>
-    private void OnCKeyPressed()
-    {
-        ResetMailToInitialState();
-    }
-    
-    /// <summary>
     /// 插入新邮件按钮
     /// </summary>
-    private void InsertNewMail()
+    public void InsertNewMail()
     {
         if (mailDataConfig == null || mailDataConfig.mailDataList == null || mailDataConfig.mailDataList.Count == 0)
         {
@@ -166,6 +139,13 @@ public class MailPanel : MonoBehaviour
             return;
         }
         
+        // 防止重复添加（双重检查）
+        if (shownMailIds.Contains(newMail.mailId))
+        {
+            Debug.LogWarning($"MailPanel: 邮件ID {newMail.mailId} 已存在，跳过添加");
+            return;
+        }
+        
         // 将新邮件ID添加到列表最前面
         shownMailIds.Insert(0, newMail.mailId);
         
@@ -191,6 +171,69 @@ public class MailPanel : MonoBehaviour
                 PlayInsertAnimation(mailButtonObjects[0]);
             }
         }
+    }
+    
+    /// <summary>
+    /// 按指定邮件ID插入新邮件（用于订单完成后解锁邮件）
+    /// </summary>
+    /// <param name="mailId">要插入的邮件ID</param>
+    /// <returns>是否成功插入</returns>
+    public bool InsertMailById(int mailId)
+    {
+        if (mailDataConfig == null || mailDataConfig.mailDataList == null)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("MailPanel: mailDataConfig未配置！");
+            }
+            return false;
+        }
+        
+        // 检查是否已经显示
+        if (shownMailIds.Contains(mailId))
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning($"MailPanel: 邮件ID {mailId} 已存在，跳过添加");
+            }
+            return false;
+        }
+        
+        // 查找指定ID的邮件
+        var mailInfo = mailDataConfig.GetMailInfoById(mailId);
+        if (mailInfo == null)
+        {
+            Debug.LogWarning($"MailPanel: 未找到mailId={mailId}的邮件数据！");
+            return false;
+        }
+        
+        // 将新邮件ID添加到列表最前面
+        shownMailIds.Insert(0, mailId);
+        
+        // 保存到PlayerPrefs
+        SaveShownMailIds();
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"MailPanel: 插入指定邮件 mailId={mailId}，当前已显示 {shownMailIds.Count} 个邮件");
+        }
+        
+        // 如果面板已打开，立即创建UI并刷新显示
+        if (gameObject.activeSelf)
+        {
+            RefreshButtonList();
+            
+            // 滚动到顶部显示新插入的按钮
+            StartCoroutine(ScrollToTopAfterFrame());
+            
+            // 播放插入动画（可选）
+            if (enableInsertAnimation && mailButtonObjects.Count > 0)
+            {
+                PlayInsertAnimation(mailButtonObjects[0]);
+            }
+        }
+        
+        return true;
     }
     
     /// <summary>
@@ -404,6 +447,24 @@ public class MailPanel : MonoBehaviour
             {
                 shownMailIds = JsonUtility.FromJson<SerializableList<int>>(json).list;
                 
+                // 去重处理（防止PlayerPrefs中有重复数据）
+                List<int> uniqueIds = new List<int>();
+                foreach (int id in shownMailIds)
+                {
+                    if (!uniqueIds.Contains(id))
+                    {
+                        uniqueIds.Add(id);
+                    }
+                }
+                
+                if (uniqueIds.Count != shownMailIds.Count)
+                {
+                    Debug.LogWarning($"MailPanel: 检测到重复的邮件ID，已自动去重。原有 {shownMailIds.Count} 个，去重后 {uniqueIds.Count} 个");
+                    shownMailIds = uniqueIds;
+                    // 保存去重后的数据
+                    SaveShownMailIds();
+                }
+                
                 if (enableDebugLog)
                 {
                     Debug.Log($"MailPanel: 从PlayerPrefs加载了 {shownMailIds.Count} 个已显示的邮件ID");
@@ -417,13 +478,13 @@ public class MailPanel : MonoBehaviour
         }
         else
         {
-            // 首次运行，初始化前5个邮件
+            // 首次运行，初始化邮件
             InitializeDefaultMailIds();
         }
     }
     
     /// <summary>
-    /// 初始化默认邮件ID列表（前5个邮件）
+    /// 初始化默认邮件ID列表（只显示id为22的邮件）
     /// </summary>
     private void InitializeDefaultMailIds()
     {
@@ -431,39 +492,46 @@ public class MailPanel : MonoBehaviour
         
         if (mailDataConfig != null && mailDataConfig.mailDataList != null)
         {
-            int count = Mathf.Min(5, mailDataConfig.mailDataList.Count);
-            for (int i = 0; i < count; i++)
+            // 查找id为22的邮件
+            var mail22 = mailDataConfig.GetMailInfoById(22);
+            if (mail22 != null)
             {
-                if (mailDataConfig.mailDataList[i] != null)
+                shownMailIds.Add(22);
+                
+                if (enableDebugLog)
                 {
-                    shownMailIds.Add(mailDataConfig.mailDataList[i].mailId);
+                    Debug.Log("MailPanel: 首次运行，初始化邮件ID=22");
                 }
+            }
+            else
+            {
+                Debug.LogWarning("MailPanel: 未找到ID为22的邮件！");
             }
             
             // 保存到PlayerPrefs
             SaveShownMailIds();
-            
-            if (enableDebugLog)
-            {
-                Debug.Log($"MailPanel: 首次运行，初始化了 {shownMailIds.Count} 个默认邮件ID");
-            }
         }
     }
     
     /// <summary>
-    /// 重置邮箱到初始状态（清空所有邮件，只保留前5个，用于测试）
+    /// 重置邮箱到初始状态（清空PlayerPrefs并重新初始化）
     /// </summary>
-    private void ResetMailToInitialState()
+    [ContextMenu("重置邮箱数据")]
+    public void ResetMailToInitialState()
     {
         if (enableDebugLog)
         {
-            Debug.Log("MailPanel: 按下C键，重置邮箱到初始状态");
+            Debug.Log("MailPanel: 重置邮箱到初始状态");
         }
+        
+        // 删除PlayerPrefs中的数据
+        PlayerPrefs.DeleteKey(MAIL_SHOWN_IDS_KEY);
+        PlayerPrefs.Save();
         
         // 清空当前显示的邮件ID列表
         shownMailIds.Clear();
         
-        // 重新初始化前5个邮件
+        // 重新初始化（只显示id为22的邮件）
         InitializeDefaultMailIds();
         
         // 如果面板已打开，刷新按钮列表
