@@ -209,7 +209,40 @@ public class SceneTransitionManager : MonoBehaviour
         // 其他场景保持当前状态或设置为Playing
         
         Debug.Log($"SceneTransitionManager: 加载场景 {sceneName}");
+        
+        // 订阅场景加载完成事件，在场景加载后刷新光照
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        
         SceneManager.LoadScene(sceneName);
+    }
+    
+    /// <summary>
+    /// 场景加载完成回调（用于刷新光照设置）
+    /// </summary>
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 取消订阅，避免重复调用
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        
+        // 延迟刷新光照，确保场景完全初始化
+        StartCoroutine(RefreshLightingAfterSceneLoad());
+    }
+    
+    /// <summary>
+    /// 场景加载后刷新光照设置（修复从其他场景进入时光照变暗的问题）
+    /// </summary>
+    private System.Collections.IEnumerator RefreshLightingAfterSceneLoad()
+    {
+        // 等待场景完全加载和初始化
+        yield return new WaitForEndOfFrame();
+        yield return null; // 再等待一帧
+        
+        // 强制刷新渲染（这会重新应用光照设置）
+        // 注意：这个方法在运行时有效，但不会重新烘焙光照
+        // 主要作用是确保 Lighting Settings 被正确应用
+        QualitySettings.SetQualityLevel(QualitySettings.GetQualityLevel(), true);
+        
+        Debug.Log("SceneTransitionManager: 已刷新光照设置");
     }
     
     /// <summary>
