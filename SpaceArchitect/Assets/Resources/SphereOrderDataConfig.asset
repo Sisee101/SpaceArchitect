@@ -128,16 +128,16 @@ MonoBehaviour:
     taskId: 13
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     planetIndex: 8
-    VisitOrder: 1
+    VisitOrder: 0
     CompleteOrder: 0
-  - sphereName: "\u7130\u6D41\u661F-4"
+  - sphereName: "\u7130\u7409\u661F-4"
     orderImage: {fileID: 21300000, guid: f04166b46b4458147a9a0e96a4f80055, type: 3}
     targetSceneName: level5
     orderAmount: 5000
     taskId: 14
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     planetIndex: 4
-    VisitOrder: 1
+    VisitOrder: 0
     CompleteOrder: 0
   - sphereName: "\u51B0\u6CC9\u661F-4"
     orderImage: {fileID: 21300000, guid: 845e942b7dedacc40a517322b4bcf43a, type: 3}
