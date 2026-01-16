@@ -107,7 +107,7 @@ MonoBehaviour:
   redDotColor: {r: 1, g: 0, b: 0, a: 1}
   redDotOffsetRatio: {x: 0.05, y: 0.2}
   audioSource: {fileID: 0}
-  mailButtonClickSound: {fileID: 8300000, guid: acaca9a91b23e44fb8eb8b834e319a59,
+  mailButtonClickSound: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b,
     type: 3}
   enableDebugLog: 1
   shownMailIds: 
@@ -147,7 +147,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000061035156, y: 0}
+  m_AnchoredPosition: {x: -0.00012207031, y: 0}
   m_SizeDelta: {x: -49.9421, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8303892533627853662
@@ -223,7 +223,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 312, y: -50.998}
+  m_AnchoredPosition: {x: 312, y: -50.998047}
   m_SizeDelta: {x: -947.3157, y: -287.65}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1897049927211480882

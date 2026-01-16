@@ -1428,6 +1428,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65db740af714cbb4a931fbfcff19e4af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  taskManager: {fileID: 0}
+  orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
+  autoFindOnStart: 1
+  enableDebugLog: 1
 --- !u!1 &3497420318097604220
 GameObject:
   m_ObjectHideFlags: 0
@@ -2946,6 +2950,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: e0bac98361ee5bb468f84130352f65ee, type: 3}
   - {fileID: 21300000, guid: 2dc82a0c1320615448617f7f72426e81, type: 3}
   - {fileID: 21300000, guid: 1da0e2bf46e524f44893c91a37879749, type: 3}
+  skillUnlockSound: {fileID: 0}
 --- !u!1 &8700054895777484245
 GameObject:
   m_ObjectHideFlags: 0
@@ -3132,8 +3137,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 926ec8acc9353a74883f6a64c7f4206b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  upgradeButtonSound: {fileID: 8300000, guid: 755205a4c850d47d7841013de859ba98, type: 3}
-  confirmButtonSound: {fileID: 8300000, guid: d8c88e92b558a482fa1252c9591ec860, type: 3}
+  upgradeButtonSound: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b, type: 3}
+  confirmButtonSound: {fileID: 8300000, guid: 0db6203efaf83314ebeafcaf7d4f8f29, type: 3}
   buttonMappings:
   - button: {fileID: 2719811086681858853}
     buttonName: 
