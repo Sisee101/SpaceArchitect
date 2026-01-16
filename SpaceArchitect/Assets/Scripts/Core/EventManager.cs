@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 游戏事件管理器（单例）
-/// 统一管理游戏中的所有事件，提供类型安全的事件系统
+/// 游戏事件管理器（场景级单例）
+/// 统一管理当前场景中的所有事件，提供类型安全的事件系统
+/// 注意：每个场景拥有独立的EventManager实例，场景卸载时实例会被销毁
 /// </summary>
 public class EventManager : MonoBehaviour
 {
@@ -12,13 +13,15 @@ public class EventManager : MonoBehaviour
     private static bool _isQuitting = false;
     
     /// <summary>
-    /// 获取EventManager单例
+    /// 获取EventManager单例（场景级别）
+    /// 每个场景拥有独立的EventManager实例
+    /// 注意：需要在场景中手动放置EventManager GameObject，否则返回null
     /// </summary>
     public static EventManager Instance
     {
         get
         {
-            // 如果应用正在退出或场景正在卸载，不要创建新实例
+            // 如果应用正在退出或场景正在卸载，不要查找实例
             if (_isQuitting)
             {
                 return null;
@@ -26,67 +29,12 @@ public class EventManager : MonoBehaviour
             
             if (_instance == null)
             {
-                // 关键修复：在 Additive 加载时，优先查找关卡场景中的 EventManager
-                // 这样可以确保使用关卡场景中的 EventManager，而不是 MainHub 场景中可能创建的实例
-                EventManager[] allManagers = FindObjectsOfType<EventManager>();
+                // 查找当前场景中的EventManager（不自动创建）
+                _instance = FindObjectOfType<EventManager>();
                 
-                if (allManagers.Length > 0)
+                if (_instance == null)
                 {
-                    // 优先查找关卡场景中的 EventManager（场景名称包含 "level" 或 "scene02"）
-                    EventManager levelManager = null;
-                    EventManager mainHubManager = null;
-                    
-                    foreach (EventManager manager in allManagers)
-                    {
-                        string sceneName = manager.gameObject.scene.name;
-                        if (sceneName.Contains("level") || sceneName.Contains("scene02") || 
-                            sceneName.Contains("Level") || sceneName.Contains("Scene02") ||
-                            sceneName.Contains("_MainHub") == false) // 不是 MainHub 场景
-                        {
-                            levelManager = manager;
-                            break;
-                        }
-                        else if (sceneName.Contains("_MainHub"))
-                        {
-                            mainHubManager = manager;
-                        }
-                    }
-                    
-                    // 优先使用关卡场景中的 EventManager
-                    if (levelManager != null)
-                    {
-                        _instance = levelManager;
-                        Debug.Log($"EventManager: 找到关卡场景中的 EventManager: {levelManager.gameObject.scene.name}");
-                    }
-                    else if (mainHubManager != null)
-                    {
-                        // 如果没有关卡场景的，使用 MainHub 场景中的（临时使用）
-                        _instance = mainHubManager;
-                        Debug.Log($"EventManager: 临时使用 MainHub 场景中的 EventManager: {mainHubManager.gameObject.scene.name}（等待关卡场景加载）");
-                    }
-                    else
-                    {
-                        // 使用第一个找到的
-                        _instance = allManagers[0];
-                        Debug.Log($"EventManager: 使用找到的第一个 EventManager: {_instance.gameObject.scene.name}");
-                    }
-                }
-                else if (!_isQuitting)
-                {
-                    // 如果完全没有找到，且不在退出状态，创建新实例
-                    // 但只在关卡场景中创建，不在 MainHub 场景中创建
-                    string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-                    if (!currentSceneName.Contains("_MainHub"))
-                    {
-                        GameObject go = new GameObject("EventManager");
-                        _instance = go.AddComponent<EventManager>();
-                        DontDestroyOnLoad(go);
-                        Debug.Log($"EventManager: 在场景 {currentSceneName} 中创建新的 EventManager 实例");
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"EventManager: 在 MainHub 场景 {currentSceneName} 中未找到 EventManager，但不创建新实例（等待关卡场景加载）");
-                    }
+                    Debug.LogWarning($"EventManager: 场景 {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name} 中未找到EventManager实例，请在场景中手动添加EventManager GameObject");
                 }
             }
             return _instance;
@@ -472,26 +420,26 @@ public class EventManager : MonoBehaviour
     
     void Awake()
     {
-        // 确保单例
+        // 确保场景内单例（允许不同场景有不同实例）
         if (_instance == null)
         {
             _instance = this;
-            DontDestroyOnLoad(gameObject);
+            Debug.Log($"EventManager: 初始化场景 {gameObject.scene.name} 的EventManager实例");
         }
         else if (_instance != this)
         {
-            Debug.LogWarning("检测到多个EventManager实例，销毁重复的实例");
+            Debug.LogWarning($"EventManager: 场景 {gameObject.scene.name} 中检测到多个EventManager实例，销毁重复的实例");
             Destroy(gameObject);
         }
     }
     
     void OnDestroy()
     {
-        // 标记正在销毁，防止在OnDestroy期间重新创建实例
+        // 场景卸载时重置实例引用
         if (_instance == this)
         {
-            _isQuitting = true;
             _instance = null;
+            Debug.Log($"EventManager: 场景 {gameObject.scene.name} 的EventManager实例已销毁");
         }
         
         // 清理所有事件订阅（防止内存泄漏）

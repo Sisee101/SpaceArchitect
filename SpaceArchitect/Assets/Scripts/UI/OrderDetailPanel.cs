@@ -27,6 +27,10 @@ public class OrderDetailPanel : MonoBehaviour
     [Tooltip("订单数据配置（用于重置订单状态）")]
     [SerializeField] private SphereOrderDataConfig orderDataConfig; // 订单数据配置引用
     
+    [Header("场景配置")]
+    [Tooltip("下一天按钮跳转的目标场景名称（必须在Build Settings中）")]
+    [SerializeField] private string nextDaySceneName = "02_MainHub"; // 下一天场景名称
+    
     [Header("MainHub Canvas配置")]
     [Tooltip("当前MainHub场景的Canvas引用（用于在加载游戏场景时隐藏，卸载时恢复）。请在Inspector中手动拖拽配置。")]
     [SerializeField] private Canvas mainHubCanvas; // MainHub场景的Canvas引用
@@ -320,7 +324,7 @@ public class OrderDetailPanel : MonoBehaviour
     {
         if (enableDebugLog)
         {
-            Debug.Log("OrderDetailPanel: 点击下一天按钮，准备跳转到02_MainHub场景");
+            Debug.Log($"OrderDetailPanel: 点击下一天按钮，准备跳转到{nextDaySceneName}场景");
         }
         
         // 跳转到下一个主界面场景
@@ -328,30 +332,35 @@ public class OrderDetailPanel : MonoBehaviour
     }
     
     /// <summary>
-    /// 加载下一天场景（02_MainHub）
+    /// 加载下一天场景
     /// </summary>
     private void LoadNextDayScene()
     {
-        const string NEXT_DAY_SCENE = "02_MainHub";
+        // 检查场景名称是否配置
+        if (string.IsNullOrEmpty(nextDaySceneName))
+        {
+            Debug.LogError("OrderDetailPanel: 下一天场景名称未配置！请在Inspector中设置Next Day Scene Name字段。");
+            return;
+        }
         
         // 使用SceneTransitionManager（如果存在）
         if (SceneTransitionManager.Instance != null)
         {
-            SceneTransitionManager.Instance.LoadSceneByName(NEXT_DAY_SCENE);
+            SceneTransitionManager.Instance.LoadSceneByName(nextDaySceneName);
             
             if (enableDebugLog)
             {
-                Debug.Log($"OrderDetailPanel: 正在通过SceneTransitionManager加载{NEXT_DAY_SCENE}场景");
+                Debug.Log($"OrderDetailPanel: 正在通过SceneTransitionManager加载{nextDaySceneName}场景");
             }
         }
         else
         {
             // 直接使用SceneManager加载场景
-            UnityEngine.SceneManagement.SceneManager.LoadScene(NEXT_DAY_SCENE);
+            UnityEngine.SceneManagement.SceneManager.LoadScene(nextDaySceneName);
             
             if (enableDebugLog)
             {
-                Debug.Log($"OrderDetailPanel: SceneTransitionManager未找到，直接使用SceneManager加载{NEXT_DAY_SCENE}场景");
+                Debug.Log($"OrderDetailPanel: SceneTransitionManager未找到，直接使用SceneManager加载{nextDaySceneName}场景");
             }
         }
     }

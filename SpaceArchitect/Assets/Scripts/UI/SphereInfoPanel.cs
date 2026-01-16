@@ -13,6 +13,7 @@ public class SphereInfoPanel : MonoBehaviour
     [SerializeField] private Image panelImage;      // 显示订单图片的Image组件
     [SerializeField] private Button closeButton;    // 关闭按钮
     [SerializeField] private Button jumpButton;     // 跳转场景按钮（前往配送）
+    [SerializeField] private Button autoDeliveryButton; // 自动配送按钮
     
     [Header("数据配置")]
     [Tooltip("订单数据配置（用于更新订单状态）")]
@@ -67,6 +68,17 @@ public class SphereInfoPanel : MonoBehaviour
         else
         {
             Debug.LogError("SphereInfoPanel: jumpButton未配置！");
+        }
+        
+        if (autoDeliveryButton != null)
+        {
+            autoDeliveryButton.onClick.AddListener(OnAutoDeliveryClicked);
+            // 添加鼠标悬停高亮效果
+            SetupButtonHoverHighlight(autoDeliveryButton);
+        }
+        else
+        {
+            Debug.LogWarning("SphereInfoPanel: autoDeliveryButton未配置（如果不需要此按钮可以忽略此警告）");
         }
         
         if (panelImage == null)
@@ -243,10 +255,13 @@ public class SphereInfoPanel : MonoBehaviour
             Debug.Log("SphereInfoPanel: 已强制刷新Canvas");
         }
         
-        // 初始化高亮位置（对齐到第一个按钮）
-        if (highlightController != null && closeButton != null)
+        // 根据目的地行星解锁状态设置按钮可用性
+        UpdateButtonStatesBasedOnPlanetUnlock();
+        
+        // 初始化高亮位置（对齐到第一个启用的按钮）
+        if (highlightController != null)
         {
-            RectTransform firstButtonRect = closeButton.GetComponent<RectTransform>();
+            RectTransform firstButtonRect = GetFirstEnabledButton();
             if (firstButtonRect != null)
             {
                 highlightController.MoveToButton(firstButtonRect);
@@ -294,6 +309,27 @@ public class SphereInfoPanel : MonoBehaviour
         
         // 播放点击音效并延迟执行场景跳转，确保音效能够播放
         StartCoroutine(PlayClickSoundAndLoadScene());
+    }
+    
+    /// <summary>
+    /// 自动配送按钮点击事件
+    /// </summary>
+    private void OnAutoDeliveryClicked()
+    {
+        // 更新订单的访问状态
+        MarkOrderAsVisited();
+        
+        // 播放点击音效
+        PlayButtonClickSound();
+        
+        // TODO: 在这里添加自动配送的逻辑
+        if (enableDebugLog)
+        {
+            Debug.Log("SphereInfoPanel: 自动配送按钮被点击，开始自动配送");
+        }
+        
+        // 隐藏面板
+        Hide();
     }
     
     /// <summary>
@@ -405,6 +441,156 @@ public class SphereInfoPanel : MonoBehaviour
         {
             Debug.Log($"SphereInfoPanel: 订单 {currentOrderInfo.sphereName} (TaskId: {currentOrderInfo.taskId}) 已标记为已访问 (从 {oldValue} 变为 true)");
         }
+    }
+    
+    /// <summary>
+    /// 检查当前订单的目的地行星是否已解锁
+    /// </summary>
+    /// <returns>如果行星已解锁返回true，否则返回false</returns>
+    public bool IsDestinationPlanetUnlocked()
+    {
+        if (currentOrderInfo == null)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("SphereInfoPanel: 当前订单信息为空，无法查询目的地行星解锁状态");
+            }
+            return false;
+        }
+        
+        if (orderDataConfig == null)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("SphereInfoPanel: orderDataConfig未配置，无法查询目的地行星解锁状态");
+            }
+            return false;
+        }
+        
+        // 使用订单数据配置的方法查询行星解锁状态
+        bool isUnlocked = orderDataConfig.IsPlanetUnlocked(currentOrderInfo);
+        
+        if (enableDebugLog)
+        {
+            if (currentOrderInfo.planetIndex >= 0 && currentOrderInfo.planetIndex <= 12)
+            {
+                Debug.Log($"SphereInfoPanel: 订单 {currentOrderInfo.sphereName} 的目的地行星 {currentOrderInfo.planetIndex} 解锁状态: {(isUnlocked ? "已解锁" : "未解锁")}");
+            }
+            else
+            {
+                Debug.Log($"SphereInfoPanel: 订单 {currentOrderInfo.sphereName} 未关联行星系统（planetIndex: {currentOrderInfo.planetIndex}）");
+            }
+        }
+        
+        return isUnlocked;
+    }
+    
+    /// <summary>
+    /// 获取当前订单的目的地行星索引
+    /// </summary>
+    /// <returns>行星索引（0-12），如果未配置返回-1</returns>
+    public int GetDestinationPlanetIndex()
+    {
+        if (currentOrderInfo == null)
+        {
+            return -1;
+        }
+        return currentOrderInfo.planetIndex;
+    }
+    
+    /// <summary>
+    /// 根据目的地行星解锁状态更新按钮显示状态
+    /// 如果行星未解锁：显示jumpButton，隐藏autoDeliveryButton
+    /// 如果行星已解锁：隐藏jumpButton，显示autoDeliveryButton
+    /// </summary>
+    private void UpdateButtonStatesBasedOnPlanetUnlock()
+    {
+        // 检查目的地行星是否已解锁
+        bool isPlanetUnlocked = IsDestinationPlanetUnlocked();
+        int planetIndex = GetDestinationPlanetIndex();
+        
+        if (enableDebugLog)
+        {
+            if (planetIndex >= 0 && planetIndex <= 12)
+            {
+                Debug.Log($"SphereInfoPanel: 订单目的地行星 {planetIndex} 解锁状态: {(isPlanetUnlocked ? "已解锁" : "未解锁")}");
+            }
+            else
+            {
+                Debug.Log($"SphereInfoPanel: 订单未关联行星系统（planetIndex: {planetIndex}），默认未解锁状态");
+            }
+        }
+        
+        // 根据解锁状态设置按钮显示状态
+        if (isPlanetUnlocked)
+        {
+            // 行星已解锁：隐藏跳转按钮，显示自动配送按钮
+            if (jumpButton != null)
+            {
+                jumpButton.gameObject.SetActive(false);
+                if (enableDebugLog)
+                {
+                    Debug.Log("SphereInfoPanel: 目的地行星已解锁 -> 隐藏跳转按钮（Jump Button）");
+                }
+            }
+            
+            if (autoDeliveryButton != null)
+            {
+                autoDeliveryButton.gameObject.SetActive(true);
+                if (enableDebugLog)
+                {
+                    Debug.Log("SphereInfoPanel: 目的地行星已解锁 -> 显示自动配送按钮（Auto Delivery Button）");
+                }
+            }
+        }
+        else
+        {
+            // 行星未解锁：显示跳转按钮，隐藏自动配送按钮
+            if (jumpButton != null)
+            {
+                jumpButton.gameObject.SetActive(true);
+                if (enableDebugLog)
+                {
+                    Debug.Log("SphereInfoPanel: 目的地行星未解锁 -> 显示跳转按钮（Jump Button）");
+                }
+            }
+            
+            if (autoDeliveryButton != null)
+            {
+                autoDeliveryButton.gameObject.SetActive(false);
+                if (enableDebugLog)
+                {
+                    Debug.Log("SphereInfoPanel: 目的地行星未解锁 -> 隐藏自动配送按钮（Auto Delivery Button）");
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 获取第一个显示的按钮的RectTransform（用于初始化高亮位置）
+    /// </summary>
+    /// <returns>第一个显示按钮的RectTransform，如果都未显示则返回closeButton的RectTransform</returns>
+    private RectTransform GetFirstEnabledButton()
+    {
+        // 优先检查jumpButton（因为通常是默认操作）
+        if (jumpButton != null && jumpButton.gameObject.activeSelf)
+        {
+            return jumpButton.GetComponent<RectTransform>();
+        }
+        
+        // 如果jumpButton未显示，检查autoDeliveryButton
+        if (autoDeliveryButton != null && autoDeliveryButton.gameObject.activeSelf)
+        {
+            return autoDeliveryButton.GetComponent<RectTransform>();
+        }
+        
+        // 如果以上都不可用，返回closeButton（关闭按钮总是显示的）
+        if (closeButton != null)
+        {
+            return closeButton.GetComponent<RectTransform>();
+        }
+        
+        return null;
     }
     
     /// <summary>

@@ -856,30 +856,6 @@ public class SceneTransitionManager : MonoBehaviour
                     }
                 }
             }
-            
-            // 关键修复：确保 EventManager 使用关卡场景中的实例
-            // 通过访问 Instance 属性，触发重新查找逻辑
-            if (EventManager.Instance != null)
-            {
-                string eventManagerScene = EventManager.Instance.gameObject.scene.name;
-                Debug.Log($"SceneTransitionManager: EventManager 当前实例在场景: {eventManagerScene}");
-                
-                // 如果 EventManager 不在关卡场景中，尝试查找关卡场景中的 EventManager
-                if (eventManagerScene != sceneName)
-                {
-                    EventManager[] allManagers = FindObjectsOfType<EventManager>();
-                    foreach (EventManager manager in allManagers)
-                    {
-                        if (manager.gameObject.scene == gameScene)
-                        {
-                            Debug.Log($"SceneTransitionManager: 找到关卡场景 {sceneName} 中的 EventManager，将切换到此实例");
-                            // 注意：这里不能直接设置 _instance（私有字段），
-                            // 但通过访问 Instance 属性，应该会优先找到关卡场景中的实例
-                            break;
-                        }
-                    }
-                }
-            }
         }
         
         // 保存当前加载的游戏场景名称

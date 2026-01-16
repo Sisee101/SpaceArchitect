@@ -1,29 +1,38 @@
 using UnityEngine;
 
 /// <summary>
-/// 游戏重启管理器（单例）
+/// 游戏重启管理器（场景级单例）
 /// 管理游戏重启功能，监听失败事件并处理R键重启
+/// 注意：每个场景拥有独立的GameRestartManager实例，场景卸载时实例会被销毁
 /// </summary>
 public class GameRestartManager : MonoBehaviour
 {
     private static GameRestartManager _instance;
+    private static bool _isQuitting = false;
 
     /// <summary>
-    /// 获取GameRestartManager单例
+    /// 获取GameRestartManager单例（场景级别）
+    /// 每个场景拥有独立的GameRestartManager实例
+    /// 注意：需要在场景中手动放置GameRestartManager GameObject，否则返回null
     /// </summary>
     public static GameRestartManager Instance
     {
         get
         {
+            // 如果应用正在退出或场景正在卸载，不要查找实例
+            if (_isQuitting)
+            {
+                return null;
+            }
+
             if (_instance == null)
             {
+                // 查找当前场景中的GameRestartManager（不自动创建）
                 _instance = FindObjectOfType<GameRestartManager>();
 
                 if (_instance == null)
                 {
-                    GameObject go = new GameObject("GameRestartManager");
-                    _instance = go.AddComponent<GameRestartManager>();
-                    DontDestroyOnLoad(go);
+                    Debug.LogWarning($"GameRestartManager: 场景 {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name} 中未找到GameRestartManager实例，请在场景中手动添加GameRestartManager GameObject");
                 }
             }
             return _instance;
@@ -49,15 +58,15 @@ public class GameRestartManager : MonoBehaviour
 
     void Awake()
     {
-        // 确保单例
+        // 确保场景内单例（允许不同场景有不同实例）
         if (_instance == null)
         {
             _instance = this;
-            DontDestroyOnLoad(gameObject);
+            Debug.Log($"GameRestartManager: 初始化场景 {gameObject.scene.name} 的GameRestartManager实例");
         }
         else if (_instance != this)
         {
-            Debug.LogWarning("检测到多个GameRestartManager实例，销毁重复的实例");
+            Debug.LogWarning($"GameRestartManager: 场景 {gameObject.scene.name} 中检测到多个GameRestartManager实例，销毁重复的实例");
             Destroy(gameObject);
             return;
         }
@@ -87,12 +96,25 @@ public class GameRestartManager : MonoBehaviour
 
     void OnDestroy()
     {
+        // 场景卸载时重置实例引用
+        if (_instance == this)
+        {
+            _instance = null;
+            Debug.Log($"GameRestartManager: 场景 {gameObject.scene.name} 的GameRestartManager实例已销毁");
+        }
+
         // 取消订阅事件
         if (EventManager.Instance != null)
         {
             EventManager.Instance.OnShipFailed -= OnShipFailed;
             EventManager.Instance.OnShipSucceed -= OnShipSucceed;
         }
+    }
+
+    void OnApplicationQuit()
+    {
+        // 应用退出时标记，防止创建新实例
+        _isQuitting = true;
     }
 
     /// <summary>
