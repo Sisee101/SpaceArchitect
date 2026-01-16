@@ -7198,10 +7198,20 @@ PrefabInstance:
       propertyPath: introductionPanel
       value: 
       objectReference: {fileID: 1604552534}
+    - target: {fileID: 1808587352376928367, guid: 31b9c4e93f0463d46b23dcea0855a46c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2374643114258148447, guid: 31b9c4e93f0463d46b23dcea0855a46c,
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4415657439703583745, guid: 31b9c4e93f0463d46b23dcea0855a46c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5187875923423455613, guid: 31b9c4e93f0463d46b23dcea0855a46c,
         type: 3}
@@ -7523,7 +7533,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 2712d483022abfb4a81df94345b15ea7,
+      objectReference: {fileID: 21300000, guid: bdc13d38453e45b42ab6aa2cc8739f8c,
         type: 3}
     - target: {fileID: 4535258302976596867, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
