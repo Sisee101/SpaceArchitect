@@ -204,6 +204,9 @@ public class TaskCompletionHandler : MonoBehaviour
                 lastCheckTime = Time.time;
             }
         }
+        
+        // 持续检查待播放动画列表（关键修复：支持场景卸载后返回）
+        CheckPendingAnimations();
     }
     
     /// <summary>
@@ -496,6 +499,91 @@ public class TaskCompletionHandler : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log("TaskCompletionHandler: 已清理待播放订单列表");
+        }
+    }
+    
+    /// <summary>
+    /// 持续检查待播放动画列表（关键修复：支持Additive场景卸载后返回）
+    /// 因为MainHub场景使用Additive模式，卸载游戏场景时不会重新加载MainHub，
+    /// TaskCompletionHandler.Start()不会再次执行，所以需要在Update中持续检查
+    /// </summary>
+    private void CheckPendingAnimations()
+    {
+        if (orderDataConfig == null || orderDataConfig.orderDataList == null)
+        {
+            return;
+        }
+        
+        // 遍历所有订单，检查是否有待播放的动画
+        foreach (var orderInfo in orderDataConfig.orderDataList)
+        {
+            if (orderInfo == null)
+            {
+                continue;
+            }
+            
+            // 检查是否是新完成的订单（需要播放动画）
+            bool isPendingForAnimation = false;
+            if (orderInfo.taskId >= 0)
+            {
+                isPendingForAnimation = OrderCompleteAndLoadSceneButton.IsPendingForAnimation(orderInfo.taskId);
+            }
+            else
+            {
+                isPendingForAnimation = OrderCompleteAndLoadSceneButton.IsPendingForAnimation(orderInfo.sphereName);
+            }
+            
+            // 如果不在待播放列表中，跳过
+            if (!isPendingForAnimation)
+            {
+                continue;
+            }
+            
+            // 检查是否已经播放过动画（跨场景检查）
+            bool alreadyPlayedAnimation = false;
+            if (orderInfo.taskId >= 0)
+            {
+                alreadyPlayedAnimation = globallyProcessedTaskIds.Contains(orderInfo.taskId);
+            }
+            else
+            {
+                alreadyPlayedAnimation = globallyProcessedSphereNames.Contains(orderInfo.sphereName);
+            }
+            
+            // 检查是否已经在当前场景中处理过（避免重复处理）
+            bool alreadyProcessedInCurrentScene = false;
+            if (orderInfo.taskId >= 0)
+            {
+                alreadyProcessedInCurrentScene = processedTaskIds.Contains(orderInfo.taskId);
+            }
+            
+            if (isPendingForAnimation && orderInfo.CompleteOrder && !alreadyPlayedAnimation && !alreadyProcessedInCurrentScene)
+            {
+                // 这是新完成的订单，需要播放动画
+                if (enableDebugLog)
+                {
+                    Debug.Log($"TaskCompletionHandler: [Update] 检测到新完成的订单 {orderInfo.sphereName} (taskId={orderInfo.taskId})，准备播放动画");
+                }
+                
+                // 标记为已处理（当前场景）
+                if (orderInfo.taskId >= 0)
+                {
+                    processedTaskIds.Add(orderInfo.taskId);
+                }
+                
+                // 从待播放列表中移除
+                if (orderInfo.taskId >= 0)
+                {
+                    OrderCompleteAndLoadSceneButton.RemovePendingTaskId(orderInfo.taskId);
+                }
+                else
+                {
+                    OrderCompleteAndLoadSceneButton.RemovePendingSphereName(orderInfo.sphereName);
+                }
+                
+                // 播放动画
+                StartCoroutine(HandleTaskCompletionSequence(orderInfo.sphereName));
+            }
         }
     }
 }
