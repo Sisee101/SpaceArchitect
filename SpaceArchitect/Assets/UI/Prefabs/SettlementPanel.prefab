@@ -450,7 +450,6 @@ MonoBehaviour:
   resetVisitOrderButton: {fileID: 1528633754629100960}
   nextDayButton: {fileID: 1528633754629100960}
   orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
-  nextDaySceneName: 02_MainHub
   mainHubCanvas: {fileID: 0}
   stampAnimationDelay: 0.5
   enableDebugLog: 1
