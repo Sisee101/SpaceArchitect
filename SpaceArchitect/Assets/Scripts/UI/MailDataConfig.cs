@@ -18,6 +18,9 @@ public class MailDataConfig : ScriptableObject
         [Tooltip("解锁这封邮件所需的订单ID")]
         public int unlockOrderId;
         
+        [Tooltip("首次添加这封邮件到邮件面板的场景名称（进入该场景时，如果邮件已解锁，则自动添加到PlayerPrefs）")]
+        public string firstAddSceneName;
+        
         [Tooltip("按钮上显示的图标图片")]
         public Sprite buttonIcon;
         
@@ -127,6 +130,12 @@ public class MailDataConfig : ScriptableObject
             if (info.contentImage == null)
             {
                 Debug.LogWarning($"MailDataConfig: 第 {i} 个邮件信息（mailId={info.mailId}）的内容图片未配置！");
+            }
+            
+            // 检查场景名称配置
+            if (string.IsNullOrEmpty(info.firstAddSceneName))
+            {
+                Debug.LogWarning($"MailDataConfig: 第 {i} 个邮件信息（mailId={info.mailId}）的首添场景名称未配置！");
             }
         }
         

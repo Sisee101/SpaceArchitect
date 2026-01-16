@@ -98,6 +98,7 @@ public class MainHubController : MonoBehaviour
         // 结算界面会在自己的Start()中自动隐藏，这里不需要手动调用
     }
     
+    
     void Update()
     {
         // 监听空格键，显示结算界面
@@ -190,6 +191,9 @@ public class MainHubController : MonoBehaviour
             }
             
             Debug.Log("MainHubController: 未配置导入面板，直接显示主界面");
+            
+            // 没有导入面板时，延迟打开邮箱面板
+            StartCoroutine(DelayedOpenMailPanel());
         }
     }
     
@@ -211,6 +215,36 @@ public class MainHubController : MonoBehaviour
         }
         
         Debug.Log("MainHubController: 导入完成，显示主界面");
+        
+        // 导入完成后，延迟打开邮箱面板
+        StartCoroutine(DelayedOpenMailPanel());
+    }
+    
+    /// <summary>
+    /// 延迟打开邮箱面板（协程）
+    /// 确保所有组件都已初始化完成
+    /// </summary>
+    private IEnumerator DelayedOpenMailPanel()
+    {
+        // 等待多帧，确保所有对象都已完全初始化
+        yield return null;
+        yield return null;
+        
+        // 检查当前场景是否是MainHub场景
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName.Contains("_MainHub"))
+        {
+            // 打开邮箱面板
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowMail();
+                Debug.Log("MainHubController: 场景加载完成，自动打开邮箱面板");
+            }
+            else
+            {
+                Debug.LogWarning("MainHubController: UIManager未找到，无法自动打开邮箱面板");
+            }
+        }
     }
     
     /// <summary>
