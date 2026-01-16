@@ -271,7 +271,20 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 566234353}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 105905375064311447, guid: 7fb99d23c55192446bee54d2b870e79d,
+          type: 3}
+        m_TargetAssemblyTypeName: FuelManager, Assembly-CSharp
+        m_MethodName: ResetFuel
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &566234353
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -367,7 +380,7 @@ MonoBehaviour:
   highlightController: {fileID: 1414264006}
   orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
   audioSource: {fileID: 0}
-  buttonHoverSound: {fileID: 8300000, guid: ff943157781de4041b426c168c55c078, type: 3}
+  buttonHoverSound: {fileID: 8300000, guid: b38bfd3d52c72467b8481819543c7e41, type: 3}
   buttonClickSound: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b, type: 3}
   clickSoundDelay: 0.15
   enableDebugLog: 1
