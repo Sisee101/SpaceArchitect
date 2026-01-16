@@ -5482,7 +5482,7 @@ MonoBehaviour:
   imageButton: {fileID: 40448155}
   imageSwitchDuration: 0.3
   audioSource: {fileID: 0}
-  buttonClickSound: {fileID: 0}
+  buttonClickSound: {fileID: 8300000, guid: acaca9a91b23e44fb8eb8b834e319a59, type: 3}
   enableDebugLog: 0
 --- !u!114 &1604552535
 MonoBehaviour:
@@ -6913,6 +6913,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainHubPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 1358478184912109104, guid: 31b9c4e93f0463d46b23dcea0855a46c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1742993191335759325, guid: 31b9c4e93f0463d46b23dcea0855a46c,
         type: 3}
       propertyPath: settlementPanel
@@ -6923,6 +6928,16 @@ PrefabInstance:
       propertyPath: introductionPanel
       value: 
       objectReference: {fileID: 1604552534}
+    - target: {fileID: 2374643114258148447, guid: 31b9c4e93f0463d46b23dcea0855a46c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5187875923423455613, guid: 31b9c4e93f0463d46b23dcea0855a46c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6444389029458445102, guid: 31b9c4e93f0463d46b23dcea0855a46c,
         type: 3}
       propertyPath: targetPanel
@@ -6933,6 +6948,11 @@ PrefabInstance:
       propertyPath: fuelCostButtons.Array.data[0]
       value: 
       objectReference: {fileID: 1988151566}
+    - target: {fileID: 6910127508326130885, guid: 31b9c4e93f0463d46b23dcea0855a46c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8137607849848720293, guid: 31b9c4e93f0463d46b23dcea0855a46c,
         type: 3}
       propertyPath: m_Pivot.x
@@ -7204,20 +7224,41 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2101082602861637349, guid: bb671b89f53e88d409a2efc8d3a4777d,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 342.8947
+      objectReference: {fileID: 0}
+    - target: {fileID: 2101082602861637349, guid: bb671b89f53e88d409a2efc8d3a4777d,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 105.7416
+      objectReference: {fileID: 0}
+    - target: {fileID: 2101082602861637349, guid: bb671b89f53e88d409a2efc8d3a4777d,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -0.000019073
+      objectReference: {fileID: 0}
+    - target: {fileID: 2101082602861637349, guid: bb671b89f53e88d409a2efc8d3a4777d,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -451.97
+      objectReference: {fileID: 0}
     - target: {fileID: 2511184009338534333, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
       propertyPath: mainHubCanvas
       value: 
       objectReference: {fileID: 1628459104}
+    - target: {fileID: 3236351253230575918, guid: bb671b89f53e88d409a2efc8d3a4777d,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 2712d483022abfb4a81df94345b15ea7,
+        type: 3}
     - target: {fileID: 4535258302976596867, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
       propertyPath: m_Name
       value: SettlementPanel
-      objectReference: {fileID: 0}
-    - target: {fileID: 4535258302976596867, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6163648346986534025, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
@@ -7282,12 +7323,12 @@ PrefabInstance:
     - target: {fileID: 6872845125968758340, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 19.999996
       objectReference: {fileID: 0}
     - target: {fileID: 6872845125968758340, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 20.000002
       objectReference: {fileID: 0}
     - target: {fileID: 6872845125968758340, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
@@ -7349,6 +7390,12 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7993406415489300214, guid: bb671b89f53e88d409a2efc8d3a4777d,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: a85168be7ee1ff04d9eed702a6d3c8dc,
+        type: 3}
     - target: {fileID: 8087825325001853838, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
       propertyPath: m_AnchorMax.y

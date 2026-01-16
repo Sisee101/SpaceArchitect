@@ -128,7 +128,7 @@ MonoBehaviour:
     taskId: 13
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     planetIndex: 8
-    VisitOrder: 1
+    VisitOrder: 0
     CompleteOrder: 0
   - sphereName: "\u7130\u6D41\u661F-4"
     orderImage: {fileID: 21300000, guid: f04166b46b4458147a9a0e96a4f80055, type: 3}
@@ -137,7 +137,7 @@ MonoBehaviour:
     taskId: 14
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     planetIndex: 4
-    VisitOrder: 1
+    VisitOrder: 0
     CompleteOrder: 0
   - sphereName: "\u51B0\u6CC9\u661F-4"
     orderImage: {fileID: 21300000, guid: 845e942b7dedacc40a517322b4bcf43a, type: 3}
@@ -155,7 +155,7 @@ MonoBehaviour:
     taskId: 16
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     planetIndex: 10
-    VisitOrder: 0
+    VisitOrder: 1
     CompleteOrder: 0
   - sphereName: "\u7487\u5E90\u661F-4"
     orderImage: {fileID: 21300000, guid: 75028df05ae56a041843470723bc2416, type: 3}
@@ -175,7 +175,7 @@ MonoBehaviour:
     planetIndex: 12
     VisitOrder: 0
     CompleteOrder: 0
-  - sphereName: "\u7130\u7409\u661F-5"
+  - sphereName: "\u7130\u6D41\u661F-5"
     orderImage: {fileID: 21300000, guid: 443eadcfe7fab264faabc4ed36491f60, type: 3}
     targetSceneName: level5
     orderAmount: 7000

@@ -2653,7 +2653,7 @@ PrefabInstance:
     - target: {fileID: 3250539946466610629, guid: 051931d9ef6ed464881c61df0856743b,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6025831613419174454, guid: 051931d9ef6ed464881c61df0856743b,
         type: 3}
@@ -2904,7 +2904,7 @@ PrefabInstance:
     - target: {fileID: 2128914143541754664, guid: f9465abfc6b71bf4eb3273bec7e66ea7,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3891798027983020024, guid: f9465abfc6b71bf4eb3273bec7e66ea7,
         type: 3}
@@ -6799,6 +6799,12 @@ PrefabInstance:
       propertyPath: resetVisitOrderButton
       value: 
       objectReference: {fileID: 2022962532}
+    - target: {fileID: 3236351253230575918, guid: bb671b89f53e88d409a2efc8d3a4777d,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 0bca4ae6c1de70742804c258edb4ed8e,
+        type: 3}
     - target: {fileID: 4535258302976596867, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
       propertyPath: m_Name
@@ -6949,6 +6955,12 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7993406415489300214, guid: bb671b89f53e88d409a2efc8d3a4777d,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: a85168be7ee1ff04d9eed702a6d3c8dc,
+        type: 3}
     - target: {fileID: 8087825325001853838, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
       propertyPath: m_AnchorMax.y
