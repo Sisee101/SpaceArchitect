@@ -70,23 +70,23 @@ public class SkillManager : MonoBehaviour
 
     // Station 解锁所需的 Money 数额
     public static int Station1Cost = 0;
-    public static int Station2Cost = 10000;
-    public static int Station3Cost = 30000;
+    public static int Station2Cost = 5000;
+    public static int Station3Cost = 10000;
 
     // Station1 技能解锁所需的 Money 数额
-    public static int Boost1Cost = 2000;
+    public static int Boost1Cost = 3000;
     public static int Core1Cost = 0;
 
     // Station2 技能解锁所需的 Money 数额
-    public static int Boost2Cost = 5000;
+    public static int Boost2Cost = 6000;
     public static int Core2Cost = 3000;
-    public static int AntiHeatCost = 6000;
-    public static int PredictCost = 7000;
+    public static int AntiHeatCost = 5000;
+    public static int PredictCost = 3000;
 
     // Station3 技能解锁所需的 Money 数额
-    public static int Boost3Cost = 10000;
-    public static int Core3Cost = 8000;
-    public static int AntiCollisionCost = 10000;
+    public static int Boost3Cost = 9000;
+    public static int Core3Cost = 6000;
+    public static int AntiCollisionCost = 5000;
 
     // Start is called before the first frame update
     void Start()

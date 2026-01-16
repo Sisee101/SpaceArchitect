@@ -1507,7 +1507,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 180.6, y: -0.000022888}
+  m_AnchoredPosition: {x: 193.6, y: -0.000022888}
   m_SizeDelta: {x: 72.7685, y: 32.6785}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6919994926368716712
@@ -1636,6 +1636,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6596463675095026559}
     m_Modifications:
+    - target: {fileID: 105905375064311447, guid: 7fb99d23c55192446bee54d2b870e79d,
+        type: 3}
+      propertyPath: fuelSprites.Array.data[0]
+      value: 
+      objectReference: {fileID: 21300000, guid: c23107812aa726c43963342d2fbce87d,
+        type: 3}
+    - target: {fileID: 105905375064311447, guid: 7fb99d23c55192446bee54d2b870e79d,
+        type: 3}
+      propertyPath: fuelSprites.Array.data[1]
+      value: 
+      objectReference: {fileID: 21300000, guid: 3b42bbac98c527d4d8b2d6c5bdabe7de,
+        type: 3}
+    - target: {fileID: 105905375064311447, guid: 7fb99d23c55192446bee54d2b870e79d,
+        type: 3}
+      propertyPath: fuelSprites.Array.data[2]
+      value: 
+      objectReference: {fileID: 21300000, guid: 239af4273fb620541add4c6fd4d11a6d,
+        type: 3}
+    - target: {fileID: 105905375064311447, guid: 7fb99d23c55192446bee54d2b870e79d,
+        type: 3}
+      propertyPath: fuelSprites.Array.data[3]
+      value: 
+      objectReference: {fileID: 21300000, guid: a02b41c9efc8aec4e993f43f7972e7d1,
+        type: 3}
     - target: {fileID: 105905375064311447, guid: 7fb99d23c55192446bee54d2b870e79d,
         type: 3}
       propertyPath: fuelCostButtons.Array.size
