@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4958745441501765745
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8298261533650467344}
+  - component: {fileID: 6493712189921845390}
+  m_Layer: 0
+  m_Name: UIManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8298261533650467344
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4958745441501765745}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6277039596077343292}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6493712189921845390
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4958745441501765745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2da219e646beb44ea13255cc743184c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainMenuPanel: {fileID: 0}
+  mainHubController: {fileID: 0}
+  planetEncyclopediaPanel: {fileID: 0}
+  employeeHandbookPanel: {fileID: 0}
+  stationLevelPanel: {fileID: 0}
+  mailPanel: {fileID: 0}
+--- !u!1 &6394542187980004736
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6277039596077343292}
+  - component: {fileID: 5952369731295262581}
+  m_Layer: 0
+  m_Name: SphereIconManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6277039596077343292
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6394542187980004736}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -599.1877, y: -804.10913, z: 304.14398}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8298261533650467344}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5952369731295262581
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6394542187980004736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33fc65a0a973cf74886072cfa858de63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spheres:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  worldSpaceCanvas: {fileID: 0}
+  iconPrefab: {fileID: 3346225634873011282, guid: f75d6bd54cd18614a83dba931a3e0b0c,
+    type: 3}
+  targetCamera: {fileID: 0}
+  leftOffsetMultiplier: -1.54
+  upOffsetMultiplier: 1.5
+  iconBaseScale: {x: 0.1, y: 0.1, z: 0.1}
+  useWorldSpaceDirections: 1
+  maintainVisualSize: 1
+  referenceDistance: 10
+  toggleKey: 116
+  updateEveryFrame: 1
+  updateInterval: 0.1
+  faceCamera: 1
+  orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
+  infoPanel: {fileID: 462616897363263894, guid: 20fffd2d21f0dbf49a4e61b6ed0cb309,
+    type: 3}
+  taskManager: {fileID: 0}
+  hideAnimationDuration: 2
+  enableSphereGlow: 1
+  glowColor: {r: 0.3, g: 0.5, b: 1, a: 1}
+  glowIntensity: 0.3

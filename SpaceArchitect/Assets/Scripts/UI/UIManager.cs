@@ -4,29 +4,25 @@ using System.Collections.Generic; // 添加用于 HashSet
 using UnityEngine.SceneManagement; // 添加用于 SceneManager
 
 /// <summary>
-/// UI管理器（单例）
-/// 统一管理所有UI面板的显示和隐藏
+/// UI管理器（场景级单例）
+/// 统一管理当前场景所有UI面板的显示和隐藏
+/// 每个场景拥有独立的UIManager实例，随场景加载和销毁
 /// </summary>
 public class UIManager : MonoBehaviour
 {
     private static UIManager _instance;
     
     /// <summary>
-    /// 获取UIManager单例
+    /// 获取当前场景的UIManager实例
     /// </summary>
     public static UIManager Instance
     {
         get
         {
+            // 如果实例不存在或已被销毁，尝试在当前场景中查找
             if (_instance == null)
             {
                 _instance = FindObjectOfType<UIManager>();
-                
-                if (_instance == null)
-                {
-                    GameObject go = new GameObject("UIManager");
-                    _instance = go.AddComponent<UIManager>();
-                }
             }
             return _instance;
         }
@@ -58,16 +54,31 @@ public class UIManager : MonoBehaviour
     
     void Awake()
     {
-        // 确保单例
-        if (_instance == null)
+        // 设置当前场景的UIManager实例
+        // 如果场景中已有其他UIManager实例，销毁当前重复的实例
+        if (_instance != null && _instance != this)
         {
-            _instance = this;
-        }
-        else if (_instance != this)
-        {
-            Debug.LogWarning("检测到多个UIManager实例，销毁重复的实例");
+            Debug.LogWarning($"场景中检测到多个UIManager实例，销毁重复的实例: {gameObject.name}");
             Destroy(gameObject);
             return;
+        }
+        
+        // 设置当前实例为场景级单例
+        _instance = this;
+        
+        // 查找当前场景中的MainHubController
+        if (mainHubController == null)
+        {
+            mainHubController = FindObjectOfType<MainHubController>();
+        }
+    }
+    
+    void OnDestroy()
+    {
+        // 当前实例被销毁时，清除静态引用（如果是当前实例）
+        if (_instance == this)
+        {
+            _instance = null;
         }
     }
     
@@ -105,12 +116,26 @@ public class UIManager : MonoBehaviour
                 mainMenuPanel.Show();
             }
         }
-        else if (currentSceneName == "01_MainHub")
+        else if (currentSceneName.Contains("_MainHub"))
         {
-            // 主界面场景：隐藏所有子面板，显示主界面
+            // 所有MainHub场景（01_MainHub, 02_MainHub, 03_MainHub等）：隐藏所有子面板，显示主界面
+            // 使用Contains检查，支持多个MainHub场景
             if (mainHubController != null)
             {
                 // 主界面控制器会自动处理显示
+            }
+            else
+            {
+                // 如果mainHubController未配置，尝试自动查找当前场景中的MainHubController
+                mainHubController = FindObjectOfType<MainHubController>();
+                if (mainHubController != null)
+                {
+                    Debug.Log($"UIManager: 在场景 {currentSceneName} 中自动找到MainHubController");
+                }
+                else
+                {
+                    Debug.LogWarning($"UIManager: 场景 {currentSceneName} 中未找到MainHubController！");
+                }
             }
         }
         
@@ -428,13 +453,24 @@ public class UIManager : MonoBehaviour
     public void ReturnToMainHub()
     {
         HideAllPanels();
+        
+        // 如果mainHubController未配置，尝试自动查找
+        if (mainHubController == null)
+        {
+            mainHubController = FindObjectOfType<MainHubController>();
+            if (mainHubController != null)
+            {
+                Debug.Log("UIManager: 自动找到MainHubController引用");
+            }
+        }
+        
         if (mainHubController != null)
         {
             mainHubController.ReturnToMainHub();
         }
         else
         {
-            Debug.LogWarning("UIManager: MainHubController未配置");
+            Debug.LogWarning("UIManager: MainHubController未配置，无法返回主界面。面板已隐藏。");
         }
     }
 }
