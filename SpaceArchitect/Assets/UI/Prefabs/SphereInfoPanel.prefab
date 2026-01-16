@@ -423,6 +423,7 @@ MonoBehaviour:
   jumpButton: {fileID: 5805702383406040168}
   autoDeliveryButton: {fileID: 5317507447521148227}
   orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
+  taskManager: {fileID: 0}
   highlightController: {fileID: 7603621432223839093}
   audioSource: {fileID: 0}
   buttonHoverSound: {fileID: 8300000, guid: 89e617dde557ee9458afb4f224f8332e, type: 3}
