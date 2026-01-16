@@ -4143,6 +4143,9 @@ MonoBehaviour:
   lineWidth: 0.1
   lineColor: {r: 0, g: 1, b: 0.5, a: 0.8}
   lineMaterial: {fileID: 0}
+  useDashedLine: 1
+  dashLength: 0.5
+  gapLength: 0.3
   showOnStart: 1
   toggleKey: 113
   updateInterval: 0.1
@@ -4501,6 +4504,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: GameCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 8068943523410443713, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: selectedOrderIndex
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 8385773780695652788, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: planetIndex
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
