@@ -19,6 +19,19 @@ public class ShipHeatShieldSkill : MonoBehaviour
     [Header("隔热特效设置")]
     [Tooltip("隔热特效GameObject（场景中已存在的特效，直接控制其active状态）")]
     [SerializeField] private GameObject heatShieldVFX;
+    
+    [Header("音效设置")]
+    [Tooltip("激活技能时的音效（可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip activateSoundClip;
+    
+    [Tooltip("激活音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource activateSoundSource;
+    
+    [Tooltip("停用技能时的音效（可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip deactivateSoundClip;
+    
+    [Tooltip("停用音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource deactivateSoundSource;
 
     [Header("调试")]
     [Tooltip("是否显示调试信息")]
@@ -141,6 +154,9 @@ public class ShipHeatShieldSkill : MonoBehaviour
         // 显示隔热特效
         ShowHeatShieldVFX();
 
+        // 播放激活音效
+        PlayActivateSound();
+
         // 触发技能激活事件（可选）
         if (EventManager.Instance != null)
         {
@@ -170,10 +186,77 @@ public class ShipHeatShieldSkill : MonoBehaviour
         // 隐藏隔热特效
         HideHeatShieldVFX();
 
+        // 播放停用音效
+        PlayDeactivateSound();
+
         // 触发技能停用事件（可选）
         if (EventManager.Instance != null)
         {
             // 如果有相关事件，可以在这里触发
+        }
+    }
+
+    /// <summary>
+    /// 播放激活音效
+    /// </summary>
+    private void PlayActivateSound()
+    {
+        if (activateSoundClip == null)
+        {
+            return;
+        }
+        
+        // 如果指定了AudioSource，使用它播放
+        if (activateSoundSource != null)
+        {
+            if (!activateSoundSource.isPlaying)
+            {
+                activateSoundSource.PlayOneShot(activateSoundClip);
+            }
+        }
+        else
+        {
+            // 如果没有指定AudioSource，使用AudioSource.PlayOneShot（需要AudioSource组件）
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                // 自动添加AudioSource组件
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+            audioSource.PlayOneShot(activateSoundClip);
+        }
+    }
+
+    /// <summary>
+    /// 播放停用音效
+    /// </summary>
+    private void PlayDeactivateSound()
+    {
+        if (deactivateSoundClip == null)
+        {
+            return;
+        }
+        
+        // 如果指定了AudioSource，使用它播放
+        if (deactivateSoundSource != null)
+        {
+            if (!deactivateSoundSource.isPlaying)
+            {
+                deactivateSoundSource.PlayOneShot(deactivateSoundClip);
+            }
+        }
+        else
+        {
+            // 如果没有指定AudioSource，使用AudioSource.PlayOneShot（需要AudioSource组件）
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                // 自动添加AudioSource组件
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+            audioSource.PlayOneShot(deactivateSoundClip);
         }
     }
 

@@ -78,8 +78,24 @@ public class ShipBoostAim : MonoBehaviour
     [Tooltip("加速时的粒子效果")]
     [SerializeField] private ParticleSystem boostParticles;
 
-    [Tooltip("加速时的音效")]
-    [SerializeField] private AudioSource boostSound;
+    [Header("音效设置")]
+    [Tooltip("时停开始时的音效（可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip timeStopStartClip;
+    
+    [Tooltip("时停开始音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource timeStopStartSource;
+    
+    [Tooltip("时停结束时的音效（可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip timeStopEndClip;
+    
+    [Tooltip("时停结束音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource timeStopEndSource;
+    
+    [Tooltip("加速时的音效（可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip boostSoundClip;
+    
+    [Tooltip("加速音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource boostSoundSource;
 
     [Tooltip("冲击波效果控制器")]
     [SerializeField] private ShockwaveController shockwaveController;
@@ -400,6 +416,9 @@ public class ShipBoostAim : MonoBehaviour
         originalTimeScale = Time.timeScale;
         Time.timeScale = timeScale;
 
+        // 播放时停开始音效
+        PlayTimeStopStartSound();
+
         // 2. 触发时停开始事件（通知其他系统，如相机效果）
         if (EventManager.Instance != null)
         {
@@ -556,6 +575,9 @@ public class ShipBoostAim : MonoBehaviour
         
         Debug.Log($"时停结束，Time.timeScale 已恢复为: {Time.timeScale} (原始值: {originalTimeScale})");
 
+        // 播放时停结束音效
+        PlayTimeStopEndSound();
+
         // 触发时停结束事件
         if (EventManager.Instance != null)
         {
@@ -707,9 +729,115 @@ public class ShipBoostAim : MonoBehaviour
         }
 
         // 播放音效
-        if (boostSound != null && !boostSound.isPlaying)
+        PlayBoostSound();
+    }
+
+    /// <summary>
+    /// 播放时停开始音效
+    /// </summary>
+    private void PlayTimeStopStartSound()
+    {
+        if (timeStopStartClip == null)
         {
-            boostSound.Play();
+            return;
+        }
+        
+        // 如果指定了AudioSource，使用它播放
+        if (timeStopStartSource != null)
+        {
+            timeStopStartSource.PlayOneShot(timeStopStartClip);
+        }
+        else
+        {
+            // 如果没有指定AudioSource，使用AudioSource.PlayOneShot（需要AudioSource组件）
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                // 自动添加AudioSource组件
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+            audioSource.PlayOneShot(timeStopStartClip);
+        }
+    }
+
+    /// <summary>
+    /// 播放时停结束音效
+    /// </summary>
+    private void PlayTimeStopEndSound()
+    {
+        if (timeStopEndClip == null)
+        {
+            return;
+        }
+        
+        // 如果指定了AudioSource，使用它播放
+        if (timeStopEndSource != null)
+        {
+            timeStopEndSource.PlayOneShot(timeStopEndClip);
+        }
+        else
+        {
+            // 如果没有指定AudioSource，使用AudioSource.PlayOneShot（需要AudioSource组件）
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                // 自动添加AudioSource组件
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+            audioSource.PlayOneShot(timeStopEndClip);
+        }
+    }
+
+    /// <summary>
+    /// 播放加速音效（只播放一遍，播放完自动结束，不受boost结束影响）
+    /// </summary>
+    private void PlayBoostSound()
+    {
+        if (boostSoundClip == null)
+        {
+            return;
+        }
+        
+        // 如果指定了AudioSource，使用它播放
+        if (boostSoundSource != null)
+        {
+            boostSoundSource.PlayOneShot(boostSoundClip);
+        }
+        else
+        {
+            // 如果没有指定AudioSource，使用AudioSource.PlayOneShot（需要AudioSource组件）
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                // 自动添加AudioSource组件
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+            audioSource.PlayOneShot(boostSoundClip);
+        }
+    }
+
+    /// <summary>
+    /// 停止加速音效（注意：使用 PlayOneShot 播放的音效会自动播放完就停止，通常不需要手动停止）
+    /// </summary>
+    private void StopBoostSound()
+    {
+        // 如果指定了AudioSource，停止它
+        if (boostSoundSource != null && boostSoundSource.isPlaying)
+        {
+            boostSoundSource.Stop();
+        }
+        else
+        {
+            // 如果没有指定AudioSource，尝试从组件获取
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource != null && audioSource.isPlaying && audioSource.clip == boostSoundClip)
+            {
+                // 只有当正在播放boost音效时才停止
+                audioSource.Stop();
+            }
         }
     }
 
@@ -724,11 +852,7 @@ public class ShipBoostAim : MonoBehaviour
             boostParticles.Stop();
         }
 
-        // 停止音效
-        if (boostSound != null && boostSound.isPlaying)
-        {
-            boostSound.Stop();
-        }
+        // 注意：音效使用 PlayOneShot 播放，会自动播放完一遍后结束，不需要手动停止
     }
 
     /// <summary>

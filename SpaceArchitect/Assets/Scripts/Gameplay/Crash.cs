@@ -21,8 +21,12 @@ public class Crash : MonoBehaviour
     [Tooltip("碰撞时的粒子效果Prefab（可选）")]
     [SerializeField] private GameObject crashParticlesPrefab;
 
-    [Tooltip("碰撞音效（可选）")]
-    [SerializeField] private AudioSource crashSound;
+    [Header("音效设置")]
+    [Tooltip("碰撞音效（可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip crashSoundClip;
+    
+    [Tooltip("碰撞音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource crashSoundSource;
 
     [Header("调试")]
     [Tooltip("显示碰撞调试信息")]
@@ -387,9 +391,38 @@ public class Crash : MonoBehaviour
         }
 
         // 播放音效
-        if (playCrashSound && crashSound != null)
+        if (playCrashSound)
         {
-            crashSound.Play();
+            PlayCrashSound();
+        }
+    }
+
+    /// <summary>
+    /// 播放碰撞音效
+    /// </summary>
+    private void PlayCrashSound()
+    {
+        if (crashSoundClip == null)
+        {
+            return;
+        }
+        
+        // 如果指定了AudioSource，使用它播放
+        if (crashSoundSource != null)
+        {
+            crashSoundSource.PlayOneShot(crashSoundClip);
+        }
+        else
+        {
+            // 如果没有指定AudioSource，使用AudioSource.PlayOneShot（需要AudioSource组件）
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                // 自动添加AudioSource组件
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+            audioSource.PlayOneShot(crashSoundClip);
         }
     }
 

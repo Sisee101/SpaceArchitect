@@ -27,6 +27,13 @@ public class ShipSimpleLauncher : MonoBehaviour
     [Tooltip("箭头之间的间距（相对于箭头长度）")]
     [SerializeField] private float arrowSpacing = 0.6f;
 
+    [Header("音效设置")]
+    [Tooltip("发射时的音效（可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip launchSoundClip;
+    
+    [Tooltip("发射音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource launchSoundSource;
+
     [Header("调试")]
     [Tooltip("是否显示调试信息")]
     [SerializeField] private bool showDebugLog = true;
@@ -308,12 +315,47 @@ public class ShipSimpleLauncher : MonoBehaviour
         // 4. 延迟一帧后通过 GravityEngine.SetVelocity() 确保速度正确应用
         shipState.Launch(velocity);
 
+        // 播放发射音效
+        PlayLaunchSound();
+
         // 隐藏箭头
         HideArrows();
 
         if (showDebugLog)
         {
             Debug.Log($"ShipSimpleLauncher: 飞船已发射！速度: {velocity}, 方向: {currentLaunchDirection}, 大小: {velocity.magnitude}");
+        }
+    }
+
+    /// <summary>
+    /// 播放发射音效
+    /// </summary>
+    private void PlayLaunchSound()
+    {
+        if (launchSoundClip == null)
+        {
+            return;
+        }
+        
+        // 如果指定了AudioSource，使用它播放
+        if (launchSoundSource != null)
+        {
+            if (!launchSoundSource.isPlaying)
+            {
+                launchSoundSource.PlayOneShot(launchSoundClip);
+            }
+        }
+        else
+        {
+            // 如果没有指定AudioSource，使用AudioSource.PlayOneShot（需要AudioSource组件）
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                // 自动添加AudioSource组件
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+            audioSource.PlayOneShot(launchSoundClip);
         }
     }
 

@@ -89,8 +89,12 @@ public class SettingsPanel : MonoBehaviour
             bgmVolumeText.text = Mathf.RoundToInt(value * 100).ToString() + "%";
         }
         
-        // TODO: 实际应用音量到音频系统
-        // AudioManager.Instance.SetBGMVolume(value);
+        // 应用音量到音频系统（查找场景中的AudioManager）
+        AudioManager audioManager = FindObjectOfType<AudioManager>();
+        if (audioManager != null)
+        {
+            audioManager.SetBGMVolume(value);
+        }
     }
     
     /// <summary>
@@ -108,8 +112,12 @@ public class SettingsPanel : MonoBehaviour
             sfxVolumeText.text = Mathf.RoundToInt(value * 100).ToString() + "%";
         }
         
-        // TODO: 实际应用音量到音频系统
-        // AudioManager.Instance.SetSFXVolume(value);
+        // 应用音量到音频系统（查找场景中的AudioManager）
+        AudioManager audioManager = FindObjectOfType<AudioManager>();
+        if (audioManager != null)
+        {
+            audioManager.SetSFXVolume(value);
+        }
     }
     
     /// <summary>
