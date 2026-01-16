@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems; // 添加用于UI检测
 using UnityEngine.UI; // 添加用于GraphicRaycaster
+using UnityEngine.SceneManagement; // 添加用于场景检查
 using System.Collections.Generic; // 引用 List
 
 /// <summary>
@@ -92,10 +93,14 @@ public class CameraController : MonoBehaviour
                 if (autoCalculateRadius)
                 {
                     currentOrbitRadius = Vector3.Distance(transform.position, targetPos);
+                    // 关键修复：确保计算出的半径在滚轮缩放的范围内
+                    currentOrbitRadius = Mathf.Clamp(currentOrbitRadius, minZoomDistance, maxZoomDistance);
                     orbitRadius = currentOrbitRadius;
                 }
                 else
                 {
+                    // 关键修复：确保手动设置的orbitRadius在滚轮缩放的范围内
+                    orbitRadius = Mathf.Clamp(orbitRadius, minZoomDistance, maxZoomDistance);
                     currentOrbitRadius = orbitRadius;
                 }
 
@@ -113,6 +118,27 @@ public class CameraController : MonoBehaviour
     void Update()
     {
         if (targetCamera == null) return;
+        
+        // 关键修复：如果相机被禁用，或者游戏场景已加载（叠加场景），不处理输入
+        // 这样可以避免MainHub场景的CameraController在游戏场景加载时干扰
+        if (!targetCamera.enabled)
+        {
+            return;
+        }
+        
+        // 检查是否在MainHub场景中，如果不是，不处理输入（避免干扰游戏场景）
+        string currentSceneName = gameObject.scene.name;
+        bool isMainHubScene = currentSceneName.StartsWith("0") && currentSceneName.Contains("_MainHub");
+        if (!isMainHubScene)
+        {
+            return;
+        }
+        
+        // 如果游戏场景已加载（叠加场景），不处理输入
+        if (SceneTransitionManager.Instance != null && SceneTransitionManager.Instance.IsGameSceneLoaded())
+        {
+            return;
+        }
 
         // 鼠标旋转
         if (enableMouseRotation)
@@ -152,6 +178,12 @@ public class CameraController : MonoBehaviour
         {
             // 如果鼠标在UI上，不处理旋转（避免与UI点击冲突）
             if (IsPointerOverUI())
+            {
+                return;
+            }
+
+            // 关键修复：检查是否点击在 Sphere 上，如果是则不开始旋转（让 SphereClickHandler 处理）
+            if (IsClickingOnSphere())
             {
                 return;
             }
@@ -457,6 +489,34 @@ public class CameraController : MonoBehaviour
                         }
                     }
                 }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 检查是否点击在 Sphere 上（用于避免与 SphereClickHandler 冲突）
+    /// </summary>
+    private bool IsClickingOnSphere()
+    {
+        if (targetCamera == null) return false;
+
+        // 创建从相机到鼠标位置的射线
+        Ray ray = targetCamera.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        // 执行射线检测（使用所有Layer）
+        if (Physics.Raycast(ray, out hit, 1000f))
+        {
+            GameObject hitObject = hit.collider.gameObject;
+
+            // 检查是否是 Sphere（通过 Tag 或名称）
+            if (hitObject.CompareTag("Sphere") || 
+                hitObject.name.StartsWith("Sphere") || 
+                hitObject.name.Contains("Sphere"))
+            {
+                return true;
             }
         }
 

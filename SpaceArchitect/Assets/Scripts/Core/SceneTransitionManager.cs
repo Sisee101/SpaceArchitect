@@ -554,17 +554,29 @@ public class SceneTransitionManager : MonoBehaviour
             return;
         }
         
-        // 查找场景中的所有相机
+        // 查找场景中的所有相机（禁用所有MainHub场景的相机，不仅仅是第一个）
         Camera[] cameras = FindObjectsOfType<Camera>();
         Camera mainHubCamera = null;
+        int disabledCount = 0;
         
         foreach (Camera cam in cameras)
         {
             // 检查相机是否属于MainHub场景
             if (cam.gameObject.scene == mainHubScene)
             {
-                mainHubCamera = cam;
-                break;
+                // 如果相机已启用，禁用它
+                if (cam.enabled)
+                {
+                    cam.enabled = false;
+                    disabledCount++;
+                    Debug.Log($"SceneTransitionManager: 已禁用MainHub场景的相机: {cam.name} (Tag: {cam.tag})");
+                }
+                
+                // 保存第一个找到的相机作为主相机（用于恢复）
+                if (mainHubCamera == null)
+                {
+                    mainHubCamera = cam;
+                }
             }
         }
         
@@ -574,15 +586,14 @@ public class SceneTransitionManager : MonoBehaviour
             return;
         }
         
-        // 保存相机的Transform状态（位置和旋转）
+        // 保存主相机的Transform状态（位置和旋转）
         savedCameraPosition = mainHubCamera.transform.position;
         savedCameraRotation = mainHubCamera.transform.rotation;
         
-        // 禁用相机并保存引用
-        mainHubCamera.enabled = false;
+        // 保存主相机引用（用于恢复）
         currentMainHubCamera = mainHubCamera;
         
-        Debug.Log($"SceneTransitionManager: 已禁用场景 {currentSceneName} 的相机: {mainHubCamera.name}，位置: {savedCameraPosition}，旋转: {savedCameraRotation.eulerAngles}");
+        Debug.Log($"SceneTransitionManager: 已禁用场景 {currentSceneName} 的 {disabledCount} 个相机，主相机: {mainHubCamera.name}，位置: {savedCameraPosition}，旋转: {savedCameraRotation.eulerAngles}");
     }
     
     /// <summary>
@@ -764,20 +775,26 @@ public class SceneTransitionManager : MonoBehaviour
         // 等待一帧，确保 MainHub 的相机和 EventSystem 已被禁用
         yield return null;
         
-        // 再次确认 MainHub 相机已被禁用（防止异步加载时冲突）
+        // 再次确认 MainHub 场景的所有相机已被禁用（防止异步加载时冲突）
         Camera[] allCameras = FindObjectsOfType<Camera>();
+        int forceDisabledCount = 0;
         foreach (Camera cam in allCameras)
         {
             // 检查是否是 MainHub 场景的相机
             string camSceneName = cam.gameObject.scene.name;
             if (camSceneName.StartsWith("0") && camSceneName.Contains("_MainHub"))
             {
-                if (cam.enabled && cam.CompareTag("MainCamera"))
+                if (cam.enabled)
                 {
-                    Debug.LogWarning($"SceneTransitionManager: 检测到 MainHub 场景的相机 {cam.name} 仍然启用，强制禁用");
+                    Debug.LogWarning($"SceneTransitionManager: 检测到 MainHub 场景的相机 {cam.name} (Tag: {cam.tag}) 仍然启用，强制禁用");
                     cam.enabled = false;
+                    forceDisabledCount++;
                 }
             }
+        }
+        if (forceDisabledCount > 0)
+        {
+            Debug.LogWarning($"SceneTransitionManager: 强制禁用了 {forceDisabledCount} 个MainHub场景的相机");
         }
         
         // 使用Additive模式异步加载场景
@@ -797,12 +814,46 @@ public class SceneTransitionManager : MonoBehaviour
         if (gameScene.IsValid() && gameScene.isLoaded)
         {
             Camera[] gameCameras = FindObjectsOfType<Camera>();
+            Camera gameSceneCamera = null;
+            
+            // 首先查找关卡场景中Tag为MainCamera的相机
             foreach (Camera cam in gameCameras)
             {
                 if (cam.gameObject.scene == gameScene && cam.CompareTag("MainCamera"))
                 {
                     cam.enabled = true;
-                    Debug.Log($"SceneTransitionManager: 已激活关卡场景 {sceneName} 的相机: {cam.name}");
+                    gameSceneCamera = cam;
+                    Debug.Log($"SceneTransitionManager: 已激活关卡场景 {sceneName} 的MainCamera: {cam.name}");
+                    break; // 只激活第一个MainCamera
+                }
+            }
+            
+            // 如果没找到MainCamera，查找关卡场景中的任何相机
+            if (gameSceneCamera == null)
+            {
+                foreach (Camera cam in gameCameras)
+                {
+                    if (cam.gameObject.scene == gameScene)
+                    {
+                        cam.enabled = true;
+                        gameSceneCamera = cam;
+                        Debug.LogWarning($"SceneTransitionManager: 关卡场景 {sceneName} 中没有MainCamera，已激活备用相机: {cam.name}");
+                        break;
+                    }
+                }
+            }
+            
+            // 确保MainHub场景的所有相机都被禁用
+            foreach (Camera cam in gameCameras)
+            {
+                string camSceneName = cam.gameObject.scene.name;
+                if (camSceneName.StartsWith("0") && camSceneName.Contains("_MainHub"))
+                {
+                    if (cam.enabled)
+                    {
+                        Debug.LogWarning($"SceneTransitionManager: 检测到MainHub场景的相机 {cam.name} 仍然启用，强制禁用");
+                        cam.enabled = false;
+                    }
                 }
             }
             

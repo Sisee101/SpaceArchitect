@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 摄像机水平跟随飞船脚本
@@ -353,6 +354,16 @@ public class CameraFollowShip : MonoBehaviour
 
     void LateUpdate()
     {
+        // 关键修复：确保只在当前场景中运行（避免在叠加场景中干扰）
+        // 检查是否在MainHub场景中，如果是，不运行（MainHub场景不应该有CameraFollowShip）
+        string currentSceneName = gameObject.scene.name;
+        bool isMainHubScene = currentSceneName.StartsWith("0") && currentSceneName.Contains("_MainHub");
+        if (isMainHubScene)
+        {
+            // 如果在MainHub场景中，不应该有CameraFollowShip，直接返回
+            return;
+        }
+        
         // 重要：如果正在执行动画，不要干扰相机位置和缩放（让动画协程完全控制）
         if (isAnimating)
         {
@@ -647,15 +658,33 @@ public class CameraFollowShip : MonoBehaviour
         }
 
         // 方法2：通过ShipState组件查找
-        ShipState shipState = FindObjectOfType<ShipState>();
+        // 关键修复：确保只查找当前场景中的ShipState（避免在叠加场景中找到错误场景的对象）
+        ShipState[] allShipStates = FindObjectsOfType<ShipState>();
+        ShipState shipState = null;
+        foreach (ShipState ss in allShipStates)
+        {
+            if (ss.gameObject.scene == gameObject.scene)
+            {
+                shipState = ss;
+                break;
+            }
+        }
+        
         if (shipState != null)
         {
             shipTransform = shipState.transform;
             if (showDebugLogs)
             {
-                Debug.Log($"CameraFollowShip: 通过ShipState组件找到了飞船: {shipState.name}");
+                Debug.Log($"CameraFollowShip: 通过ShipState组件找到了飞船: {shipState.name} (场景: {shipState.gameObject.scene.name})");
             }
             return;
+        }
+        else if (allShipStates.Length > 0)
+        {
+            if (showDebugLogs)
+            {
+                Debug.LogWarning($"CameraFollowShip: 找到 {allShipStates.Length} 个ShipState，但都不在当前场景 ({gameObject.scene.name})");
+            }
         }
 
         // 方法3：通过名称查找（备用方案）
@@ -1076,6 +1105,8 @@ public class CameraFollowShip : MonoBehaviour
             isAnimating = false;
             yield break;
         }
+        
+        Debug.Log($"[CameraFollowShip] ReadySequenceCoroutine: 开始，相机: {cameraComponent.name} (场景: {gameObject.scene.name}, 启用: {cameraComponent.enabled}, Tag: {cameraComponent.tag}), 相机位置: {transform.position}");
 
         // 保存当前缩放值和位置
         float startZoomValue;

@@ -546,10 +546,16 @@ public class GravityEngine : MonoBehaviour {
 			RemoveBody(gameNBodies[i].gameObject);
             gameNBodies[i] = null;
 		}
-        // be paranoid - clear all engine refs in scene
-        NBody[] nbodies = (NBody[])Object.FindObjectsOfType(typeof(NBody));
-        foreach( NBody n in nbodies) {
-            n.engineRef = null;
+        // be paranoid - clear all engine refs in current scene only (避免清除其他场景的对象)
+        // 关键修复：只清除当前场景中的 NBody 的 engineRef（避免在叠加场景中影响其他场景）
+        NBody[] allNbodies = (NBody[])Object.FindObjectsOfType(typeof(NBody));
+        UnityEngine.SceneManagement.Scene currentScene = gameObject.scene;
+        foreach( NBody n in allNbodies) {
+            // 只清除属于当前场景的 NBody 的 engineRef
+            if (n.gameObject.scene == currentScene)
+            {
+                n.engineRef = null;
+            }
         }
         worldState.Clear();
 		isSetup = false;
@@ -645,11 +651,17 @@ public class GravityEngine : MonoBehaviour {
     }
 
     private void ClearAllTrails() {
-        NBody[] nbodies = (NBody[])Object.FindObjectsOfType(typeof(NBody));
-        foreach (NBody nb in nbodies) {
-            TrailRenderer[] trails = nb.gameObject.GetComponentsInChildren<TrailRenderer>();
-            foreach (TrailRenderer trail in trails) {
-                trail.Clear();
+        // 关键修复：只清除当前场景中的 NBody 的轨迹（避免在叠加场景中影响其他场景）
+        NBody[] allNbodies = (NBody[])Object.FindObjectsOfType(typeof(NBody));
+        UnityEngine.SceneManagement.Scene currentScene = gameObject.scene;
+        foreach (NBody nb in allNbodies) {
+            // 只清除属于当前场景的 NBody 的轨迹
+            if (nb.gameObject.scene == currentScene)
+            {
+                TrailRenderer[] trails = nb.gameObject.GetComponentsInChildren<TrailRenderer>();
+                foreach (TrailRenderer trail in trails) {
+                    trail.Clear();
+                }
             }
         }
     }
@@ -705,14 +717,49 @@ public class GravityEngine : MonoBehaviour {
                }
         }
                        
-		NBody[] nbodies = (NBody[]) Object.FindObjectsOfType(typeof(NBody));
+		// 关键修复：只查找当前场景中的 NBody 对象（避免在叠加场景中重复添加其他场景的对象）
+		NBody[] allNbodies = (NBody[]) Object.FindObjectsOfType(typeof(NBody));
+		UnityEngine.SceneManagement.Scene currentScene = gameObject.scene;
+		System.Collections.Generic.List<NBody> nbodiesList = new System.Collections.Generic.List<NBody>();
+		
+		// 详细调试信息：帮助定位为什么只有 level1 有问题
+		Debug.Log($"[GravityEngine] SetupAutoDetect: 当前场景: {currentScene.name}, 找到 {allNbodies.Length} 个 NBody 对象");
+		
+		foreach (NBody nbody in allNbodies)
+		{
+			// 只添加属于当前场景的 NBody 对象
+			if (nbody.gameObject.scene == currentScene)
+			{
+				nbodiesList.Add(nbody);
+				// 检查是否已经有 engineRef（这可能是问题的根源）
+				if (nbody.engineRef != null)
+				{
+					Debug.LogWarning($"[GravityEngine] SetupAutoDetect: 发现 {nbody.gameObject.name} 已经有 engineRef！" +
+					                 $" 对象场景: {nbody.gameObject.scene.name}, " +
+					                 $" engineRef.index: {nbody.engineRef.index}, " +
+					                 $" engineRef.bodyType: {nbody.engineRef.bodyType}");
+				}
+			}
+			else
+			{
+				// 记录被过滤掉的对象（用于调试）
+				if (nbody.engineRef != null)
+				{
+					Debug.Log($"[GravityEngine] SetupAutoDetect: 跳过其他场景的对象 {nbody.gameObject.name} (场景: {nbody.gameObject.scene.name}, 已有engineRef: {nbody.engineRef != null})");
+				}
+			}
+		}
+		
+		NBody[] nbodies = nbodiesList.ToArray();
+		Debug.Log($"[GravityEngine] SetupAutoDetect: 当前场景 {currentScene.name} 中有 {nbodies.Length} 个 NBody 对象需要添加");
+		
 		// allocate physics arrays (will over-allocate by number of massless bodies if optimizing massless)
 		// add some buffer to allow for dynamic additions
 		maxBodies += nbodies.Length;
         InitArrays(maxBodies+GROW_SIZE);
 
         if (nbodies.Length == 0) {
-            Debug.Log("No NBodies in scene at start");
+            Debug.Log($"No NBodies in scene at start (当前场景: {currentScene.name})");
             return;
         }
 
@@ -1422,7 +1469,17 @@ public class GravityEngine : MonoBehaviour {
 	private void SetupOneGameObject(GameObject go, NBody nbody) {
 
         if (nbody.engineRef != null) {
-            Debug.LogError("Duplicte add: already have an engine ref for " + go.name);
+            // 详细调试信息：帮助定位为什么只有 level1 有问题
+            UnityEngine.SceneManagement.Scene currentScene = gameObject.scene;
+            UnityEngine.SceneManagement.Scene objectScene = go.scene;
+            Debug.LogError($"Duplicte add: already have an engine ref for {go.name}\n" +
+                          $"  - 对象场景: {objectScene.name}\n" +
+                          $"  - GravityEngine场景: {currentScene.name}\n" +
+                          $"  - 对象是否在当前场景: {objectScene == currentScene}\n" +
+                          $"  - engineRef.index: {nbody.engineRef.index}\n" +
+                          $"  - engineRef.bodyType: {nbody.engineRef.bodyType}\n" +
+                          $"  - 对象位置: {go.transform.position}\n" +
+                          $"  - 对象激活状态: {go.activeInHierarchy}");
             return;
         }
 

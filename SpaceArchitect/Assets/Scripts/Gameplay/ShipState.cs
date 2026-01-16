@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 飞船状态管理器
@@ -29,8 +30,11 @@ public class ShipState : MonoBehaviour
     [Tooltip("检测间隔（秒），降低性能消耗")]
     [SerializeField] private float escapeCheckInterval = 0.5f;
     
-    [Tooltip("视野边界扩展（0-1），值越大越容易触发逃离（例如0.1表示在视野外10%时触发）")]
-    [SerializeField] private float viewportMargin = 0.1f;
+    [Tooltip("视野边界扩展（0-1），值越大越容易触发逃离（例如0.2表示在视野外20%时触发）")]
+    [SerializeField] private float viewportMargin = 0.2f; // 增大默认值，避免相机跟随延迟导致的误判
+    
+    [Tooltip("发射后延迟检查逃离的时间（秒），避免刚发射时误判")]
+    [SerializeField] private float escapeCheckDelayAfterLaunch = 1.0f;
 
     // 速度缩放功能已移除（简化预测系统，提高准确性）
     // [Header("速度调整")]
@@ -44,6 +48,7 @@ public class ShipState : MonoBehaviour
     private Quaternion initialRotation; // 保存初始旋转
     private Rigidbody rb;
     private float lastEscapeCheckTime = 0f;
+    private float launchTime = -1f; // 发射时间（-1表示未发射）
     
     // 保存飞船模型子对象的引用，用于重置时恢复
     private Transform shipModelTransform;
@@ -108,19 +113,138 @@ public class ShipState : MonoBehaviour
             return;
         }
 
-        // 获取摄像机引用
+        // 获取摄像机引用（优先使用当前场景中的相机，避免MainHub相机冲突）
         if (targetCamera == null)
         {
-            targetCamera = Camera.main;
-            if (targetCamera == null)
-            {
-                Debug.LogWarning("ShipState: 未找到主摄像机，逃离检测功能将不可用");
-            }
+            InitializeTargetCamera();
         }
 
         // 初始化状态（Setup或PreLaunch状态，这会检查并移除如果已被添加到引力引擎）
         InitializeStationaryState();
         hasInitialized = true;
+    }
+    
+    /// <summary>
+    /// 初始化目标相机（优先使用CameraFollowShip的相机，确保与相机跟随脚本使用同一个相机）
+    /// </summary>
+    private void InitializeTargetCamera()
+    {
+        Debug.Log($"[ShipState] InitializeTargetCamera: 开始查找相机，飞船场景: {gameObject.scene.name}, 当前状态: {currentState}");
+        
+        // 列出所有相机（用于调试）
+        Camera[] allCameras = FindObjectsOfType<Camera>();
+        Debug.Log($"[ShipState] InitializeTargetCamera: 找到 {allCameras.Length} 个相机:");
+        foreach (Camera cam in allCameras)
+        {
+            Debug.Log($"  - {cam.name} (场景: {cam.gameObject.scene.name}, Tag: {cam.tag}, 启用: {cam.enabled}, Active: {cam.gameObject.activeInHierarchy})");
+        }
+        
+        // 优先级1：查找CameraFollowShip组件所在的相机（这是实际控制视野的相机）
+        // 关键修复：确保只查找当前场景中的CameraFollowShip（避免在叠加场景中找到错误场景的对象）
+        CameraFollowShip[] allCameraFollowShips = FindObjectsOfType<CameraFollowShip>();
+        CameraFollowShip cameraFollowShip = null;
+        foreach (CameraFollowShip cfs in allCameraFollowShips)
+        {
+            if (cfs.gameObject.scene == gameObject.scene)
+            {
+                cameraFollowShip = cfs;
+                break;
+            }
+        }
+        
+        if (cameraFollowShip != null)
+        {
+            Debug.Log($"[ShipState] InitializeTargetCamera: 找到CameraFollowShip: {cameraFollowShip.name} (场景: {cameraFollowShip.gameObject.scene.name})");
+            Camera followCamera = cameraFollowShip.GetComponent<Camera>();
+            if (followCamera != null)
+            {
+                Debug.Log($"[ShipState] InitializeTargetCamera: CameraFollowShip的相机: {followCamera.name} (场景: {followCamera.gameObject.scene.name}, 启用: {followCamera.enabled}, Tag: {followCamera.tag})");
+                if (followCamera.enabled)
+                {
+                    // 验证相机是否属于当前场景（双重检查）
+                    if (followCamera.gameObject.scene == gameObject.scene)
+                    {
+                        targetCamera = followCamera;
+                        Debug.Log($"[ShipState] ✅ 找到CameraFollowShip的相机: {followCamera.name} (场景: {followCamera.gameObject.scene.name})");
+                        return;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[ShipState] CameraFollowShip的相机不属于当前场景！相机场景: {followCamera.gameObject.scene.name}, 飞船场景: {gameObject.scene.name}");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[ShipState] CameraFollowShip的相机未启用: {followCamera.name}");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[ShipState] CameraFollowShip没有Camera组件");
+            }
+        }
+        else
+        {
+            if (allCameraFollowShips.Length > 0)
+            {
+                Debug.LogWarning($"[ShipState] InitializeTargetCamera: 找到 {allCameraFollowShips.Length} 个CameraFollowShip，但都不在当前场景 ({gameObject.scene.name})");
+            }
+            else
+            {
+                Debug.LogWarning($"[ShipState] InitializeTargetCamera: 未找到CameraFollowShip组件");
+            }
+        }
+        
+        // 优先级2：查找当前物体所在场景中的相机（关卡场景）
+        Scene currentScene = gameObject.scene;
+        Camera[] cameras = FindObjectsOfType<Camera>();
+        
+        // 首先尝试查找当前场景中已启用的MainCamera
+        foreach (Camera cam in cameras)
+        {
+            // 优先使用当前场景中的相机，且标签为MainCamera，且已启用
+            if (cam.gameObject.scene == currentScene && 
+                cam.CompareTag("MainCamera") && 
+                cam.enabled)
+            {
+                targetCamera = cam;
+                Debug.Log($"[ShipState] 找到目标相机: {cam.name} (场景: {currentScene.name})");
+                return;
+            }
+        }
+        
+        // 如果当前场景中没有找到MainCamera，尝试查找当前场景中的任何已启用的相机
+        foreach (Camera cam in cameras)
+        {
+            if (cam.gameObject.scene == currentScene && cam.enabled)
+            {
+                targetCamera = cam;
+                Debug.LogWarning($"[ShipState] 当前场景中没有MainCamera，使用备用相机: {cam.name} (场景: {currentScene.name})");
+                return;
+            }
+        }
+        
+        // 如果当前场景中完全没有相机，尝试使用Camera.main（但需要验证它不属于MainHub场景）
+        if (Camera.main != null && Camera.main.enabled)
+        {
+            string mainCamSceneName = Camera.main.gameObject.scene.name;
+            bool isMainHubScene = mainCamSceneName.StartsWith("0") && mainCamSceneName.Contains("_MainHub");
+            
+            if (!isMainHubScene)
+            {
+                targetCamera = Camera.main;
+                Debug.LogWarning($"[ShipState] 使用Camera.main作为备用相机: {Camera.main.name} (场景: {mainCamSceneName})");
+            }
+            else
+            {
+                Debug.LogWarning($"[ShipState] Camera.main属于MainHub场景 ({mainCamSceneName})，跳过使用");
+            }
+        }
+        
+        if (targetCamera == null)
+        {
+            Debug.LogWarning($"[ShipState] 未找到可用的相机！当前场景: {currentScene.name}，逃离检测功能将不可用");
+        }
     }
 
     /// <summary>
@@ -472,6 +596,9 @@ public class ShipState : MonoBehaviour
         // 速度缩放功能已移除
         // lastScaledVelocity = Vector3.zero;
 
+        // 记录发射时间（用于延迟逃离检查）
+        launchTime = Time.time;
+
         // 切换到Flying状态（这会自动添加到引力引擎）
         SetState(State.Flying);
 
@@ -556,6 +683,18 @@ public class ShipState : MonoBehaviour
     /// </summary>
     private void CheckForEscape()
     {
+        // 在Setup或PreLaunch状态下不检查逃离（相机可能还在移动）
+        if (currentState == State.Setup || currentState == State.PreLaunch)
+        {
+            return;
+        }
+        
+        // 如果刚发射，延迟检查（避免误判）
+        if (launchTime > 0 && Time.time - launchTime < escapeCheckDelayAfterLaunch)
+        {
+            return;
+        }
+        
         // 检查时间间隔，降低性能消耗
         if (Time.time - lastEscapeCheckTime < escapeCheckInterval)
         {
@@ -563,10 +702,14 @@ public class ShipState : MonoBehaviour
         }
         lastEscapeCheckTime = Time.time;
 
-        // 检查摄像机是否可用
-        if (targetCamera == null)
+        // 确保目标相机有效
+        if (targetCamera == null || !targetCamera.enabled)
         {
-            return;
+            InitializeTargetCamera();
+            if (targetCamera == null || !targetCamera.enabled)
+            {
+                return;
+            }
         }
 
         // 检查飞船是否在摄像机视野外
@@ -587,22 +730,64 @@ public class ShipState : MonoBehaviour
     /// <returns>如果飞船在视野内返回true，否则返回false</returns>
     private bool IsVisibleToCamera()
     {
-        if (targetCamera == null)
+        // 确保目标相机有效
+        if (targetCamera == null || !targetCamera.enabled)
         {
-            return true; // 如果没有摄像机，假设可见
+            Debug.Log($"[ShipState] IsVisibleToCamera: 目标相机无效，重新初始化。当前状态: {currentState}, 飞船场景: {gameObject.scene.name}");
+            InitializeTargetCamera();
+            if (targetCamera == null || !targetCamera.enabled)
+            {
+                Debug.LogWarning($"[ShipState] IsVisibleToCamera: 目标相机无效，假设飞船可见。当前场景: {gameObject.scene.name}");
+                return true; // 如果没有摄像机，假设可见
+            }
+        }
+
+        // 验证相机是否属于当前场景（防止使用MainHub的相机）
+        if (targetCamera.gameObject.scene != gameObject.scene)
+        {
+            Debug.LogWarning($"[ShipState] IsVisibleToCamera: 目标相机不属于当前场景！相机场景: {targetCamera.gameObject.scene.name}, 飞船场景: {gameObject.scene.name}，重新初始化相机");
+            InitializeTargetCamera();
+            if (targetCamera == null || !targetCamera.enabled || targetCamera.gameObject.scene != gameObject.scene)
+            {
+                Debug.LogWarning($"[ShipState] IsVisibleToCamera: 无法找到正确的相机，假设飞船可见");
+                return true;
+            }
         }
 
         // 将世界坐标转换为视口坐标
         Vector3 viewportPoint = targetCamera.WorldToViewportPoint(transform.position);
+        
+        // 详细调试信息
+        Debug.Log($"[ShipState] IsVisibleToCamera 详细检查 - 飞船位置: {transform.position}, 相机位置: {targetCamera.transform.position}, 视口坐标: {viewportPoint}, 相机: {targetCamera.name} (场景: {targetCamera.gameObject.scene.name}), 相机启用: {targetCamera.enabled}, 相机Tag: {targetCamera.tag}");
 
         // 检查是否在视口范围内（考虑边界扩展）
         // viewportPoint.x 和 viewportPoint.y 在 [0, 1] 范围内表示在视野内
         // viewportPoint.z > 0 表示在摄像机前方
+        
+        // 如果飞船刚发射，使用更大的容差（避免相机跟随延迟导致的误判）
+        float currentMargin = viewportMargin;
+        if (launchTime > 0 && Time.time - launchTime < escapeCheckDelayAfterLaunch)
+        {
+            // 发射后短时间内使用更大的容差（2倍）
+            currentMargin = viewportMargin * 2f;
+        }
+        
         bool isInViewport = viewportPoint.z > 0 && 
-                           viewportPoint.x >= -viewportMargin && 
-                           viewportPoint.x <= 1 + viewportMargin &&
-                           viewportPoint.y >= -viewportMargin && 
-                           viewportPoint.y <= 1 + viewportMargin;
+                           viewportPoint.x >= -currentMargin && 
+                           viewportPoint.x <= 1 + currentMargin &&
+                           viewportPoint.y >= -currentMargin && 
+                           viewportPoint.y <= 1 + currentMargin;
+
+        // 调试信息（详细输出）
+        if (!isInViewport)
+        {
+            Debug.LogWarning($"[ShipState] IsVisibleToCamera: 飞船不在视野内！视口坐标: {viewportPoint}, 飞船位置: {transform.position}, 相机: {targetCamera.name} (场景: {targetCamera.gameObject.scene.name}), viewportMargin: {viewportMargin}, 当前容差: {currentMargin}, 检查结果: z>0={viewportPoint.z > 0}, x范围={viewportPoint.x >= -currentMargin && viewportPoint.x <= 1 + currentMargin}, y范围={viewportPoint.y >= -currentMargin && viewportPoint.y <= 1 + currentMargin}");
+        }
+        else
+        {
+            // 减少日志输出，避免刷屏
+            // Debug.Log($"[ShipState] IsVisibleToCamera: 飞船在视野内 ✓");
+        }
 
         return isInViewport;
     }
@@ -637,6 +822,9 @@ public class ShipState : MonoBehaviour
 
         // 切换到Setup状态（初始状态，这会处理所有必要的清理工作）
         SetState(State.Setup);
+
+        // 重置发射时间
+        launchTime = -1f;
 
         // 确保位置和旋转正确
         transform.position = initialPosition;
@@ -694,6 +882,9 @@ public class ShipState : MonoBehaviour
 
         // 切换到PreLaunch状态
         SetState(State.PreLaunch);
+
+        // 重置发射时间（PreLaunch状态时还未发射）
+        launchTime = -1f;
 
         // 确保位置和旋转正确
         transform.position = initialPosition;

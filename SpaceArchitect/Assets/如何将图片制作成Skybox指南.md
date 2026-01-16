@@ -189,3 +189,5 @@ RenderSettings.skybox.SetFloat("_Rotation", rotationAngle);
 3. **URP 兼容性**：某些旧版本的 Skybox Shader 可能在 URP 中不完全兼容，建议使用 URP 专用的 Shader
 
 
+
+

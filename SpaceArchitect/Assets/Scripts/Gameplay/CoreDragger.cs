@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Core物体拖拽脚本（支持引力）
@@ -22,6 +23,7 @@ public class CoreDragger : MonoBehaviour
     private ShipState shipState; // 引用飞船状态，用于限制拖拽
     private Vector3 offset;
     private float mouseZCoord;
+    private Camera targetCamera; // 目标相机（关卡场景中的相机）
 
     void Start()
     {
@@ -35,6 +37,9 @@ public class CoreDragger : MonoBehaviour
         {
             Debug.LogWarning("[CoreDragger] 未能在场景中找到 ShipState，拖拽限制可能失效。");
         }
+
+        // 初始化目标相机（优先使用关卡场景中的相机，避免MainHub相机冲突）
+        InitializeTargetCamera();
 
         // 诊断信息
         Debug.Log($"[CoreDragger] Start: {gameObject.name}");
@@ -63,6 +68,40 @@ public class CoreDragger : MonoBehaviour
         {
             coreRb.isKinematic = true;
             coreRb.useGravity = false;
+        }
+    }
+    
+    /// <summary>
+    /// 初始化目标相机（优先使用关卡场景中的相机，避免MainHub相机冲突）
+    /// </summary>
+    private void InitializeTargetCamera()
+    {
+        // 优先查找当前物体所在场景中的相机（关卡场景）
+        Scene currentScene = gameObject.scene;
+        Camera[] cameras = FindObjectsOfType<Camera>();
+        
+        foreach (Camera cam in cameras)
+        {
+            // 优先使用当前场景中的相机，且标签为MainCamera，且已启用
+            if (cam.gameObject.scene == currentScene && 
+                cam.CompareTag("MainCamera") && 
+                cam.enabled)
+            {
+                targetCamera = cam;
+                Debug.Log($"[CoreDragger] 找到目标相机: {cam.name} (场景: {currentScene.name})");
+                return;
+            }
+        }
+        
+        // 如果当前场景中没有找到，尝试使用Camera.main（但可能不准确）
+        if (Camera.main != null && Camera.main.enabled)
+        {
+            targetCamera = Camera.main;
+            Debug.LogWarning($"[CoreDragger] 使用Camera.main作为备用相机: {Camera.main.name} (场景: {Camera.main.gameObject.scene.name})");
+        }
+        else
+        {
+            Debug.LogError("[CoreDragger] 未找到可用的相机！");
         }
     }
 
@@ -94,16 +133,21 @@ public class CoreDragger : MonoBehaviour
             return;
         }
 
-        if (Camera.main == null)
+        // 确保目标相机有效
+        if (targetCamera == null || !targetCamera.enabled)
         {
-            Debug.LogWarning($"[CoreDragger] Camera.main 为 null，无法检测鼠标输入");
-            return;
+            InitializeTargetCamera();
+            if (targetCamera == null || !targetCamera.enabled)
+            {
+                Debug.LogWarning($"[CoreDragger] 目标相机无效，无法检测鼠标输入");
+                return;
+            }
         }
             
         // 检查鼠标按下
         if (Input.GetMouseButtonDown(0))
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Ray ray = targetCamera.ScreenPointToRay(Input.mousePosition);
             
             Debug.Log($"[CoreDragger] 鼠标按下，进行射线检测: {gameObject.name}");
             
@@ -155,7 +199,7 @@ public class CoreDragger : MonoBehaviour
                 Debug.Log($"[CoreDragger] 射线检测未找到 Core 物体，尝试屏幕距离检测");
                 
                 // 备用方法：检查鼠标是否在物体附近（屏幕坐标）
-                Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position);
+                Vector3 screenPos = targetCamera.WorldToScreenPoint(transform.position);
                 Vector2 mousePos = Input.mousePosition;
                 float distance = Vector2.Distance(new Vector2(screenPos.x, screenPos.y), mousePos);
                 
@@ -215,8 +259,23 @@ public class CoreDragger : MonoBehaviour
 
         isDragging = true;
         
+        // 确保目标相机有效
+        if (targetCamera == null || !targetCamera.enabled)
+        {
+            InitializeTargetCamera();
+        }
+        
         // 计算偏移量
-        mouseZCoord = Camera.main.WorldToScreenPoint(transform.position).z;
+        if (targetCamera != null && targetCamera.enabled)
+        {
+            mouseZCoord = targetCamera.WorldToScreenPoint(transform.position).z;
+        }
+        else
+        {
+            Debug.LogError("[CoreDragger] 目标相机无效，无法计算偏移量");
+            isDragging = false;
+            return;
+        }
         Vector3 mousePos = GetMouseWorldPos();
         offset = transform.position - mousePos;
         
@@ -411,15 +470,19 @@ public class CoreDragger : MonoBehaviour
 
         isDragging = true;
         
-        // 检查 Camera.main 是否可用
-        if (Camera.main == null)
+        // 确保目标相机有效
+        if (targetCamera == null || !targetCamera.enabled)
         {
-            Debug.LogError($"[CoreDragger] Camera.main 为 null！无法进行拖拽。");
-            isDragging = false;
-            return;
+            InitializeTargetCamera();
+            if (targetCamera == null || !targetCamera.enabled)
+            {
+                Debug.LogError($"[CoreDragger] 目标相机无效！无法进行拖拽。");
+                isDragging = false;
+                return;
+            }
         }
         
-        mouseZCoord = Camera.main.WorldToScreenPoint(transform.position).z;
+        mouseZCoord = targetCamera.WorldToScreenPoint(transform.position).z;
         Vector3 mousePos = GetMouseWorldPos();
         offset = transform.position - mousePos;
         
@@ -518,15 +581,20 @@ public class CoreDragger : MonoBehaviour
 
     Vector3 GetMouseWorldPos()
     {
-        if (Camera.main == null)
+        // 确保目标相机有效
+        if (targetCamera == null || !targetCamera.enabled)
         {
-            Debug.LogError($"[CoreDragger] Camera.main 为 null！无法获取鼠标世界坐标。");
-            return transform.position; // 返回当前位置作为备用
+            InitializeTargetCamera();
+            if (targetCamera == null || !targetCamera.enabled)
+            {
+                Debug.LogError($"[CoreDragger] 目标相机无效！无法获取鼠标世界坐标。");
+                return transform.position; // 返回当前位置作为备用
+            }
         }
         
         Vector3 mousePoint = Input.mousePosition;
         mousePoint.z = mouseZCoord;
-        return Camera.main.ScreenToWorldPoint(mousePoint);
+        return targetCamera.ScreenToWorldPoint(mousePoint);
     }
     
     /// <summary>
@@ -559,7 +627,8 @@ public class CoreDragger : MonoBehaviour
         }
         
         Debug.Log($"GravityEngine: {(gravityEngine != null ? "有" : "无")}");
-        Debug.Log($"Camera.main: {(Camera.main != null ? "有" : "无")}");
+        Debug.Log($"目标相机: {(targetCamera != null ? targetCamera.name + " (场景: " + targetCamera.gameObject.scene.name + ")" : "无")}");
+        Debug.Log($"Camera.main: {(Camera.main != null ? Camera.main.name + " (场景: " + Camera.main.gameObject.scene.name + ")" : "无")}");
         
         // 检查 Tag
         if (!gameObject.CompareTag("Core"))
@@ -586,13 +655,13 @@ public class CoreDragger : MonoBehaviour
         }
         
         // 检查 Camera
-        if (Camera.main == null)
+        if (targetCamera == null || !targetCamera.enabled)
         {
-            Debug.LogError("❌ Camera.main 为 null！");
+            Debug.LogError("❌ 目标相机无效！");
         }
         else
         {
-            Debug.Log("✅ Camera.main 正常");
+            Debug.Log($"✅ 目标相机正常: {targetCamera.name} (场景: {targetCamera.gameObject.scene.name})");
         }
         
         Debug.Log("=== 诊断完成 ===");

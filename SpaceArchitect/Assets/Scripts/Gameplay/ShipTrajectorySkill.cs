@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Linq;
 
 /// <summary>
@@ -60,11 +61,8 @@ public class ShipTrajectorySkill : MonoBehaviour
         shipLauncher = GetComponent<ShipLauncher>();
         shipSimpleLauncher = GetComponent<ShipSimpleLauncher>();
         
-        mainCamera = Camera.main;
-        if (mainCamera == null)
-        {
-            mainCamera = FindObjectOfType<Camera>();
-        }
+        // 初始化目标相机（优先使用当前场景中的相机，避免MainHub相机冲突）
+        InitializeTargetCamera();
     }
     
     void Start()
@@ -99,6 +97,11 @@ public class ShipTrajectorySkill : MonoBehaviour
         }
         else
         {
+            // 确保相机已初始化
+            if (mainCamera == null)
+            {
+                InitializeTargetCamera();
+            }
             // 设置预测模式为预览模式
             trajectoryPredictor.SetPredictionMode(TrajectoryPredictor.PredictionMode.Preview);
             
@@ -372,7 +375,17 @@ public class ShipTrajectorySkill : MonoBehaviour
     /// </summary>
     private Vector3 CalculateLaunchVelocityFromDrag(Vector3 dragVector)
     {
-        if (shipLauncher == null || mainCamera == null)
+        // 确保目标相机有效
+        if (mainCamera == null || !mainCamera.enabled)
+        {
+            InitializeTargetCamera();
+            if (mainCamera == null || !mainCamera.enabled)
+            {
+                return defaultLaunchVelocity;
+            }
+        }
+        
+        if (shipLauncher == null)
         {
             return defaultLaunchVelocity;
         }
@@ -533,6 +546,49 @@ public class ShipTrajectorySkill : MonoBehaviour
         if (showDebugLogs && !shipInMultipleRanges && overlappingCount == 0)
         {
             Debug.Log("✅ [ShipTrajectorySkill] CoreDeflector 检查通过：没有发现重叠或冲突");
+        }
+    }
+    
+    /// <summary>
+    /// 初始化目标相机（优先使用当前场景中的相机，避免MainHub相机冲突）
+    /// </summary>
+    private void InitializeTargetCamera()
+    {
+        // 优先查找当前物体所在场景中的相机（关卡场景）
+        Scene currentScene = gameObject.scene;
+        Camera[] cameras = FindObjectsOfType<Camera>();
+        
+        foreach (Camera cam in cameras)
+        {
+            // 优先使用当前场景中的相机，且标签为MainCamera，且已启用
+            if (cam.gameObject.scene == currentScene && 
+                cam.CompareTag("MainCamera") && 
+                cam.enabled)
+            {
+                mainCamera = cam;
+                Debug.Log($"[ShipTrajectorySkill] 找到目标相机: {cam.name} (场景: {currentScene.name})");
+                return;
+            }
+        }
+        
+        // 如果当前场景中没有找到，尝试使用Camera.main（但可能不准确）
+        if (Camera.main != null && Camera.main.enabled)
+        {
+            mainCamera = Camera.main;
+            Debug.LogWarning($"[ShipTrajectorySkill] 使用Camera.main作为备用相机: {Camera.main.name} (场景: {Camera.main.gameObject.scene.name})");
+        }
+        else
+        {
+            // 最后尝试查找任何启用的相机
+            mainCamera = FindObjectOfType<Camera>();
+            if (mainCamera == null)
+            {
+                Debug.LogError("[ShipTrajectorySkill] 未找到可用的相机！");
+            }
+            else
+            {
+                Debug.LogWarning($"[ShipTrajectorySkill] 使用FindObjectOfType找到的相机: {mainCamera.name} (场景: {mainCamera.gameObject.scene.name})");
+            }
         }
     }
 }

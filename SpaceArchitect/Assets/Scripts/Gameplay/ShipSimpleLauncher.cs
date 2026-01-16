@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 简单飞船发射器
@@ -45,14 +46,49 @@ public class ShipSimpleLauncher : MonoBehaviour
             Debug.LogError("ShipSimpleLauncher: 缺少 ShipState 组件！");
         }
 
-        // 获取主摄像机
-        mainCamera = Camera.main;
-        if (mainCamera == null)
+        // 初始化目标相机（优先使用当前场景中的相机，避免MainHub相机冲突）
+        InitializeTargetCamera();
+    }
+    
+    /// <summary>
+    /// 初始化目标相机（优先使用当前场景中的相机，避免MainHub相机冲突）
+    /// </summary>
+    private void InitializeTargetCamera()
+    {
+        // 优先查找当前物体所在场景中的相机（关卡场景）
+        Scene currentScene = gameObject.scene;
+        Camera[] cameras = FindObjectsOfType<Camera>();
+        
+        foreach (Camera cam in cameras)
         {
+            // 优先使用当前场景中的相机，且标签为MainCamera，且已启用
+            if (cam.gameObject.scene == currentScene && 
+                cam.CompareTag("MainCamera") && 
+                cam.enabled)
+            {
+                mainCamera = cam;
+                Debug.Log($"[ShipSimpleLauncher] 找到目标相机: {cam.name} (场景: {currentScene.name})");
+                return;
+            }
+        }
+        
+        // 如果当前场景中没有找到，尝试使用Camera.main（但可能不准确）
+        if (Camera.main != null && Camera.main.enabled)
+        {
+            mainCamera = Camera.main;
+            Debug.LogWarning($"[ShipSimpleLauncher] 使用Camera.main作为备用相机: {Camera.main.name} (场景: {Camera.main.gameObject.scene.name})");
+        }
+        else
+        {
+            // 最后尝试查找任何启用的相机
             mainCamera = FindObjectOfType<Camera>();
             if (mainCamera == null)
             {
-                Debug.LogError("ShipSimpleLauncher: 未找到摄像机！");
+                Debug.LogError("[ShipSimpleLauncher] 未找到可用的相机！");
+            }
+            else
+            {
+                Debug.LogWarning($"[ShipSimpleLauncher] 使用FindObjectOfType找到的相机: {mainCamera.name} (场景: {mainCamera.gameObject.scene.name})");
             }
         }
     }
@@ -131,7 +167,15 @@ public class ShipSimpleLauncher : MonoBehaviour
     /// </summary>
     private void UpdateLaunchDirection()
     {
-        if (mainCamera == null) return;
+        // 确保目标相机有效
+        if (mainCamera == null || !mainCamera.enabled)
+        {
+            InitializeTargetCamera();
+            if (mainCamera == null || !mainCamera.enabled)
+            {
+                return;
+            }
+        }
 
         // 获取鼠标在世界空间的位置（在Z=0平面上）
         Vector3 mouseScreenPos = Input.mousePosition;

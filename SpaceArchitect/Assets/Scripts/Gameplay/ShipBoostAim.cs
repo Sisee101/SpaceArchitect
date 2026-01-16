@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 飞船时停瞄准加速器
@@ -120,12 +121,8 @@ public class ShipBoostAim : MonoBehaviour
             Debug.LogError($"ShipBoostAim: {gameObject.name} 缺少 NBody 组件！");
         }
 
-        // 获取主摄像机
-        mainCamera = Camera.main;
-        if (mainCamera == null)
-        {
-            mainCamera = FindObjectOfType<Camera>();
-        }
+        // 初始化目标相机（优先使用当前场景中的相机，避免MainHub相机冲突）
+        InitializeTargetCamera();
     }
 
     void Start()
@@ -149,6 +146,49 @@ public class ShipBoostAim : MonoBehaviour
 
         // 根据等级计算最大使用次数（如果未手动设置）
         UpdateMaxUsesFromLevel();
+    }
+    
+    /// <summary>
+    /// 初始化目标相机（优先使用当前场景中的相机，避免MainHub相机冲突）
+    /// </summary>
+    private void InitializeTargetCamera()
+    {
+        // 优先查找当前物体所在场景中的相机（关卡场景）
+        Scene currentScene = gameObject.scene;
+        Camera[] cameras = FindObjectsOfType<Camera>();
+        
+        foreach (Camera cam in cameras)
+        {
+            // 优先使用当前场景中的相机，且标签为MainCamera，且已启用
+            if (cam.gameObject.scene == currentScene && 
+                cam.CompareTag("MainCamera") && 
+                cam.enabled)
+            {
+                mainCamera = cam;
+                Debug.Log($"[ShipBoostAim] 找到目标相机: {cam.name} (场景: {currentScene.name})");
+                return;
+            }
+        }
+        
+        // 如果当前场景中没有找到，尝试使用Camera.main（但可能不准确）
+        if (Camera.main != null && Camera.main.enabled)
+        {
+            mainCamera = Camera.main;
+            Debug.LogWarning($"[ShipBoostAim] 使用Camera.main作为备用相机: {Camera.main.name} (场景: {Camera.main.gameObject.scene.name})");
+        }
+        else
+        {
+            // 最后尝试查找任何启用的相机
+            mainCamera = FindObjectOfType<Camera>();
+            if (mainCamera == null)
+            {
+                Debug.LogError("[ShipBoostAim] 未找到可用的相机！");
+            }
+            else
+            {
+                Debug.LogWarning($"[ShipBoostAim] 使用FindObjectOfType找到的相机: {mainCamera.name} (场景: {mainCamera.gameObject.scene.name})");
+            }
+        }
 
         // 重置使用次数
         ResetUsageCount();
@@ -403,9 +443,14 @@ public class ShipBoostAim : MonoBehaviour
     /// </summary>
     private void UpdateMouseWorldPosition()
     {
-        if (mainCamera == null)
+        // 确保目标相机有效
+        if (mainCamera == null || !mainCamera.enabled)
         {
-            return;
+            InitializeTargetCamera();
+            if (mainCamera == null || !mainCamera.enabled)
+            {
+                return;
+            }
         }
 
         Vector3 mouseScreenPos = Input.mousePosition;

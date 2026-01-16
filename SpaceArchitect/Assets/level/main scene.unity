@@ -688,7 +688,7 @@ GameObject:
   m_Component:
   - component: {fileID: 106862848}
   m_Layer: 0
-  m_Name: Ring-yellow
+  m_Name: "\u66DC\u73AF\u661F"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -915,7 +915,7 @@ GameObject:
   - component: {fileID: 161647076}
   - component: {fileID: 161647075}
   m_Layer: 0
-  m_Name: Ice
+  m_Name: "\u51B0\u6CC9\u661F"
   m_TagString: Planet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1230,7 +1230,7 @@ GameObject:
   - component: {fileID: 278666123}
   - component: {fileID: 278666122}
   m_Layer: 0
-  m_Name: Moon
+  m_Name: "\u53E4\u5BC2\u661F"
   m_TagString: Planet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2098,7 +2098,7 @@ GameObject:
   m_Component:
   - component: {fileID: 553172707}
   m_Layer: 0
-  m_Name: Ring-pink
+  m_Name: "\u7EEF\u73AF\u661F"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2195,7 +2195,7 @@ GameObject:
   - component: {fileID: 614063918}
   - component: {fileID: 614063917}
   m_Layer: 0
-  m_Name: Lake
+  m_Name: "\u5BB6\u56ED\u4E09\u53F7"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2972,7 +2972,7 @@ GameObject:
   - component: {fileID: 836343088}
   - component: {fileID: 836343089}
   m_Layer: 0
-  m_Name: Wind
+  m_Name: "\u7487\u5E90\u661F"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3957,7 +3957,7 @@ GameObject:
   - component: {fileID: 1135766158}
   - component: {fileID: 1135766157}
   m_Layer: 0
-  m_Name: Cloud
+  m_Name: "\u8D64\u6591\u661F"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4670,7 +4670,7 @@ GameObject:
   - component: {fileID: 1346941233}
   - component: {fileID: 1346941232}
   m_Layer: 0
-  m_Name: Mounatain
+  m_Name: "\u7EFF\u6D32-IV"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4949,7 +4949,7 @@ GameObject:
   - component: {fileID: 1494505085}
   - component: {fileID: 1494505084}
   m_Layer: 0
-  m_Name: Lava
+  m_Name: "\u7130\u7409\u661F"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5044,7 +5044,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1521446025}
   m_Layer: 0
-  m_Name: Ring-Blue
+  m_Name: "\u971C\u6CA7\u661F"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5251,7 +5251,7 @@ GameObject:
   - component: {fileID: 1536800245}
   - component: {fileID: 1536800244}
   m_Layer: 0
-  m_Name: Aaginst
+  m_Name: "\u9E1F\u795E\u661F"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7068,7 +7068,7 @@ GameObject:
   - component: {fileID: 1982946828}
   - component: {fileID: 1982946827}
   m_Layer: 0
-  m_Name: Hurricane
+  m_Name: "\u6DA1\u5507\u661F"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7389,7 +7389,7 @@ GameObject:
   - component: {fileID: 2076568231}
   - component: {fileID: 2076568230}
   m_Layer: 0
-  m_Name: "\u8BF7\u6539\u6210\u8FD9\u4E2ABasic"
+  m_Name: "\u73AB\u7470\u661F"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7502,10 +7502,10 @@ SceneRoots:
   m_Roots:
   - {fileID: 1634523037}
   - {fileID: 15207122}
+  - {fileID: 109477101}
   - {fileID: 810240734}
   - {fileID: 1705586984}
   - {fileID: 1000081909}
-  - {fileID: 109477101}
   - {fileID: 1570416802}
   - {fileID: 636020370}
   - {fileID: 1648288147}

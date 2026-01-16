@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -18,8 +19,17 @@ public class SphereIconManager : MonoBehaviour
     [SerializeField] private Canvas worldSpaceCanvas; // World Space Canvas（如果为空，会自动查找或创建）
     [SerializeField] private GameObject iconPrefab; // Icon预制体（必须配置）
     
+    [Header("相机引用")]
+    [Tooltip("图标面向的相机（如果为空，优先使用worldSpaceCanvas.worldCamera，否则使用Camera.main）")]
+    [SerializeField] private Camera targetCamera; // 目标相机（可选，用于明确指定图标面向的相机）
+    
     [Header("图标位置设置")]
-    [SerializeField] private float iconOffsetMultiplier = 1.2f; // 右上角偏移倍数（相对于Sphere半径）
+    [Tooltip("向左偏移倍数（相对于Sphere半径），用于控制图标在Sphere左侧的距离")]
+    [SerializeField] private float leftOffsetMultiplier = 1.2f; // 向左偏移倍数
+    
+    [Tooltip("向上偏移倍数（相对于Sphere半径），用于控制图标在Sphere上方的距离")]
+    [SerializeField] private float upOffsetMultiplier = 1.2f; // 向上偏移倍数
+    
     [SerializeField] private Vector3 iconBaseScale = new Vector3(0.01f, 0.01f, 0.01f); // 图标基础大小（World Space模式）
     [SerializeField] private bool useWorldSpaceDirections = true; // 使用世界坐标方向（true）还是Sphere本地方向（false）
     
@@ -139,6 +149,16 @@ public class SphereIconManager : MonoBehaviour
         // 等待一帧，确保所有对象的初始化都已完成
         yield return null;
         
+        // 场景检查：只在 MainHub 场景中工作
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        bool isMainHubScene = currentSceneName.StartsWith("0") && currentSceneName.Contains("_MainHub");
+        
+        // 如果当前场景不是 MainHub，不自动显示气泡
+        if (!isMainHubScene)
+        {
+            yield break;
+        }
+        
         // 检查必要引用是否都已配置
         if (iconPrefab != null && worldSpaceCanvas != null)
         {
@@ -154,6 +174,16 @@ public class SphereIconManager : MonoBehaviour
     
     void Update()
     {
+        // 场景检查：只在 MainHub 场景中工作
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        bool isMainHubScene = currentSceneName.StartsWith("0") && currentSceneName.Contains("_MainHub");
+        
+        // 如果当前场景不是 MainHub，禁用此脚本的功能
+        if (!isMainHubScene)
+        {
+            return;
+        }
+        
         // 检测T键按下
         if (Input.GetKeyDown(toggleKey))
         {
@@ -326,8 +356,14 @@ public class SphereIconManager : MonoBehaviour
     /// </summary>
     private void HideIcons()
     {
+        // 如果字典未初始化，直接返回
+        if (sphereIconMap == null)
+        {
+            return;
+        }
+        
         // 关闭所有Sphere的发光效果
-        if (enableSphereGlow)
+        if (enableSphereGlow && sphereOriginalMaterials != null)
         {
             foreach (var kvp in sphereIconMap)
             {
@@ -382,19 +418,11 @@ public class SphereIconManager : MonoBehaviour
         // 初始朝向相机（如果启用）
         if (faceCamera)
         {
-            Camera mainCamera = null;
-            if (worldSpaceCanvas != null && worldSpaceCanvas.worldCamera != null)
-            {
-                mainCamera = worldSpaceCanvas.worldCamera;
-            }
-            else
-            {
-                mainCamera = Camera.main;
-            }
+            Camera cameraToFace = GetTargetCamera();
             
-            if (mainCamera != null)
+            if (cameraToFace != null)
             {
-                Vector3 directionToCamera = mainCamera.transform.position - iconObj.transform.position;
+                Vector3 directionToCamera = cameraToFace.transform.position - iconObj.transform.position;
                 if (directionToCamera != Vector3.zero)
                 {
                     iconObj.transform.rotation = Quaternion.LookRotation(directionToCamera);
@@ -448,7 +476,8 @@ public class SphereIconManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 计算Sphere右上角的世界坐标
+    /// 计算Sphere左上角的世界坐标（相对于相机视角）
+    /// 方案1：使用相机坐标系，但偏移量相对于Sphere
     /// </summary>
     private Vector3 CalculateTopRightPosition(GameObject sphere)
     {
@@ -456,7 +485,38 @@ public class SphereIconManager : MonoBehaviour
         
         // 获取Sphere的Bounds（考虑MeshRenderer或Collider）
         Bounds bounds = GetSphereBounds(sphere);
+        float radius = Mathf.Max(bounds.extents.x, bounds.extents.y, bounds.extents.z);
         
+        // ========== 方案1：使用相机坐标系计算左上角（新实现）==========
+        Camera camera = GetTargetCamera();
+        if (camera != null)
+        {
+            // 使用相机的本地坐标系（相机的right和up方向）
+            Vector3 cameraRight = camera.transform.right;    // 相机视角的右方向
+            Vector3 cameraUp = camera.transform.up;           // 相机视角的上方向
+            
+            // 分别计算左右和上下的偏移量（基于Sphere的半径，相对于Sphere）
+            float leftOffsetDistance = radius * leftOffsetMultiplier;
+            float upOffsetDistance = radius * upOffsetMultiplier;
+            
+            // 左上角偏移（向左 + 向上，使用相机坐标系）
+            Vector3 leftOffset = -cameraRight * leftOffsetDistance;  // 向左（负右方向）
+            Vector3 upOffsetCamera = cameraUp * upOffsetDistance;     // 向上（使用不同变量名避免冲突）
+            Vector3 topLeftOffset = leftOffset + upOffsetCamera;
+            
+            // 最终位置（相对于Sphere，但方向是相机坐标系）
+            Vector3 finalPosCamera = sphere.transform.position + topLeftOffset;
+            
+            // 调试信息
+            if (iconsVisible)
+            {
+                Debug.Log($"SphereIconManager: {sphere.name} 位置计算（相机坐标系） - Sphere位置: {sphere.transform.position}, 半径: {radius}, 左偏移倍数: {leftOffsetMultiplier}, 上偏移倍数: {upOffsetMultiplier}, 相机: {camera.name}, 最终位置: {finalPosCamera}");
+            }
+            
+            return finalPosCamera;
+        }
+        
+        // ========== 原有逻辑（备用，如果相机为空时使用）==========
         // 计算右上角偏移（相对于Sphere中心）
         Vector3 rightDirection;
         Vector3 upDirection;
@@ -474,22 +534,21 @@ public class SphereIconManager : MonoBehaviour
             upDirection = sphere.transform.up;
         }
         
-        // 计算偏移量（使用Sphere的半径）
-        float radius = Mathf.Max(bounds.extents.x, bounds.extents.y, bounds.extents.z);
-        Vector3 rightOffset = rightDirection * radius * iconOffsetMultiplier;
-        Vector3 upOffset = upDirection * radius * iconOffsetMultiplier;
-        Vector3 topRightOffset = rightOffset + upOffset;
+        // 分别计算左右和上下的偏移量（使用Sphere的半径）
+        Vector3 rightOffset = rightDirection * radius * leftOffsetMultiplier;  // 使用leftOffsetMultiplier（向右为正，但这里用于右上角）
+        Vector3 upOffsetWorld = upDirection * radius * upOffsetMultiplier;     // 使用upOffsetMultiplier
+        Vector3 topRightOffset = rightOffset + upOffsetWorld;
         
         // 返回世界坐标
-        Vector3 finalPosition = sphere.transform.position + topRightOffset;
+        Vector3 finalPosWorld = sphere.transform.position + topRightOffset;  // 使用不同变量名避免冲突
         
         // 调试信息
         if (iconsVisible)
         {
-            Debug.Log($"SphereIconManager: {sphere.name} 位置计算 - Sphere位置: {sphere.transform.position}, 半径: {radius}, 偏移倍数: {iconOffsetMultiplier}, 最终位置: {finalPosition}");
+            Debug.Log($"SphereIconManager: {sphere.name} 位置计算（世界坐标系，相机为空） - Sphere位置: {sphere.transform.position}, 半径: {radius}, 左偏移倍数: {leftOffsetMultiplier}, 上偏移倍数: {upOffsetMultiplier}, 最终位置: {finalPosWorld}");
         }
         
-        return finalPosition;
+        return finalPosWorld;
     }
     
     /// <summary>
@@ -516,22 +575,40 @@ public class SphereIconManager : MonoBehaviour
     }
     
     /// <summary>
+    /// 获取目标相机（用于图标面向）
+    /// 优先级：targetCamera > worldSpaceCanvas.worldCamera > Camera.main
+    /// </summary>
+    private Camera GetTargetCamera()
+    {
+        // 优先级1：如果明确指定了targetCamera，使用它
+        if (targetCamera != null)
+        {
+            return targetCamera;
+        }
+        
+        // 优先级2：使用World Space Canvas的相机
+        if (worldSpaceCanvas != null && worldSpaceCanvas.worldCamera != null)
+        {
+            return worldSpaceCanvas.worldCamera;
+        }
+        
+        // 优先级3：使用主相机
+        return Camera.main;
+    }
+    
+    /// <summary>
     /// 更新所有图标位置和朝向
     /// </summary>
     private void UpdateIconPositions()
     {
-        // 获取相机（优先使用World Space Canvas的相机，否则使用主相机）
-        Camera mainCamera = null;
-        if (worldSpaceCanvas != null && worldSpaceCanvas.worldCamera != null)
-        {
-            mainCamera = worldSpaceCanvas.worldCamera;
-        }
-        else
-        {
-            mainCamera = Camera.main;
-        }
+        // 获取目标相机
+        Camera cameraToFace = GetTargetCamera();
         
-        if (mainCamera == null) return;
+        if (cameraToFace == null)
+        {
+            Debug.LogWarning("SphereIconManager: 无法获取目标相机，跳过图标位置更新");
+            return;
+        }
         
         foreach (var kvp in sphereIconMap)
         {
@@ -548,7 +625,7 @@ public class SphereIconManager : MonoBehaviour
                 if (faceCamera)
                 {
                     // 计算从图标指向相机的方向
-                    Vector3 directionToCamera = mainCamera.transform.position - icon.transform.position;
+                    Vector3 directionToCamera = cameraToFace.transform.position - icon.transform.position;
                     
                     // 如果方向不为零，让图标面向相机
                     if (directionToCamera != Vector3.zero)
@@ -561,7 +638,7 @@ public class SphereIconManager : MonoBehaviour
                 if (maintainVisualSize)
                 {
                     // 计算图标到相机的距离
-                    float distanceToCamera = Vector3.Distance(icon.transform.position, mainCamera.transform.position);
+                    float distanceToCamera = Vector3.Distance(icon.transform.position, cameraToFace.transform.position);
                     
                     // 根据距离比例调整Scale（距离越远，Scale越大，以保持视觉大小）
                     float scaleMultiplier = distanceToCamera / referenceDistance;
@@ -962,7 +1039,7 @@ public class SphereIconManager : MonoBehaviour
     void OnDestroy()
     {
         // 恢复所有Sphere的原始材质
-        if (enableSphereGlow)
+        if (enableSphereGlow && sphereOriginalMaterials != null)
         {
             foreach (var kvp in sphereOriginalMaterials)
             {
@@ -974,6 +1051,9 @@ public class SphereIconManager : MonoBehaviour
         }
         
         // 清理所有图标
-        HideIcons();
+        if (sphereIconMap != null)
+        {
+            HideIcons();
+        }
     }
 }

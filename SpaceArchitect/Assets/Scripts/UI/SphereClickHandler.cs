@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Sphere点击处理器
@@ -41,13 +42,26 @@ public class SphereClickHandler : MonoBehaviour
         // 初始化音频源
         InitializeAudioSource();
         
-        // 如果没有指定相机，使用主相机
+        // 如果没有指定相机，优先查找关卡场景中的相机（避免MainHub相机冲突）
         if (raycastCamera == null)
         {
-            raycastCamera = Camera.main;
+            raycastCamera = FindGameplayCamera();
             if (raycastCamera == null)
             {
-                Debug.LogError("SphereClickHandler: 未找到Main Camera！请在Inspector中指定raycastCamera。");
+                // 如果找不到关卡场景的相机，使用Camera.main作为备用
+                raycastCamera = Camera.main;
+                if (raycastCamera == null)
+                {
+                    Debug.LogError("SphereClickHandler: 未找到可用的相机！请在Inspector中指定raycastCamera。");
+                }
+                else
+                {
+                    Debug.LogWarning($"SphereClickHandler: 使用Camera.main作为备用相机: {Camera.main.name} (场景: {Camera.main.gameObject.scene.name})");
+                }
+            }
+            else
+            {
+                Debug.Log($"SphereClickHandler: 找到关卡场景相机: {raycastCamera.name} (场景: {raycastCamera.gameObject.scene.name})");
             }
         }
         
@@ -111,12 +125,72 @@ public class SphereClickHandler : MonoBehaviour
         }
     }
     
+    // 用于区分单击和拖动的变量
+    private Vector3 mouseDownPosition;
+    private bool isMouseDown = false;
+    private const float clickDragThreshold = 10f; // 鼠标移动超过10像素认为是拖动，不是点击（增大阈值，避免误判）
+    
     void Update()
     {
-        // 检测鼠标左键点击
+        // 场景检查：只在 MainHub 场景中工作
+        // 检查此脚本所在的场景是否为 MainHub 场景（而不是检查激活场景，因为Additive加载时激活场景可能是关卡场景）
+        string mySceneName = gameObject.scene.name;
+        bool isMainHubScene = mySceneName.StartsWith("0") && mySceneName.Contains("_MainHub");
+        
+        // 如果此脚本不在 MainHub 场景中，禁用此脚本的功能
+        if (!isMainHubScene)
+        {
+            return;
+        }
+        
+        // 额外检查：如果有关卡场景已加载（Additive模式），说明已经进入游戏，不应该处理Sphere点击
+        if (SceneTransitionManager.Instance != null && SceneTransitionManager.Instance.IsGameSceneLoaded())
+        {
+            return;
+        }
+        
+        // 检测鼠标左键按下
         if (Input.GetMouseButtonDown(0))
         {
-            HandleMouseClick();
+            // 记录按下时的鼠标位置
+            mouseDownPosition = Input.mousePosition;
+            isMouseDown = true;
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"SphereClickHandler: 鼠标按下 - 位置: {mouseDownPosition}");
+            }
+        }
+        
+        // 检测鼠标左键抬起（只处理单击，不处理拖动）
+        if (Input.GetMouseButtonUp(0) && isMouseDown)
+        {
+            // 计算鼠标移动距离
+            float mouseMoveDistance = Vector3.Distance(Input.mousePosition, mouseDownPosition);
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"SphereClickHandler: 鼠标抬起 - 位置: {Input.mousePosition}, 移动距离: {mouseMoveDistance:F2}, 阈值: {clickDragThreshold}");
+            }
+            
+            // 如果移动距离小于阈值，认为是单击
+            if (mouseMoveDistance < clickDragThreshold)
+            {
+                if (enableDebugLog)
+                {
+                    Debug.Log($"SphereClickHandler: 判定为单击（移动距离 {mouseMoveDistance:F2} < 阈值 {clickDragThreshold}），开始处理点击");
+                }
+                HandleMouseClick();
+            }
+            else
+            {
+                if (enableDebugLog)
+                {
+                    Debug.Log($"SphereClickHandler: 检测到拖动（移动距离: {mouseMoveDistance:F2} >= 阈值 {clickDragThreshold}），跳过点击处理");
+                }
+            }
+            
+            isMouseDown = false;
         }
     }
     
@@ -125,76 +199,140 @@ public class SphereClickHandler : MonoBehaviour
     /// </summary>
     private void HandleMouseClick()
     {
+        if (enableDebugLog)
+        {
+            Debug.Log($"SphereClickHandler: ====== 开始处理点击 ======");
+        }
+        
         // 检查是否点击在UI上（Screen Space Canvas）
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
         {
             // 如果是UI元素，不处理Sphere点击（避免与UI按钮冲突）
+            if (enableDebugLog)
+            {
+                Debug.Log("SphereClickHandler: 点击在UI上，跳过Sphere点击处理");
+            }
             return;
         }
         
-        if (raycastCamera == null) return;
+        if (raycastCamera == null)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogError("SphereClickHandler: raycastCamera 为空！无法执行射线检测");
+            }
+            return;
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"SphereClickHandler: 射线检测 - 相机: {raycastCamera.name}, 鼠标位置: {Input.mousePosition}, 最大距离: {maxRaycastDistance}, LayerMask: {raycastLayerMask.value}");
+        }
         
         // 创建从相机到鼠标位置的射线
         Ray ray = raycastCamera.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
         
-        // 执行射线检测
-        if (Physics.Raycast(ray, out hit, maxRaycastDistance, raycastLayerMask))
+        // 关键修复：使用 RaycastAll 检测所有击中的物体，然后优先选择 Sphere
+        // 这样可以穿透基站等前面的物体，检测到后面的 Sphere
+        RaycastHit[] hits = Physics.RaycastAll(ray, maxRaycastDistance, raycastLayerMask);
+        
+        if (hits.Length > 0)
         {
-            GameObject hitObject = hit.collider.gameObject;
-            
             if (enableDebugLog)
             {
-                Debug.Log($"SphereClickHandler: 射线击中物体: {hitObject.name}, Tag: {hitObject.tag}");
+                Debug.Log($"SphereClickHandler: 射线击中 {hits.Length} 个物体，开始查找 Sphere...");
             }
             
-            // 检查是否是Sphere（优先级：Tag > 订单配置 > 名称）
-            bool isSphere = false;
+            // 按距离排序（从近到远）
+            System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+            
+            // 遍历所有击中的物体，优先查找 Sphere
+            GameObject sphereObject = null;
             string detectionMethod = "";
             
-            // 方法1：通过Tag判断（最可靠，推荐使用）
-            // 物体可以保留中文名，只要Tag设置为"Sphere"即可
-            if (hitObject.CompareTag("Sphere"))
+            foreach (RaycastHit hit in hits)
             {
-                isSphere = true;
-                detectionMethod = "Tag";
-            }
-            // 方法2：通过订单配置判断（支持中文名称，如"霜沧星-1", "古寂星-1"等）
-            // 如果orderDataConfig已配置，检查是否能找到对应的订单信息
-            else if (orderDataConfig != null)
-            {
-                var orderInfo = orderDataConfig.GetOrderInfoBySphereName(hitObject.name);
-                if (orderInfo != null)
-                {
-                    isSphere = true;
-                    detectionMethod = "订单配置";
-                    if (enableDebugLog)
-                    {
-                        Debug.Log($"SphereClickHandler: 通过订单配置识别为Sphere: {hitObject.name}");
-                    }
-                }
-            }
-            // 方法3：通过名称判断（向后兼容，支持英文名称，如"Sphere1", "Sphere2"等）
-            else if (hitObject.name.StartsWith("Sphere") || hitObject.name.Contains("Sphere"))
-            {
-                isSphere = true;
-                detectionMethod = "名称";
-            }
-            
-            if (isSphere)
-            {
+                GameObject hitObject = hit.collider.gameObject;
+                
                 if (enableDebugLog)
                 {
-                    Debug.Log($"SphereClickHandler: 识别为Sphere（方法: {detectionMethod}）: {hitObject.name}");
+                    Debug.Log($"SphereClickHandler: 检查物体: {hitObject.name}, Tag: {hitObject.tag}, Layer: {hitObject.layer}, 距离: {hit.distance:F2}");
                 }
-                OnSphereClicked(hitObject);
+                
+                // 检查是否是Sphere（优先级：Tag > 订单配置 > 名称）
+                bool isSphere = false;
+                
+                // 方法1：通过Tag判断（最可靠，推荐使用）
+                if (hitObject.CompareTag("Sphere"))
+                {
+                    isSphere = true;
+                    detectionMethod = "Tag";
+                }
+                // 方法2：通过订单配置判断（支持中文名称，如"霜沧星-1", "古寂星-1"等）
+                else if (orderDataConfig != null)
+                {
+                    var orderInfo = orderDataConfig.GetOrderInfoBySphereName(hitObject.name);
+                    if (orderInfo != null)
+                    {
+                        isSphere = true;
+                        detectionMethod = "订单配置";
+                        if (enableDebugLog)
+                        {
+                            Debug.Log($"SphereClickHandler: 通过订单配置识别为Sphere: {hitObject.name}");
+                        }
+                    }
+                }
+                // 方法3：通过名称判断（向后兼容，支持英文名称，如"Sphere1", "Sphere2"等）
+                else if (hitObject.name.StartsWith("Sphere") || hitObject.name.Contains("Sphere"))
+                {
+                    isSphere = true;
+                    detectionMethod = "名称";
+                }
+                
+                if (isSphere)
+                {
+                    sphereObject = hitObject;
+                    if (enableDebugLog)
+                    {
+                        Debug.Log($"SphereClickHandler: ✅ 找到 Sphere（方法: {detectionMethod}）: {hitObject.name}, 距离: {hit.distance:F2}");
+                    }
+                    break; // 找到第一个 Sphere 就停止
+                }
+            }
+            
+            // 如果找到了 Sphere，处理点击
+            if (sphereObject != null)
+            {
+                OnSphereClicked(sphereObject);
                 return;
             }
             else
             {
                 if (enableDebugLog)
                 {
-                    Debug.Log($"SphereClickHandler: 物体 {hitObject.name} 不是Sphere，跳过点击处理");
+                    Debug.LogWarning($"SphereClickHandler: 射线击中了 {hits.Length} 个物体，但没有找到 Sphere");
+                    foreach (var hit in hits)
+                    {
+                        Debug.LogWarning($"  - {hit.collider.gameObject.name} (Tag: {hit.collider.gameObject.tag}, Layer: {hit.collider.gameObject.layer})");
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning($"SphereClickHandler: ❌ 射线检测未击中任何物体 - 鼠标位置: {Input.mousePosition}, 射线方向: {ray.direction}, 最大距离: {maxRaycastDistance}, LayerMask: {raycastLayerMask.value}");
+                
+                // 尝试不限制LayerMask的射线检测，看看是否能击中物体
+                RaycastHit[] allHits = Physics.RaycastAll(ray, maxRaycastDistance);
+                if (allHits.Length > 0)
+                {
+                    Debug.LogWarning($"SphereClickHandler: ⚠️ 使用全LayerMask检测到 {allHits.Length} 个物体，但当前LayerMask不包含这些Layer");
+                    foreach (var hit in allHits)
+                    {
+                        Debug.LogWarning($"  - {hit.collider.gameObject.name} (Layer: {hit.collider.gameObject.layer})");
+                    }
                 }
             }
         }
@@ -290,6 +428,48 @@ public class SphereClickHandler : MonoBehaviour
                 Debug.LogWarning($"SphereClickHandler: 未找到 {sphereName} 的订单数据！请检查SphereOrderDataConfig配置。");
             }
         }
+    }
+    
+    /// <summary>
+    /// 查找相机（SphereClickHandler 只在 MainHub 场景中工作，所以应该使用 MainHub 场景的相机）
+    /// </summary>
+    private Camera FindGameplayCamera()
+    {
+        // SphereClickHandler 只在 MainHub 场景中工作，所以应该使用 MainHub 场景的相机
+        Camera[] cameras = FindObjectsOfType<Camera>();
+        
+        // 优先查找 MainHub 场景中的相机（因为 SphereClickHandler 只在 MainHub 场景中工作）
+        string mySceneName = gameObject.scene.name;
+        foreach (Camera cam in cameras)
+        {
+            string sceneName = cam.gameObject.scene.name;
+            bool isMainHubScene = sceneName.StartsWith("0") && sceneName.Contains("_MainHub");
+            
+            // 优先使用与当前脚本相同场景的相机
+            if (sceneName == mySceneName && 
+                cam.CompareTag("MainCamera") && 
+                cam.enabled)
+            {
+                return cam;
+            }
+        }
+        
+        // 如果没找到同场景的相机，查找其他 MainHub 场景的相机
+        foreach (Camera cam in cameras)
+        {
+            string sceneName = cam.gameObject.scene.name;
+            bool isMainHubScene = sceneName.StartsWith("0") && sceneName.Contains("_MainHub");
+            
+            if (isMainHubScene && 
+                cam.CompareTag("MainCamera") && 
+                cam.enabled)
+            {
+                return cam;
+            }
+        }
+        
+        // 如果没找到，返回null（让调用者使用Camera.main作为备用）
+        return null;
     }
     
     /// <summary>
