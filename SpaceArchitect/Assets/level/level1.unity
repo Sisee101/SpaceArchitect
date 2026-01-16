@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 81e4ae6a0a8d64292aa1828852f17a22, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -1773,23 +1773,6 @@ MonoBehaviour:
   size: 0.1
   rotateFrame: 1
   lockToXYPlane: 0
---- !u!114 &1966355604
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1966355597}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a10f8fad6f946554bbf25dc69fdbf08f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  currentState: 0
-  targetCamera: {fileID: 330585545}
-  escapeCheckInterval: 0.5
-  viewportMargin: 0.1
-  escapeCheckDelayAfterLaunch: 1
 --- !u!136 &1966355605
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1828,26 +1811,6 @@ MonoBehaviour:
   rotationSpeed: 360
   minVelocityThreshold: 0.1
   shipForwardOffset: -90
---- !u!114 &1966355607
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1966355597}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c468f5ddf57abc4d9e464349acff0f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  boostForce: 15
-  boostDuration: 0.3
-  cooldownTime: 2
-  minVelocityForBoost: 0.5
-  boostParticles: {fileID: 0}
-  boostSound: {fileID: 0}
-  escapeFromPlanetInCaptured: 1
-  escapeBoostMultiplier: 1.5
 --- !u!54 &1966355608
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1994,7 +1957,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1966355597}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 714a10ae684bd934680028707b62461b, type: 3}
   m_Name: 
@@ -2027,6 +1990,46 @@ MonoBehaviour:
   redMaterials:
   - {fileID: 2100000, guid: 0a9ba974431476a4a96dd852730825b1, type: 2}
   showDebugLog: 1
+--- !u!114 &1966355616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1966355597}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a2163cde8e629e4da7da33caacfea85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  skillList:
+  - skillName: Boost1
+    skillGameObject: {fileID: 1966355597}
+    scriptTypeName: ShipBoostAim
+  - skillName: Core1
+    skillGameObject: {fileID: 0}
+    scriptTypeName: Core1
+  - skillName: Boost2
+    skillGameObject: {fileID: 0}
+    scriptTypeName: Boost2
+  - skillName: Core2
+    skillGameObject: {fileID: 0}
+    scriptTypeName: Core2
+  - skillName: AntiHeat
+    skillGameObject: {fileID: 1966355597}
+    scriptTypeName: ShipHeatShieldSkill
+  - skillName: Predict
+    skillGameObject: {fileID: 1966355597}
+    scriptTypeName: TrajectoryPredictor
+  - skillName: Boost3
+    skillGameObject: {fileID: 0}
+    scriptTypeName: Boost3
+  - skillName: Core3
+    skillGameObject: {fileID: 0}
+    scriptTypeName: Core3
+  - skillName: AntiCollision
+    skillGameObject: {fileID: 1966355597}
+    scriptTypeName: ShipShieldSkill
 --- !u!1001 &1982258387
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2434,6 +2437,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 972943219015689251, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      propertyPath: viewportMargin
+      value: 0.2
+      objectReference: {fileID: 0}
     - target: {fileID: 1384418770383851332, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -2503,6 +2511,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_ConstrainProportionsScale
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2914957231646136711, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
@@ -2579,6 +2592,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ship
       objectReference: {fileID: 0}
+    - target: {fileID: 8078078821037034786, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8078078821037034786, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      propertyPath: trajectoryPredictor
+      value: 
+      objectReference: {fileID: 6529174490446473438}
     m_RemovedComponents:
     - {fileID: 0}
     - {fileID: 0}
@@ -2591,32 +2614,36 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
-      insertIndex: -1
+      insertIndex: 1
       addedObject: {fileID: 1966355599}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1966355604}
-    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1966355605}
-    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1966355608}
-    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1966355606}
-    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
-        type: 3}
-      insertIndex: -1
+      insertIndex: 3
       addedObject: {fileID: 1966355609}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
-      insertIndex: -1
+      insertIndex: 4
+      addedObject: {fileID: 1966355606}
+    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      insertIndex: 5
+      addedObject: {fileID: 1966355605}
+    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      insertIndex: 6
+      addedObject: {fileID: 1966355608}
+    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      insertIndex: 7
       addedObject: {fileID: 1966355612}
+    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      insertIndex: 8
+      addedObject: {fileID: 1966355613}
+    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      insertIndex: 9
+      addedObject: {fileID: 1966355615}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
       insertIndex: -1
@@ -2624,19 +2651,11 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1966355613}
-    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1966355615}
-    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
-        type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1966355614}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1966355607}
+      addedObject: {fileID: 1966355616}
   m_SourcePrefab: {fileID: 100100000, guid: 85df5d8f1d63d594caaf743031644e31, type: 3}
 --- !u!1 &6529174490446473436 stripped
 GameObject:
@@ -2650,6 +2669,18 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 6529174490446473435}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6529174490446473438 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2914957231646136711, guid: 85df5d8f1d63d594caaf743031644e31,
+    type: 3}
+  m_PrefabInstance: {fileID: 6529174490446473435}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1966355597}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6882163a6116bd408d7f06a13d5b170, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7288568365160551069
 PrefabInstance:
   m_ObjectHideFlags: 0

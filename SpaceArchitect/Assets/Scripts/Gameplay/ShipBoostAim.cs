@@ -144,8 +144,8 @@ public class ShipBoostAim : MonoBehaviour
         // 保存原始时间缩放
         originalTimeScale = Time.timeScale;
 
-        // 根据等级计算最大使用次数（如果未手动设置）
-        UpdateMaxUsesFromLevel();
+        // 从 SkillManager 读取 Boost1, Boost2, Boost3 的布尔值，计算最大使用次数
+        UpdateMaxUsesFromSkillManager();
     }
     
     /// <summary>
@@ -1083,18 +1083,34 @@ public class ShipBoostAim : MonoBehaviour
     /// 根据等级计算最大使用次数
     /// 等级1=1次，等级2=3次，等级3=5次，等级4=7次...（公式：2*level-1）
     /// </summary>
-    private void UpdateMaxUsesFromLevel()
+    /// <summary>
+    /// 从 SkillManager 读取 Boost1, Boost2, Boost3 的布尔值，计算最大使用次数
+    /// 三个布尔值的和就是能使用 boost 技能的上限次数
+    /// </summary>
+    private void UpdateMaxUsesFromSkillManager()
     {
-        // 如果maxUsesPerRound已经被手动设置过（不为默认值1），则不自动计算
-        // 否则根据等级自动计算
-        if (maxUsesPerRound == 1 && boostLevel > 1)
-        {
-            maxUsesPerRound = CalculateMaxUsesFromLevel(boostLevel);
-        }
+        // 从 SkillManager 读取三个 Boost 技能的解锁状态
+        bool boost1 = SkillManager.Boost1;
+        bool boost2 = SkillManager.Boost2;
+        bool boost3 = SkillManager.Boost3;
+        
+        // 计算解锁的技能数量（true=1, false=0）
+        int unlockedCount = 0;
+        if (boost1) unlockedCount++;
+        if (boost2) unlockedCount++;
+        if (boost3) unlockedCount++;
+        
+        // 如果没有任何技能解锁，至少允许使用1次（基础功能）
+        maxUsesPerRound = Mathf.Max(1, unlockedCount);
+        
+        // 更新 boostLevel（用于兼容旧代码）
+        boostLevel = maxUsesPerRound;
+        
+        Debug.Log($"ShipBoostAim: 从 SkillManager 读取 Boost 技能状态 - Boost1={boost1}, Boost2={boost2}, Boost3={boost3}, 最大使用次数={maxUsesPerRound}");
     }
 
     /// <summary>
-    /// 根据等级计算最大使用次数
+    /// 根据等级计算最大使用次数（保留用于兼容性，但已不再使用）
     /// </summary>
     /// <param name="level">Boost等级</param>
     /// <returns>最大使用次数</returns>
@@ -1149,20 +1165,31 @@ public class ShipBoostAim : MonoBehaviour
 
     /// <summary>
     /// 设置Boost等级（升级时调用）
+    /// 注意：现在改为从 SkillManager 读取，此方法保留用于兼容性
     /// </summary>
     /// <param name="newLevel">新等级</param>
     public void SetBoostLevel(int newLevel)
     {
-        if (newLevel < 1)
-        {
-            Debug.LogWarning($"ShipBoostAim: 尝试设置无效的等级 {newLevel}，已设置为1");
-            newLevel = 1;
-        }
-
-        boostLevel = newLevel;
-        maxUsesPerRound = CalculateMaxUsesFromLevel(boostLevel);
+        // 现在改为从 SkillManager 读取，但保留此方法用于兼容性
+        // 如果外部调用此方法，重新从 SkillManager 读取
+        UpdateMaxUsesFromSkillManager();
         
-        Debug.Log($"Boost等级已升级到 {boostLevel}，最大使用次数: {maxUsesPerRound}");
+        Debug.Log($"ShipBoostAim: SetBoostLevel 被调用，已重新从 SkillManager 读取 Boost 技能状态，最大使用次数: {maxUsesPerRound}");
+    }
+    
+    /// <summary>
+    /// 刷新 Boost 技能状态（从 SkillManager 重新读取）
+    /// 当技能解锁后，可以调用此方法来更新最大使用次数
+    /// </summary>
+    public void RefreshBoostSkillStatus()
+    {
+        int oldMaxUses = maxUsesPerRound;
+        UpdateMaxUsesFromSkillManager();
+        
+        if (oldMaxUses != maxUsesPerRound)
+        {
+            Debug.Log($"ShipBoostAim: Boost 技能状态已刷新，最大使用次数从 {oldMaxUses} 更新为 {maxUsesPerRound}");
+        }
     }
 
     /// <summary>
@@ -1182,6 +1209,9 @@ public class ShipBoostAim : MonoBehaviour
         
         // 重置使用次数
         ResetUsageCount();
+        
+        // 重新从 SkillManager 读取 Boost 技能状态（可能在重置时技能状态已改变）
+        UpdateMaxUsesFromSkillManager();
         
         // 重置技能状态
         isBoosting = false;
