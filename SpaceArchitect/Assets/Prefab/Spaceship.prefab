@@ -10,10 +10,17 @@ GameObject:
   m_Component:
   - component: {fileID: 1384418770383851332}
   - component: {fileID: 972943219015689251}
+  - component: {fileID: 8072429735862742456}
+  - component: {fileID: 3160796833516963613}
   - component: {fileID: 3782997858982409469}
   - component: {fileID: 8078078821037034786}
   - component: {fileID: 2914957231646136711}
+  - component: {fileID: 2297984518331083844}
   - component: {fileID: 4793892098665207009}
+  - component: {fileID: 3637336690657569119}
+  - component: {fileID: 6979761253291953458}
+  - component: {fileID: 5064397054934219405}
+  - component: {fileID: 867233129272959553}
   m_Layer: 0
   m_Name: Spaceship
   m_TagString: Untagged
@@ -57,6 +64,71 @@ MonoBehaviour:
   escapeCheckInterval: 0.5
   viewportMargin: 0.1
   escapeCheckDelayAfterLaunch: 1
+--- !u!114 &8072429735862742456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5228303165192812008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3270e10fbb3eb574e9703a8e36e20e2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  launchSpeed: 15
+  arrowLength: 10
+  arrowSegmentCount: 1
+  arrowSprite: {fileID: 21300000, guid: 34bbbbffaee1e9a428f7083d1426eb2c, type: 3}
+  arrowSize: {x: 0.3, y: 0.3}
+  arrowSpacing: 0.6
+  launchSoundClip: {fileID: 8300000, guid: 9292b669ae6ec7d44bee210334c3aa67, type: 3}
+  launchSoundSource: {fileID: 0}
+  showDebugLog: 1
+--- !u!114 &3160796833516963613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5228303165192812008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 714a10ae684bd934680028707b62461b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  redEffectDuration: 5
+  explosionParticlesPrefab: {fileID: 1286973089002592906, guid: 9b08032d5214dbc46a55f5163ec72de8,
+    type: 3}
+  overheatParticlesPrefab: {fileID: 2417689926996605143, guid: 45b9617654b88e44b82d7499b680f889,
+    type: 3}
+  shipRenderers:
+  - {fileID: 5098440114312998139}
+  overheatMode: 0
+  overheatTexture: {fileID: 2800000, guid: 7da86ad6cc487f8489287ba050fc0f20, type: 3}
+  overheatColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  emissionIntensity: 30
+  enableFlicker: 1
+  flickerFrequency: 10
+  maxFlickerMultiplier: 10
+  enableBloomGlow: 0
+  glowSize: 5
+  glowMaterial: {fileID: 0}
+  glowColor: {r: 0.98742133, g: 0.87384135, b: 0.10246814, a: 1}
+  glowMaxIntensity: 5
+  warningText: {fileID: 0}
+  warningMessage: "\u8B66\u544A\uFF01\u98DE\u8239\u8FC7\u70ED\uFF01"
+  warningDisplayDuration: 0
+  warningFontSize: 36
+  warningTextColor: {r: 1, g: 0, b: 0, a: 1}
+  overheatWarningClip: {fileID: 8300000, guid: e3a299276212b3c41b87cc87770ae9bf, type: 3}
+  overheatWarningSource: {fileID: 0}
+  burningClip: {fileID: 0}
+  burningSource: {fileID: 0}
+  originalMaterials: []
+  redMaterials:
+  - {fileID: 2100000, guid: 0a9ba974431476a4a96dd852730825b1, type: 2}
+  showDebugLog: 1
 --- !u!120 &3782997858982409469
 LineRenderer:
   serializedVersion: 2
@@ -222,6 +294,29 @@ MonoBehaviour:
   triggerDelayFrames: 6
   predictionLogFilePath: PredictionDataLog.txt
   predictionLogInterval: 1
+--- !u!136 &2297984518331083844
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5228303165192812008}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.2
+  m_Height: 0.63
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &4793892098665207009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -262,6 +357,111 @@ MonoBehaviour:
   - skillName: AntiCollision
     skillGameObject: {fileID: 5228303165192812008}
     scriptTypeName: ShipShieldSkill
+--- !u!114 &3637336690657569119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5228303165192812008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14b4397ad9e357b44a4b8f6253d03420, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playCrashSound: 1
+  crashParticlesPrefab: {fileID: 1286973089002592906, guid: 9b08032d5214dbc46a55f5163ec72de8,
+    type: 3}
+  crashSoundClip: {fileID: 8300000, guid: 295e8f647121b554495c7aa6ccd760a0, type: 3}
+  crashSoundSource: {fileID: 0}
+  showDebugLogs: 1
+--- !u!114 &6979761253291953458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5228303165192812008}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 654f4e6d963c52e4199c2979bb57374e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timeScale: 0.1
+  maxAimTime: 10
+  boostForce: 20
+  boostDuration: 0.5
+  cooldownTime: 2
+  minVelocityForBoost: 0.5
+  sectorAngle: 30
+  sectorRadius: 5
+  sectorSegments: 20
+  showVisualization: 1
+  sectorColor: {r: 1, g: 0.5377357, b: 0.94168836, a: 0.8980392}
+  sectorBorderColor: {r: 0.99402523, g: 0, b: 1, a: 1}
+  arrowColor: {r: 0.44705886, g: 0.3921569, b: 0.61960787, a: 1}
+  arrowLength: 5
+  arrowWidth: 1
+  aimKey: 98
+  confirmMouseButton: 0
+  boostLevel: 3
+  maxUsesPerRound: 3
+  currentUses: 0
+  boostParticles: {fileID: 0}
+  timeStopStartClip: {fileID: 8300000, guid: 7de99833d359687418e870f0c0f2bd95, type: 3}
+  timeStopStartSource: {fileID: 0}
+  timeStopEndClip: {fileID: 0}
+  timeStopEndSource: {fileID: 0}
+  boostSoundClip: {fileID: 8300000, guid: dc0d8730415f9ff41b58f4110c2372f7, type: 3}
+  boostSoundSource: {fileID: 0}
+  shockwaveController: {fileID: 0}
+--- !u!114 &5064397054934219405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5228303165192812008}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 880a41c81fa4aca43958ce1bb0f67cf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shieldKey: 99
+  shieldDuration: 5
+  cooldownDuration: 10
+  shieldVFX: {fileID: 7348237585426727559}
+  activateSoundClip: {fileID: 8300000, guid: 9f49ab90d41909f40b50b5434364a134, type: 3}
+  activateSoundSource: {fileID: 0}
+  deactivateSoundClip: {fileID: 0}
+  deactivateSoundSource: {fileID: 0}
+  passThroughObstacleClip: {fileID: 8300000, guid: 0d9b2abdf735d81478ee5fdf1e4e603a,
+    type: 3}
+  passThroughObstacleSource: {fileID: 0}
+  passThroughSoundInterval: 0.5
+  asteroidBeltTag: Obstacles
+  showDebugLog: 1
+--- !u!114 &867233129272959553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5228303165192812008}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bcc0176844fd154c83b292e1bf61e2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  heatShieldKey: 104
+  shieldDuration: 10
+  cooldownDuration: 5
+  heatShieldVFX: {fileID: 3118481429376495566}
+  activateSoundClip: {fileID: 8300000, guid: 6ee7a5636158ea441a5afa9a5c3778d2, type: 3}
+  activateSoundSource: {fileID: 0}
+  deactivateSoundClip: {fileID: 8300000, guid: b6512b8c2c0881546ae8f9b5a0b4e284, type: 3}
+  deactivateSoundSource: {fileID: 0}
+  showDebugLog: 1
 --- !u!1001 &1638508495484594288
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -440,6 +640,12 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1770572837505003439}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &3118481429376495566 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3734967104790823009, guid: 69793d8de86251a48b6ca06eb031408a,
+    type: 3}
+  m_PrefabInstance: {fileID: 1770572837505003439}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2953556552957799214
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -516,6 +722,12 @@ PrefabInstance:
 --- !u!4 &7309751916474300450 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5587929932538696460, guid: 28ac8abd5fdc5fa4d99c3af1967eef3f,
+    type: 3}
+  m_PrefabInstance: {fileID: 2953556552957799214}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7348237585426727559 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5550417366402951593, guid: 28ac8abd5fdc5fa4d99c3af1967eef3f,
     type: 3}
   m_PrefabInstance: {fileID: 2953556552957799214}
   m_PrefabAsset: {fileID: 0}
@@ -602,6 +814,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 26eb7a3ed3891e842b6fd1c581051a7f, type: 3}
+--- !u!23 &5098440114312998139 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: 26eb7a3ed3891e842b6fd1c581051a7f,
+    type: 3}
+  m_PrefabInstance: {fileID: 5836904693042311295}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &6235902848021141396 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 26eb7a3ed3891e842b6fd1c581051a7f,

@@ -22,6 +22,28 @@ public class ShipShieldSkill : MonoBehaviour
     [Tooltip("保护罩特效GameObject（场景中已存在的特效，直接控制其active状态）")]
     [SerializeField] private GameObject shieldVFX;
     
+    [Header("音效设置")]
+    [Tooltip("激活技能时的音效（可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip activateSoundClip;
+    
+    [Tooltip("激活音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource activateSoundSource;
+    
+    [Tooltip("停用技能时的音效（可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip deactivateSoundClip;
+    
+    [Tooltip("停用音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource deactivateSoundSource;
+    
+    [Tooltip("穿过障碍物时的音效（可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip passThroughObstacleClip;
+    
+    [Tooltip("穿过障碍物音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource passThroughObstacleSource;
+    
+    [Tooltip("穿过障碍物音效的最小播放间隔（秒，防止重复播放）")]
+    [SerializeField] private float passThroughSoundInterval = 0.5f;
+    
     [Header("小行星带设置")]
     [Tooltip("小行星带的Tag（飞船可以穿越的对象）")]
     [SerializeField] private string asteroidBeltTag = "Obstacles";
@@ -34,6 +56,7 @@ public class ShipShieldSkill : MonoBehaviour
     private bool isOnCooldown = false; // 是否在冷却中
     private float shieldTimer = 0f; // 技能持续时间计时器
     private float cooldownTimer = 0f; // 冷却时间计时器
+    private float lastPassThroughSoundTime = 0f; // 上次播放穿过障碍物音效的时间（用于防重复播放）
 
     /// <summary>
     /// 获取技能是否激活
@@ -147,6 +170,9 @@ public class ShipShieldSkill : MonoBehaviour
         // 显示保护罩特效
         ShowShieldVFX();
 
+        // 播放激活音效
+        PlayActivateSound();
+
         // 触发技能激活事件（可选）
         if (EventManager.Instance != null)
         {
@@ -176,10 +202,77 @@ public class ShipShieldSkill : MonoBehaviour
         // 隐藏保护罩特效
         HideShieldVFX();
 
+        // 播放停用音效
+        PlayDeactivateSound();
+
         // 触发技能停用事件（可选）
         if (EventManager.Instance != null)
         {
             // 如果有相关事件，可以在这里触发
+        }
+    }
+
+    /// <summary>
+    /// 播放激活音效
+    /// </summary>
+    private void PlayActivateSound()
+    {
+        if (activateSoundClip == null)
+        {
+            return;
+        }
+        
+        // 如果指定了AudioSource，使用它播放
+        if (activateSoundSource != null)
+        {
+            if (!activateSoundSource.isPlaying)
+            {
+                activateSoundSource.PlayOneShot(activateSoundClip);
+            }
+        }
+        else
+        {
+            // 如果没有指定AudioSource，使用AudioSource.PlayOneShot（需要AudioSource组件）
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                // 自动添加AudioSource组件
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+            audioSource.PlayOneShot(activateSoundClip);
+        }
+    }
+
+    /// <summary>
+    /// 播放停用音效
+    /// </summary>
+    private void PlayDeactivateSound()
+    {
+        if (deactivateSoundClip == null)
+        {
+            return;
+        }
+        
+        // 如果指定了AudioSource，使用它播放
+        if (deactivateSoundSource != null)
+        {
+            if (!deactivateSoundSource.isPlaying)
+            {
+                deactivateSoundSource.PlayOneShot(deactivateSoundClip);
+            }
+        }
+        else
+        {
+            // 如果没有指定AudioSource，使用AudioSource.PlayOneShot（需要AudioSource组件）
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                // 自动添加AudioSource组件
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+            audioSource.PlayOneShot(deactivateSoundClip);
         }
     }
 
@@ -239,10 +332,52 @@ public class ShipShieldSkill : MonoBehaviour
                 {
                     Debug.Log($"ShipShieldSkill: 防撞技能激活，忽略小行星带碰撞（Tag: {collisionTag}）");
                 }
+                
+                // 播放穿过障碍物音效（带防重复播放机制）
+                PlayPassThroughObstacleSound();
+                
                 return true;
             }
         }
         return false;
+    }
+
+    /// <summary>
+    /// 播放穿过障碍物音效
+    /// </summary>
+    private void PlayPassThroughObstacleSound()
+    {
+        if (passThroughObstacleClip == null)
+        {
+            return;
+        }
+        
+        // 防重复播放：检查距离上次播放的时间间隔
+        float currentTime = Time.unscaledTime;
+        if (currentTime - lastPassThroughSoundTime < passThroughSoundInterval)
+        {
+            return; // 距离上次播放时间太短，跳过
+        }
+        
+        lastPassThroughSoundTime = currentTime;
+        
+        // 如果指定了AudioSource，使用它播放
+        if (passThroughObstacleSource != null)
+        {
+            passThroughObstacleSource.PlayOneShot(passThroughObstacleClip);
+        }
+        else
+        {
+            // 如果没有指定AudioSource，使用AudioSource.PlayOneShot（需要AudioSource组件）
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                // 自动添加AudioSource组件
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+            audioSource.PlayOneShot(passThroughObstacleClip);
+        }
     }
 
     /// <summary>

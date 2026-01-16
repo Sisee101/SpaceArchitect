@@ -77,6 +77,19 @@ public class ShipOverheat : MonoBehaviour
     [Tooltip("警告文本颜色")]
     [SerializeField] private Color warningTextColor = Color.red;
     
+    [Header("音效设置")]
+    [Tooltip("过热警告音效（开始过热时播放，可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip overheatWarningClip;
+    
+    [Tooltip("过热警告音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource overheatWarningSource;
+    
+    [Tooltip("燃烧音效（过热过程中持续播放，可以直接使用AudioClip资源文件或Prefab）")]
+    [SerializeField] private AudioClip burningClip;
+    
+    [Tooltip("燃烧音效的AudioSource组件（可选，如果为空会自动创建）")]
+    [SerializeField] private AudioSource burningSource;
+    
     [Tooltip("原始材质（用于恢复，如果为空则自动保存）")]
     [SerializeField] private Material[] originalMaterials;
     
@@ -113,6 +126,7 @@ public class ShipOverheat : MonoBehaviour
     private Material glowMaterialInstance; // 炫光材质实例
     private GameObject overheatParticlesInstance; // 过热粒子系统实例（需要保存引用，避免爆炸时被销毁）
     private ParticleSystem overheatParticleSystem; // 过热粒子系统组件引用
+    private AudioSource burningAudioSourceInstance; // 燃烧音效的AudioSource实例（用于循环播放）
     
     void Awake()
     {
@@ -669,6 +683,12 @@ public class ShipOverheat : MonoBehaviour
         // 显示UI警告
         ShowWarningUI();
         
+        // 播放过热警告音效
+        PlayOverheatWarningSound();
+        
+        // 开始播放燃烧音效（循环播放）
+        StartBurningSound();
+        
         // ✅ 启用炫光效果（与闪烁同步）
         if (enableBloomGlow && glowObject != null)
         {
@@ -1209,6 +1229,9 @@ public class ShipOverheat : MonoBehaviour
         
         // 隐藏UI警告
         HideWarningUI();
+        
+        // 停止燃烧音效
+        StopBurningSound();
         
         // ✅ 隐藏炫光效果（爆炸时停止炫光）
         if (glowObject != null)
@@ -1899,6 +1922,9 @@ public class ShipOverheat : MonoBehaviour
         // 隐藏UI警告
         HideWarningUI();
         
+        // 停止燃烧音效
+        StopBurningSound();
+        
         // ✅ 隐藏炫光效果（立即隐藏并重置所有属性）
         if (glowObject != null)
         {
@@ -1946,6 +1972,9 @@ public class ShipOverheat : MonoBehaviour
             }
         }
         
+        // 停止燃烧音效
+        StopBurningSound();
+        
         // 恢复原始状态
         RestoreOriginalState();
         
@@ -1953,6 +1982,115 @@ public class ShipOverheat : MonoBehaviour
         isOverheating = false;
         hasOverheated = false;
         overheatStartTime = 0f;
+    }
+    
+    /// <summary>
+    /// 播放过热警告音效
+    /// </summary>
+    private void PlayOverheatWarningSound()
+    {
+        if (overheatWarningClip == null)
+        {
+            return;
+        }
+        
+        // 如果指定了AudioSource，使用它播放
+        if (overheatWarningSource != null)
+        {
+            overheatWarningSource.PlayOneShot(overheatWarningClip);
+        }
+        else
+        {
+            // 如果没有指定AudioSource，使用AudioSource.PlayOneShot（需要AudioSource组件）
+            AudioSource audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                // 自动添加AudioSource组件
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+            audioSource.PlayOneShot(overheatWarningClip);
+        }
+        
+        if (showDebugLog)
+        {
+            Debug.Log($"ShipOverheat: 播放过热警告音效: {overheatWarningClip.name}");
+        }
+    }
+    
+    /// <summary>
+    /// 开始播放燃烧音效（循环播放）
+    /// </summary>
+    private void StartBurningSound()
+    {
+        if (burningClip == null)
+        {
+            return;
+        }
+        
+        // 停止之前的燃烧音效（如果有）
+        StopBurningSound();
+        
+        // 确定使用哪个AudioSource
+        AudioSource targetSource = burningSource;
+        if (targetSource == null)
+        {
+            // 如果没有指定AudioSource，尝试获取或添加一个
+            targetSource = GetComponent<AudioSource>();
+            if (targetSource == null)
+            {
+                // 自动添加AudioSource组件
+                targetSource = gameObject.AddComponent<AudioSource>();
+                targetSource.playOnAwake = false;
+            }
+            burningAudioSourceInstance = targetSource; // 保存引用，用于停止
+        }
+        else
+        {
+            burningAudioSourceInstance = targetSource;
+        }
+        
+        if (targetSource != null)
+        {
+            // 配置AudioSource为循环播放
+            targetSource.clip = burningClip;
+            targetSource.loop = true;
+            targetSource.Play();
+            
+            if (showDebugLog)
+            {
+                Debug.Log($"ShipOverheat: 开始播放燃烧音效（循环）: {burningClip.name}");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 停止播放燃烧音效
+    /// </summary>
+    private void StopBurningSound()
+    {
+        if (burningAudioSourceInstance != null)
+        {
+            if (burningAudioSourceInstance.isPlaying)
+            {
+                burningAudioSourceInstance.Stop();
+                if (showDebugLog)
+                {
+                    Debug.Log("ShipOverheat: 停止播放燃烧音效");
+                }
+            }
+            // 注意：不销毁AudioSource，保留它以便下次使用
+            // 如果burningSource是手动指定的，保留引用
+            // 如果是自动创建的，保留引用以便下次使用
+        }
+        else if (burningSource != null && burningSource.isPlaying)
+        {
+            burningSource.Stop();
+            if (showDebugLog)
+            {
+                Debug.Log("ShipOverheat: 停止播放燃烧音效（使用指定的Source）");
+            }
+        }
     }
     
     /// <summary>
