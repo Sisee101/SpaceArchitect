@@ -632,6 +632,16 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805,
         type: 2}
+    - target: {fileID: 7824796650908833655, guid: 2016c83eb1639c04cbbd8ad1ad000495,
+        type: 3}
+      propertyPath: confirmButtonSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b, type: 3}
+    - target: {fileID: 7824796650908833655, guid: 2016c83eb1639c04cbbd8ad1ad000495,
+        type: 3}
+      propertyPath: upgradeButtonSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 1c6ddb8ed09c9e54aac959f5e4723c6b, type: 3}
     - target: {fileID: 8851799995698968754, guid: 2016c83eb1639c04cbbd8ad1ad000495,
         type: 3}
       propertyPath: m_Name
@@ -1643,6 +1653,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SphereInfoPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 7733936528567439763, guid: 20fffd2d21f0dbf49a4e61b6ed0cb309,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9120313036496101775, guid: 20fffd2d21f0dbf49a4e61b6ed0cb309,
         type: 3}
@@ -3155,6 +3170,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: MainHubPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 1358478184912109104, guid: 31b9c4e93f0463d46b23dcea0855a46c,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1742993191335759325, guid: 31b9c4e93f0463d46b23dcea0855a46c,
         type: 3}
