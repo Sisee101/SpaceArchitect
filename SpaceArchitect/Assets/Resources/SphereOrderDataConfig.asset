@@ -19,6 +19,7 @@ MonoBehaviour:
     orderAmount: 3200
     taskId: 1
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    planetIndex: 0
     VisitOrder: 1
     CompleteOrder: 0
   - sphereName: "\u971C\u6CA7\u661F-1"
@@ -27,6 +28,7 @@ MonoBehaviour:
     orderAmount: 800
     taskId: 2
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    planetIndex: 1
     VisitOrder: 0
     CompleteOrder: 0
   - sphereName: "\u53E4\u5BC2\u661F-1"
@@ -35,6 +37,7 @@ MonoBehaviour:
     orderAmount: 1500
     taskId: 3
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    planetIndex: 2
     VisitOrder: 0
     CompleteOrder: 0
   - sphereName: "\u7130\u6D41\u661F-2"
@@ -43,6 +46,7 @@ MonoBehaviour:
     orderAmount: 5000
     taskId: 4
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    planetIndex: 4
     VisitOrder: 0
     CompleteOrder: 0
   - sphereName: "\u6DA1\u5507\u661F-2"
@@ -51,6 +55,7 @@ MonoBehaviour:
     orderAmount: 2500
     taskId: 5
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    planetIndex: 3
     VisitOrder: 0
     CompleteOrder: 0
   - sphereName: "\u9E1F\u795E\u661F-2"
@@ -59,6 +64,7 @@ MonoBehaviour:
     orderAmount: 1600
     taskId: 6
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    planetIndex: 0
     VisitOrder: 0
     CompleteOrder: 0
   - sphereName: "\u53E4\u5BC2\u661F-2"
@@ -67,5 +73,6 @@ MonoBehaviour:
     orderAmount: 3000
     taskId: 7
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
+    planetIndex: 2
     VisitOrder: 0
     CompleteOrder: 0
