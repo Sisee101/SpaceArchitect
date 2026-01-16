@@ -26,7 +26,7 @@ public class SkillManager : MonoBehaviour
     // Tip Panel 相关引用
     [Header("Tip Panel 设置")]
     public GameObject tipPanel;  // Tip Panel GameObject
-    public TextMeshProUGUI tipText;  // Tip Panel 上的文字提示
+    public Text tipText;  // Tip Panel 上的文字提示
     public Button backButton;  // Back 按钮
     
     // Tip1 Panel 相关引用（成功解锁提示）
@@ -70,23 +70,23 @@ public class SkillManager : MonoBehaviour
 
     // Station 解锁所需的 Money 数额
     public static int Station1Cost = 0;
-    public static int Station2Cost = 10000;
-    public static int Station3Cost = 30000;
+    public static int Station2Cost = 5000;
+    public static int Station3Cost = 10000;
 
     // Station1 技能解锁所需的 Money 数额
-    public static int Boost1Cost = 2000;
+    public static int Boost1Cost = 3000;
     public static int Core1Cost = 0;
 
     // Station2 技能解锁所需的 Money 数额
-    public static int Boost2Cost = 5000;
+    public static int Boost2Cost = 6000;
     public static int Core2Cost = 3000;
-    public static int AntiHeatCost = 6000;
-    public static int PredictCost = 7000;
+    public static int AntiHeatCost = 5000;
+    public static int PredictCost = 3000;
 
     // Station3 技能解锁所需的 Money 数额
-    public static int Boost3Cost = 10000;
-    public static int Core3Cost = 8000;
-    public static int AntiCollisionCost = 10000;
+    public static int Boost3Cost = 9000;
+    public static int Core3Cost = 6000;
+    public static int AntiCollisionCost = 5000;
 
     // Start is called before the first frame update
     void Start()
@@ -174,7 +174,7 @@ public class SkillManager : MonoBehaviour
         if (!prerequisiteMet && !hasEnoughMoney)
         {
             // 两个条件都不满足，组合显示
-            message = prerequisiteMessage + "\nLack of money";
+            message = prerequisiteMessage + "\n金钱不足";
         }
         else if (!prerequisiteMet)
         {
@@ -184,7 +184,7 @@ public class SkillManager : MonoBehaviour
         else if (!hasEnoughMoney)
         {
             // 只不满足money条件
-            message = "Lack of money";
+            message = "金钱不足";
         }
 
         // 显示提示
@@ -366,7 +366,7 @@ public class SkillManager : MonoBehaviour
             // 检查money条件（Station1没有前置条件）
             if (MoneyManager.money < Station1Cost)
             {
-                ShowTipPanel("Lack of money");
+                ShowTipPanel("金钱不足");
                 return;
             }
             
@@ -385,7 +385,7 @@ public class SkillManager : MonoBehaviour
         if (!Station2)
         {
             // 检查解锁条件
-            if (!CheckUnlockConditions(Station1, Station2Cost, "Cannot unlock Station2, please unlock Station1 first!"))
+            if (!CheckUnlockConditions(Station1, Station2Cost, "无法解锁 Station2，请先解锁 Station1！"))
             {
                 return;
             }
@@ -405,7 +405,7 @@ public class SkillManager : MonoBehaviour
         if (!Station3)
         {
             // 检查解锁条件
-            if (!CheckUnlockConditions(Station2, Station3Cost, "Cannot unlock Station3, please unlock Station2 first!"))
+            if (!CheckUnlockConditions(Station2, Station3Cost, "无法解锁 Station3，请先解锁 Station2！"))
             {
                 return;
             }
@@ -437,7 +437,7 @@ public class SkillManager : MonoBehaviour
         if (!Boost1)
         {
             // 检查解锁条件
-            if (!CheckUnlockConditions(Station1, Boost1Cost, "Cannot unlock Boost1, please unlock Station1 first!"))
+            if (!CheckUnlockConditions(Station1, Boost1Cost, "无法解锁 Boost1，请先解锁 Station1！"))
             {
                 return;
             }
@@ -457,7 +457,7 @@ public class SkillManager : MonoBehaviour
         if (!Core1)
         {
             // 检查解锁条件
-            if (!CheckUnlockConditions(Station1, Core1Cost, "Cannot unlock Core1, please unlock Station1 first!"))
+            if (!CheckUnlockConditions(Station1, Core1Cost, "无法解锁 Core1，请先解锁 Station1！"))
             {
                 return;
             }
@@ -499,7 +499,7 @@ public class SkillManager : MonoBehaviour
         if (!Boost2)
         {
             // 检查解锁条件
-            if (!CheckUnlockConditions(Station2, Boost2Cost, "Cannot unlock Boost2, please unlock Station2 first!"))
+            if (!CheckUnlockConditions(Station2, Boost2Cost, "无法解锁 Boost2，请先解锁 Station2！"))
             {
                 return;
             }
@@ -519,7 +519,7 @@ public class SkillManager : MonoBehaviour
         if (!Core2)
         {
             // 检查解锁条件
-            if (!CheckUnlockConditions(Station2, Core2Cost, "Cannot unlock Core2, please unlock Station2 first!"))
+            if (!CheckUnlockConditions(Station2, Core2Cost, "无法解锁 Core2，请先解锁 Station2！"))
             {
                 return;
             }
@@ -539,7 +539,7 @@ public class SkillManager : MonoBehaviour
         if (!AntiHeat)
         {
             // 检查解锁条件
-            if (!CheckUnlockConditions(Station2, AntiHeatCost, "Cannot unlock AntiHeat, please unlock Station2 first!"))
+            if (!CheckUnlockConditions(Station2, AntiHeatCost, "无法解锁 AntiHeat，请先解锁 Station2！"))
             {
                 return;
             }
@@ -559,7 +559,7 @@ public class SkillManager : MonoBehaviour
         if (!Predict)
         {
             // 检查解锁条件
-            if (!CheckUnlockConditions(Station2, PredictCost, "Cannot unlock Predict, please unlock Station2 first!"))
+            if (!CheckUnlockConditions(Station2, PredictCost, "无法解锁 Predict，请先解锁 Station2！"))
             {
                 return;
             }
@@ -596,7 +596,7 @@ public class SkillManager : MonoBehaviour
         if (!Boost3)
         {
             // 检查解锁条件
-            if (!CheckUnlockConditions(Station3, Boost3Cost, "Cannot unlock Boost3, please unlock Station3 first!"))
+            if (!CheckUnlockConditions(Station3, Boost3Cost, "无法解锁 Boost3，请先解锁 Station3！"))
             {
                 return;
             }
@@ -616,7 +616,7 @@ public class SkillManager : MonoBehaviour
         if (!Core3)
         {
             // 检查解锁条件
-            if (!CheckUnlockConditions(Station3, Core3Cost, "Cannot unlock Core3, please unlock Station3 first!"))
+            if (!CheckUnlockConditions(Station3, Core3Cost, "无法解锁 Core3，请先解锁 Station3！"))
             {
                 return;
             }
@@ -636,7 +636,7 @@ public class SkillManager : MonoBehaviour
         if (!AntiCollision)
         {
             // 检查解锁条件
-            if (!CheckUnlockConditions(Station3, AntiCollisionCost, "Cannot unlock AntiCollision, please unlock Station3 first!"))
+            if (!CheckUnlockConditions(Station3, AntiCollisionCost, "无法解锁 AntiCollision，请先解锁 Station3！"))
             {
                 return;
             }

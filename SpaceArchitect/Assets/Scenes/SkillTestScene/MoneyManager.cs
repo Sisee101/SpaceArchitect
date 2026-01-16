@@ -14,6 +14,16 @@ public class MoneyManager : MonoBehaviour
     // 上一次的money值，用于检测变化
     private int lastMoneyValue;
 
+    [Header("引用配置")]
+    [Tooltip("任务管理器引用")]
+    [SerializeField] private TaskManager taskManager;
+    
+    [Tooltip("订单数据配置引用")]
+    [SerializeField] private SphereOrderDataConfig orderDataConfig;
+    
+    [Header("调试")]
+    [SerializeField] private bool enableDebugLog = true;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -27,6 +37,78 @@ public class MoneyManager : MonoBehaviour
         }
         
         // 初始化显示
+        UpdateMoneyDisplay();
+        lastMoneyValue = money;
+        
+        // 订阅任务完成事件
+        if (taskManager != null)
+        {
+            taskManager.OnTaskCompleted += OnTaskCompleted;
+            if (enableDebugLog)
+            {
+                Debug.Log("MoneyManager: 已订阅TaskManager的任务完成事件");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("MoneyManager: TaskManager引用未配置！无法监听任务完成事件");
+        }
+        
+        // 验证订单数据配置
+        if (orderDataConfig == null)
+        {
+            Debug.LogWarning("MoneyManager: SphereOrderDataConfig引用未配置！无法获取订单金额");
+        }
+    }
+    
+    void OnDestroy()
+    {
+        // 取消订阅事件，避免内存泄漏
+        if (taskManager != null)
+        {
+            taskManager.OnTaskCompleted -= OnTaskCompleted;
+        }
+    }
+    
+    /// <summary>
+    /// 任务完成事件处理
+    /// </summary>
+    /// <param name="taskId">完成的任务ID</param>
+    private void OnTaskCompleted(int taskId)
+    {
+        if (orderDataConfig == null)
+        {
+            Debug.LogError($"MoneyManager: 无法处理任务 {taskId} 完成事件，orderDataConfig未配置！");
+            return;
+        }
+        
+        // 根据taskId获取订单信息
+        var orderInfo = orderDataConfig.GetOrderInfoByTaskId(taskId);
+        
+        if (orderInfo == null)
+        {
+            Debug.LogError($"MoneyManager: 任务 {taskId} 对应的订单信息不存在！");
+            return;
+        }
+        
+        // 获取订单金额
+        int orderAmount = orderInfo.orderAmount;
+        
+        // 更新金钱
+        int previousMoney = money;
+        money += orderAmount;
+        
+        // 输出调试信息
+        if (enableDebugLog)
+        {
+            Debug.Log($"<color=green>MoneyManager: 任务完成！</color>");
+            Debug.Log($"  - 任务ID: {taskId}");
+            Debug.Log($"  - 订单名称: {orderInfo.sphereName}");
+            Debug.Log($"  - 订单金额: +{orderAmount}");
+            Debug.Log($"  - 金钱变化: {previousMoney} → {money}");
+        }
+        
+        // 强制更新显示（立即响应）
         UpdateMoneyDisplay();
         lastMoneyValue = money;
     }
