@@ -2504,6 +2504,7 @@ MonoBehaviour:
   targetCamera: {fileID: 0}
   escapeCheckInterval: 0.5
   viewportMargin: 0.1
+  escapeCheckDelayAfterLaunch: 1
 --- !u!136 &1966355605
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2542,26 +2543,6 @@ MonoBehaviour:
   rotationSpeed: 360
   minVelocityThreshold: 0.1
   shipForwardOffset: -90
---- !u!114 &1966355607
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1966355597}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c468f5ddf57abc4d9e464349acff0f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  boostForce: 15
-  boostDuration: 0.3
-  cooldownTime: 2
-  minVelocityForBoost: 0.5
-  boostParticles: {fileID: 0}
-  boostSound: {fileID: 0}
-  escapeFromPlanetInCaptured: 1
-  escapeBoostMultiplier: 1.5
 --- !u!54 &1966355608
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2708,7 +2689,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1966355597}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 714a10ae684bd934680028707b62461b, type: 3}
   m_Name: 
@@ -2727,7 +2708,7 @@ MonoBehaviour:
   enableFlicker: 1
   flickerFrequency: 10
   maxFlickerMultiplier: 10
-  enableBloomGlow: 1
+  enableBloomGlow: 0
   glowSize: 10
   glowMaterial: {fileID: 2100000, guid: f82d9468a2db59b4890afe3c8cb43828, type: 2}
   glowColor: {r: 0.98742133, g: 0.87384135, b: 0.10246814, a: 1}
@@ -3095,6 +3076,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
       insertIndex: -1
+      addedObject: {fileID: 1966355612}
+    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
+        type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1966355615}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
@@ -3103,19 +3088,11 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1966355612}
-    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
-        type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1966355613}
     - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1966355614}
-    - targetCorrespondingSourceObject: {fileID: 5228303165192812008, guid: 85df5d8f1d63d594caaf743031644e31,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1966355607}
   m_SourcePrefab: {fileID: 100100000, guid: 85df5d8f1d63d594caaf743031644e31, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

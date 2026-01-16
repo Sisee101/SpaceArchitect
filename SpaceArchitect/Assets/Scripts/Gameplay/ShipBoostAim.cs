@@ -157,6 +157,7 @@ public class ShipBoostAim : MonoBehaviour
         Scene currentScene = gameObject.scene;
         Camera[] cameras = FindObjectsOfType<Camera>();
         
+        bool cameraFound = false;
         foreach (Camera cam in cameras)
         {
             // 优先使用当前场景中的相机，且标签为MainCamera，且已启用
@@ -166,27 +167,31 @@ public class ShipBoostAim : MonoBehaviour
             {
                 mainCamera = cam;
                 Debug.Log($"[ShipBoostAim] 找到目标相机: {cam.name} (场景: {currentScene.name})");
-                return;
+                cameraFound = true;
+                break; // 找到相机后跳出循环，但继续执行后续代码
             }
         }
         
         // 如果当前场景中没有找到，尝试使用Camera.main（但可能不准确）
-        if (Camera.main != null && Camera.main.enabled)
+        if (!cameraFound)
         {
-            mainCamera = Camera.main;
-            Debug.LogWarning($"[ShipBoostAim] 使用Camera.main作为备用相机: {Camera.main.name} (场景: {Camera.main.gameObject.scene.name})");
-        }
-        else
-        {
-            // 最后尝试查找任何启用的相机
-            mainCamera = FindObjectOfType<Camera>();
-            if (mainCamera == null)
+            if (Camera.main != null && Camera.main.enabled)
             {
-                Debug.LogError("[ShipBoostAim] 未找到可用的相机！");
+                mainCamera = Camera.main;
+                Debug.LogWarning($"[ShipBoostAim] 使用Camera.main作为备用相机: {Camera.main.name} (场景: {Camera.main.gameObject.scene.name})");
             }
             else
             {
-                Debug.LogWarning($"[ShipBoostAim] 使用FindObjectOfType找到的相机: {mainCamera.name} (场景: {mainCamera.gameObject.scene.name})");
+                // 最后尝试查找任何启用的相机
+                mainCamera = FindObjectOfType<Camera>();
+                if (mainCamera == null)
+                {
+                    Debug.LogError("[ShipBoostAim] 未找到可用的相机！");
+                }
+                else
+                {
+                    Debug.LogWarning($"[ShipBoostAim] 使用FindObjectOfType找到的相机: {mainCamera.name} (场景: {mainCamera.gameObject.scene.name})");
+                }
             }
         }
 
@@ -197,12 +202,17 @@ public class ShipBoostAim : MonoBehaviour
         if (EventManager.Instance != null)
         {
             EventManager.Instance.OnGameReset += HandleGameReset;
+            Debug.Log("ShipBoostAim: 已订阅游戏重置事件");
+        }
+        else
+        {
+            Debug.LogWarning("ShipBoostAim: EventManager.Instance 为 null，无法订阅游戏重置事件！");
         }
 
         // 配置粒子系统使用未缩放时间（这样在时停状态下也能正常播放）
         ConfigureParticleSystemForTimeStop();
 
-        // 创建可视化对象和LineRenderer
+        // 创建可视化对象和LineRenderer（关键：无论是否找到相机，都要创建可视化对象）
         CreateVisualizationObjects();
     }
 
@@ -211,12 +221,34 @@ public class ShipBoostAim : MonoBehaviour
     /// </summary>
     private void CreateVisualizationObjects()
     {
+        // 查找可用的 Shader（带备用方案）
+        Shader lineShader = Shader.Find("Sprites/Default");
+        if (lineShader == null)
+        {
+            lineShader = Shader.Find("Unlit/Color");
+        }
+        if (lineShader == null)
+        {
+            lineShader = Shader.Find("Standard");
+        }
+        
+        if (lineShader == null)
+        {
+            Debug.LogError("ShipBoostAim: 无法找到可用的 Shader！LineRenderer 可能无法显示。");
+        }
+
         // 创建扇形可视化对象
         sectorVisualObject = new GameObject("SectorVisualization");
         sectorVisualObject.transform.SetParent(transform);
         sectorVisualObject.transform.localPosition = Vector3.zero;
+        sectorVisualObject.SetActive(true); // 确保GameObject是激活的
         sectorLineRenderer = sectorVisualObject.AddComponent<LineRenderer>();
-        sectorLineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        
+        if (lineShader != null)
+        {
+            sectorLineRenderer.material = new Material(lineShader);
+        }
+        
         sectorLineRenderer.startColor = sectorColor;
         sectorLineRenderer.endColor = sectorColor;
         sectorLineRenderer.startWidth = 0.1f;
@@ -224,6 +256,7 @@ public class ShipBoostAim : MonoBehaviour
         sectorLineRenderer.useWorldSpace = true;
         sectorLineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         sectorLineRenderer.receiveShadows = false;
+        sectorLineRenderer.sortingOrder = 100; // 设置排序，确保显示在最上层
         sectorLineRenderer.positionCount = 0; // 初始化为空
         sectorLineRenderer.enabled = false;
 
@@ -231,8 +264,14 @@ public class ShipBoostAim : MonoBehaviour
         arrowVisualObject = new GameObject("ArrowVisualization");
         arrowVisualObject.transform.SetParent(transform);
         arrowVisualObject.transform.localPosition = Vector3.zero;
+        arrowVisualObject.SetActive(true); // 确保GameObject是激活的
         arrowLineRenderer = arrowVisualObject.AddComponent<LineRenderer>();
-        arrowLineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        
+        if (lineShader != null)
+        {
+            arrowLineRenderer.material = new Material(lineShader);
+        }
+        
         arrowLineRenderer.startColor = arrowColor;
         arrowLineRenderer.endColor = arrowColor;
         arrowLineRenderer.startWidth = 0.15f;
@@ -240,6 +279,7 @@ public class ShipBoostAim : MonoBehaviour
         arrowLineRenderer.useWorldSpace = true;
         arrowLineRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         arrowLineRenderer.receiveShadows = false;
+        arrowLineRenderer.sortingOrder = 101; // 箭头在扇形之上
         arrowLineRenderer.positionCount = 0; // 初始化为空
         arrowLineRenderer.enabled = false;
     }
@@ -369,9 +409,28 @@ public class ShipBoostAim : MonoBehaviour
         // 3. 显示扇形和箭头可视化（同时显示）
         if (showVisualization)
         {
+            // 确保GameObject是激活的
+            if (sectorVisualObject != null)
+            {
+                sectorVisualObject.SetActive(true);
+            }
+            if (arrowVisualObject != null)
+            {
+                arrowVisualObject.SetActive(true);
+            }
+            
             UpdateVisualization();
-            if (sectorLineRenderer != null) sectorLineRenderer.enabled = true;
-            if (arrowLineRenderer != null) arrowLineRenderer.enabled = true;
+            
+            if (sectorLineRenderer != null)
+            {
+                sectorLineRenderer.enabled = true;
+                Debug.Log($"扇形LineRenderer已启用: enabled={sectorLineRenderer.enabled}, positionCount={sectorLineRenderer.positionCount}, material={(sectorLineRenderer.material != null ? sectorLineRenderer.material.name : "null")}");
+            }
+            if (arrowLineRenderer != null)
+            {
+                arrowLineRenderer.enabled = true;
+                Debug.Log($"箭头LineRenderer已启用: enabled={arrowLineRenderer.enabled}, positionCount={arrowLineRenderer.positionCount}, material={(arrowLineRenderer.material != null ? arrowLineRenderer.material.name : "null")}");
+            }
         }
 
         // 4. 播放粒子效果（同时播放一次）
@@ -852,8 +911,21 @@ public class ShipBoostAim : MonoBehaviour
     /// </summary>
     private void UpdateVisualization()
     {
-        if (!isAiming || sectorLineRenderer == null || arrowLineRenderer == null)
+        if (!isAiming)
         {
+            Debug.LogWarning("UpdateVisualization: isAiming为false，跳过更新");
+            return;
+        }
+        
+        if (sectorLineRenderer == null)
+        {
+            Debug.LogError("UpdateVisualization: sectorLineRenderer为null！");
+            return;
+        }
+        
+        if (arrowLineRenderer == null)
+        {
+            Debug.LogError("UpdateVisualization: arrowLineRenderer为null！");
             return;
         }
 
@@ -1070,8 +1142,9 @@ public class ShipBoostAim : MonoBehaviour
     /// </summary>
     public void ResetUsageCount()
     {
+        int oldUses = currentUses;
         currentUses = 0;
-        Debug.Log($"Boost使用次数已重置，当前等级: {boostLevel}, 最大次数: {maxUsesPerRound}");
+        Debug.Log($"Boost使用次数已重置: {oldUses} -> {currentUses}，当前等级: {boostLevel}, 最大次数: {maxUsesPerRound}");
     }
 
     /// <summary>
@@ -1105,6 +1178,8 @@ public class ShipBoostAim : MonoBehaviour
     /// </summary>
     private void HandleGameReset()
     {
+        Debug.Log($"ShipBoostAim: 收到游戏重置事件，重置前使用次数: {currentUses}/{maxUsesPerRound}");
+        
         // 重置使用次数
         ResetUsageCount();
         
@@ -1132,7 +1207,7 @@ public class ShipBoostAim : MonoBehaviour
             Debug.LogWarning("ShipBoostAim: 游戏重置时检测到 Time.timeScale 异常，已强制恢复为 1.0");
         }
         
-        Debug.Log("ShipBoostAim: 游戏重置，Boost使用次数、技能状态、时停效果已全部重置");
+        Debug.Log($"ShipBoostAim: 游戏重置完成，重置后使用次数: {currentUses}/{maxUsesPerRound}，技能状态已全部重置");
     }
 }
 
