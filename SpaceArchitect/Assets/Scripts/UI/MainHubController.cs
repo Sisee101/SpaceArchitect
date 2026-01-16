@@ -21,6 +21,10 @@ public class MainHubController : MonoBehaviour
     [Header("主界面面板（默认显示）")]
     [SerializeField] private GameObject mainHubPanel;
     
+    [Header("导入面板")]
+    [Tooltip("导入面板（首次进入主界面时显示，完成后显示主界面）")]
+    [SerializeField] private IntroductionPanel introductionPanel;
+    
     [Header("结算界面")]
     [Tooltip("结算界面（订单详情面板），在主界面按下空格键后显示")]
     [SerializeField] private OrderDetailPanel settlementPanel;
@@ -75,11 +79,8 @@ public class MainHubController : MonoBehaviour
             returnToMenuButton.onClick.AddListener(OnReturnToMenuClicked);
         }
         
-        // 确保主界面面板默认显示
-        if (mainHubPanel != null)
-        {
-            mainHubPanel.SetActive(true);
-        }
+        // 延迟检查导入面板（使用协程，确保所有对象已初始化）
+        StartCoroutine(CheckAndShowIntroduction());
         
         // 初始化金钱显示
         InitializeMoneyDisplay();
@@ -143,6 +144,63 @@ public class MainHubController : MonoBehaviour
         {
             UpdateMoneyDisplayIfChanged();
         }
+    }
+    
+    /// <summary>
+    /// 检查并显示导入面板（协程）
+    /// </summary>
+    private IEnumerator CheckAndShowIntroduction()
+    {
+        // 等待一帧，确保所有对象已初始化
+        yield return null;
+        
+        // 先隐藏主界面面板
+        if (mainHubPanel != null)
+        {
+            mainHubPanel.SetActive(false);
+        }
+        
+        // 检查是否有导入面板
+        if (introductionPanel != null)
+        {
+            // 订阅导入完成事件
+            introductionPanel.OnIntroductionCompleted += OnIntroductionCompleted;
+            
+            // 显示导入面板
+            introductionPanel.Show();
+            
+            Debug.Log("MainHubController: 显示导入面板");
+        }
+        else
+        {
+            // 如果没有导入面板，直接显示主界面
+            if (mainHubPanel != null)
+            {
+                mainHubPanel.SetActive(true);
+            }
+            
+            Debug.Log("MainHubController: 未配置导入面板，直接显示主界面");
+        }
+    }
+    
+    /// <summary>
+    /// 导入完成回调
+    /// </summary>
+    private void OnIntroductionCompleted()
+    {
+        // 取消事件订阅
+        if (introductionPanel != null)
+        {
+            introductionPanel.OnIntroductionCompleted -= OnIntroductionCompleted;
+        }
+        
+        // 显示主界面
+        if (mainHubPanel != null)
+        {
+            mainHubPanel.SetActive(true);
+        }
+        
+        Debug.Log("MainHubController: 导入完成，显示主界面");
     }
     
     /// <summary>
