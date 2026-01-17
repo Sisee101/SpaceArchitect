@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 /// <summary>
 /// MainHub场景数据追踪器
@@ -16,6 +17,25 @@ public class MainHubMoneyTracker : MonoBehaviour
     [Header("数据配置引用")]
     [Tooltip("订单数据配置引用（如果为空，将自动查找）")]
     [SerializeField] private SphereOrderDataConfig orderDataConfig;
+    
+    [Header("文本显示组件")]
+    [Tooltip("显示订单金额差额的Text组件（Unity UI Text）")]
+    [SerializeField] private Text moneyDifferenceText;
+    
+    [Tooltip("显示订单金额差额的TextMeshPro组件（TextMeshPro - Text (UI)）")]
+    [SerializeField] private TextMeshProUGUI moneyDifferenceTextMeshPro;
+    
+    [Tooltip("显示累计完成订单总数的Text组件（Unity UI Text）")]
+    [SerializeField] private Text orderCountText;
+    
+    [Tooltip("显示累计完成订单总数的TextMeshPro组件（TextMeshPro - Text (UI)）")]
+    [SerializeField] private TextMeshProUGUI orderCountTextMeshPro;
+    
+    [Tooltip("显示新开辟航线数量的Text组件（Unity UI Text）")]
+    [SerializeField] private Text unlockPlanetText;
+    
+    [Tooltip("显示新开辟航线数量的TextMeshPro组件（TextMeshPro - Text (UI)）")]
+    [SerializeField] private TextMeshProUGUI unlockPlanetTextMeshPro;
     
     [Header("自动查找设置")]
     [Tooltip("是否在Start时自动查找丢失的引用（推荐保持为true）")]
@@ -118,6 +138,201 @@ public class MainHubMoneyTracker : MonoBehaviour
     }
     
     /// <summary>
+    /// 查找文本组件（用于场景重新加载后重新查找）
+    /// 自动查找场景中名为"Money"、"Order"、"Planet"的Text对象
+    /// </summary>
+    private void FindTextComponents()
+    {
+        // 查找名为"Money"的Text组件
+        if (moneyDifferenceText == null && moneyDifferenceTextMeshPro == null)
+        {
+            GameObject moneyObj = GameObject.Find("Money");
+            if (moneyObj != null)
+            {
+                // 优先查找TextMeshProUGUI
+                moneyDifferenceTextMeshPro = moneyObj.GetComponent<TextMeshProUGUI>();
+                if (moneyDifferenceTextMeshPro == null)
+                {
+                    // 如果找不到TextMeshPro，尝试查找Unity UI Text
+                    moneyDifferenceText = moneyObj.GetComponent<Text>();
+                }
+                
+                if ((moneyDifferenceText != null || moneyDifferenceTextMeshPro != null) && enableDebugLog)
+                {
+                    Debug.Log($"MainHubMoneyTracker: 自动找到名为'Money'的文本组件（{moneyObj.name}）");
+                }
+            }
+        }
+        
+        // 查找名为"Order"的Text组件
+        if (orderCountText == null && orderCountTextMeshPro == null)
+        {
+            GameObject orderObj = GameObject.Find("Order");
+            if (orderObj != null)
+            {
+                // 优先查找TextMeshProUGUI
+                orderCountTextMeshPro = orderObj.GetComponent<TextMeshProUGUI>();
+                if (orderCountTextMeshPro == null)
+                {
+                    // 如果找不到TextMeshPro，尝试查找Unity UI Text
+                    orderCountText = orderObj.GetComponent<Text>();
+                }
+                
+                if ((orderCountText != null || orderCountTextMeshPro != null) && enableDebugLog)
+                {
+                    Debug.Log($"MainHubMoneyTracker: 自动找到名为'Order'的文本组件（{orderObj.name}）");
+                }
+            }
+        }
+        
+        // 查找名为"Planet"的Text组件
+        if (unlockPlanetText == null && unlockPlanetTextMeshPro == null)
+        {
+            GameObject planetObj = GameObject.Find("Planet");
+            if (planetObj != null)
+            {
+                // 优先查找TextMeshProUGUI
+                unlockPlanetTextMeshPro = planetObj.GetComponent<TextMeshProUGUI>();
+                if (unlockPlanetTextMeshPro == null)
+                {
+                    // 如果找不到TextMeshPro，尝试查找Unity UI Text
+                    unlockPlanetText = planetObj.GetComponent<Text>();
+                }
+                
+                if ((unlockPlanetText != null || unlockPlanetTextMeshPro != null) && enableDebugLog)
+                {
+                    Debug.Log($"MainHubMoneyTracker: 自动找到名为'Planet'的文本组件（{planetObj.name}）");
+                }
+            }
+        }
+        
+        // 如果通过GameObject.Find找不到，尝试在场景中所有Text组件中查找（包括未激活的）
+        if ((moneyDifferenceText == null && moneyDifferenceTextMeshPro == null) ||
+            (orderCountText == null && orderCountTextMeshPro == null) ||
+            (unlockPlanetText == null && unlockPlanetTextMeshPro == null))
+        {
+            // 查找所有Text组件
+            Text[] allTexts = Resources.FindObjectsOfTypeAll<Text>();
+            TextMeshProUGUI[] allTextMeshPros = Resources.FindObjectsOfTypeAll<TextMeshProUGUI>();
+            
+            // 查找Money文本
+            if (moneyDifferenceText == null && moneyDifferenceTextMeshPro == null)
+            {
+                foreach (Text txt in allTexts)
+                {
+                    if (txt.gameObject.scene.isLoaded && txt.gameObject.name == "Money")
+                    {
+                        moneyDifferenceText = txt;
+                        if (enableDebugLog)
+                        {
+                            Debug.Log($"MainHubMoneyTracker: 在场景中找到名为'Money'的Text组件（{txt.gameObject.name}）");
+                        }
+                        break;
+                    }
+                }
+                
+                if (moneyDifferenceText == null)
+                {
+                    foreach (TextMeshProUGUI tmp in allTextMeshPros)
+                    {
+                        if (tmp.gameObject.scene.isLoaded && tmp.gameObject.name == "Money")
+                        {
+                            moneyDifferenceTextMeshPro = tmp;
+                            if (enableDebugLog)
+                            {
+                                Debug.Log($"MainHubMoneyTracker: 在场景中找到名为'Money'的TextMeshPro组件（{tmp.gameObject.name}）");
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // 查找Order文本
+            if (orderCountText == null && orderCountTextMeshPro == null)
+            {
+                foreach (Text txt in allTexts)
+                {
+                    if (txt.gameObject.scene.isLoaded && txt.gameObject.name == "Order")
+                    {
+                        orderCountText = txt;
+                        if (enableDebugLog)
+                        {
+                            Debug.Log($"MainHubMoneyTracker: 在场景中找到名为'Order'的Text组件（{txt.gameObject.name}）");
+                        }
+                        break;
+                    }
+                }
+                
+                if (orderCountText == null)
+                {
+                    foreach (TextMeshProUGUI tmp in allTextMeshPros)
+                    {
+                        if (tmp.gameObject.scene.isLoaded && tmp.gameObject.name == "Order")
+                        {
+                            orderCountTextMeshPro = tmp;
+                            if (enableDebugLog)
+                            {
+                                Debug.Log($"MainHubMoneyTracker: 在场景中找到名为'Order'的TextMeshPro组件（{tmp.gameObject.name}）");
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // 查找Planet文本
+            if (unlockPlanetText == null && unlockPlanetTextMeshPro == null)
+            {
+                foreach (Text txt in allTexts)
+                {
+                    if (txt.gameObject.scene.isLoaded && txt.gameObject.name == "Planet")
+                    {
+                        unlockPlanetText = txt;
+                        if (enableDebugLog)
+                        {
+                            Debug.Log($"MainHubMoneyTracker: 在场景中找到名为'Planet'的Text组件（{txt.gameObject.name}）");
+                        }
+                        break;
+                    }
+                }
+                
+                if (unlockPlanetText == null)
+                {
+                    foreach (TextMeshProUGUI tmp in allTextMeshPros)
+                    {
+                        if (tmp.gameObject.scene.isLoaded && tmp.gameObject.name == "Planet")
+                        {
+                            unlockPlanetTextMeshPro = tmp;
+                            if (enableDebugLog)
+                            {
+                                Debug.Log($"MainHubMoneyTracker: 在场景中找到名为'Planet'的TextMeshPro组件（{tmp.gameObject.name}）");
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 输出警告（如果某些文本组件未找到）
+        if (moneyDifferenceText == null && moneyDifferenceTextMeshPro == null)
+        {
+            Debug.LogWarning("MainHubMoneyTracker: 未找到名为'Money'的文本组件，请在场景中创建名为'Money'的Text或TextMeshPro组件，或在Inspector中手动指定");
+        }
+        
+        if (orderCountText == null && orderCountTextMeshPro == null)
+        {
+            Debug.LogWarning("MainHubMoneyTracker: 未找到名为'Order'的文本组件，请在场景中创建名为'Order'的Text或TextMeshPro组件，或在Inspector中手动指定");
+        }
+        
+        if (unlockPlanetText == null && unlockPlanetTextMeshPro == null)
+        {
+            Debug.LogWarning("MainHubMoneyTracker: 未找到名为'Planet'的文本组件，请在场景中创建名为'Planet'的Text或TextMeshPro组件，或在Inspector中手动指定");
+        }
+    }
+    
+    /// <summary>
     /// 查找订单数据配置（用于场景重新加载后重新查找）
     /// </summary>
     private void FindOrderDataConfig()
@@ -188,6 +403,9 @@ public class MainHubMoneyTracker : MonoBehaviour
     {
         // 查找订单数据配置
         FindOrderDataConfig();
+        
+        // 查找文本组件（如果未手动指定）
+        FindTextComponents();
         
         // 查找按钮
         if (triggerButton == null)
@@ -301,8 +519,11 @@ public class MainHubMoneyTracker : MonoBehaviour
                                             int unlockDifference, int initialUnlockCount, int currentUnlockCount,
                                             int currentOrderCount)
     {
+        // 更新文本显示
+        UpdateTextDisplays(moneyDifference, currentOrderCount, unlockDifference);
+        
         // 这里可以添加自定义逻辑
-        // 例如：显示差额UI、保存到文件、触发其他事件等
+        // 例如：保存到文件、触发其他事件等
         
         // Money差额处理
         if (moneyDifference > 0)
@@ -336,6 +557,48 @@ public class MainHubMoneyTracker : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log($"MainHubMoneyTracker: 当前已完成订单总数: {currentOrderCount}");
+        }
+    }
+    
+    /// <summary>
+    /// 更新文本显示
+    /// </summary>
+    /// <param name="moneyDifference">Money差额</param>
+    /// <param name="orderCount">订单完成总数</param>
+    /// <param name="unlockDifference">解锁行星数量差额</param>
+    private void UpdateTextDisplays(int moneyDifference, int orderCount, int unlockDifference)
+    {
+        // 更新订单金额差额文本
+        string moneyText = $"订单金额为：{moneyDifference}";
+        if (moneyDifferenceText != null)
+        {
+            moneyDifferenceText.text = moneyText;
+        }
+        if (moneyDifferenceTextMeshPro != null)
+        {
+            moneyDifferenceTextMeshPro.text = moneyText;
+        }
+        
+        // 更新累计完成订单总数文本
+        string orderText = $"累计完成订单总数：{orderCount}";
+        if (orderCountText != null)
+        {
+            orderCountText.text = orderText;
+        }
+        if (orderCountTextMeshPro != null)
+        {
+            orderCountTextMeshPro.text = orderText;
+        }
+        
+        // 更新新开辟航线数量文本
+        string unlockText = $"新开辟航线：{unlockDifference}";
+        if (unlockPlanetText != null)
+        {
+            unlockPlanetText.text = unlockText;
+        }
+        if (unlockPlanetTextMeshPro != null)
+        {
+            unlockPlanetTextMeshPro.text = unlockText;
         }
     }
     

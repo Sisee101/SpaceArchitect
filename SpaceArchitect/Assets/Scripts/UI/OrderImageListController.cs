@@ -16,6 +16,10 @@ public class OrderImageListController : MonoBehaviour
     [SerializeField] private Button leftArrow;
     [SerializeField] private Button rightArrow;
     
+    [Header("数据配置引用")]
+    [Tooltip("订单数据配置引用（如果为空，将自动查找）")]
+    [SerializeField] private SphereOrderDataConfig orderDataConfig;
+    
     [Header("订单图片项")]
     [SerializeField] private List<Image> orderImageItems = new List<Image>(); // 订单图片列表（当前3个）
     
@@ -32,6 +36,13 @@ public class OrderImageListController : MonoBehaviour
     [Header("滚动参数")]
     [SerializeField] private float scrollDuration = 0.3f; // 滚动动画时长
     [SerializeField] private float scrollStep = 0f;      // 滚动步长（0表示自动计算）
+    
+    [Header("自动查找设置")]
+    [Tooltip("是否在Start时自动查找丢失的引用（推荐保持为true）")]
+    [SerializeField] private bool autoFindOnStart = true;
+    
+    [Tooltip("是否从SphereOrderDataConfig中自动加载VisitOrder为真的订单图片")]
+    [SerializeField] private bool autoLoadVisitedOrders = true;
     
     [Header("调试")]
     [SerializeField] private bool enableDebugLog = true;
@@ -82,8 +93,17 @@ public class OrderImageListController : MonoBehaviour
             Debug.LogError("OrderImageListController: Content未配置！");
         }
         
-        // 初始化占位图片
-        InitializePlaceholderImages();
+        // 查找订单数据配置（如果启用自动查找）
+        if (autoFindOnStart)
+        {
+            FindOrderDataConfig();
+        }
+        
+        // 初始化占位图片（仅在未启用自动加载或加载失败时使用）
+        if (!autoLoadVisitedOrders)
+        {
+            InitializePlaceholderImages();
+        }
         
         // 初始化滚动步长
         if (scrollStep <= 0f)
@@ -116,6 +136,126 @@ public class OrderImageListController : MonoBehaviour
         {
             Debug.LogWarning("OrderImageListController: orderImageItems列表为空，尝试自动查找Content下的Image组件");
             AutoFindImageItems();
+        }
+        
+        // 从SphereOrderDataConfig中加载VisitOrder为真的订单图片
+        if (autoLoadVisitedOrders)
+        {
+            LoadVisitedOrderImages();
+        }
+    }
+    
+    /// <summary>
+    /// 查找订单数据配置（用于场景重新加载后重新查找）
+    /// </summary>
+    private void FindOrderDataConfig()
+    {
+        if (orderDataConfig == null)
+        {
+            // 方法1：尝试从Resources文件夹加载
+            orderDataConfig = Resources.Load<SphereOrderDataConfig>("SphereOrderDataConfig");
+            if (orderDataConfig != null && enableDebugLog)
+            {
+                Debug.Log("OrderImageListController: 成功从Resources加载SphereOrderDataConfig");
+            }
+            
+            // 方法2：如果Resources加载失败，尝试查找场景中使用该配置的对象
+            if (orderDataConfig == null)
+            {
+                TaskManager[] taskManagers = FindObjectsOfType<TaskManager>();
+                foreach (TaskManager tm in taskManagers)
+                {
+                    // 尝试通过反射获取orderDataConfig字段
+                    var field = typeof(TaskManager).GetField("orderDataConfig", 
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (field != null)
+                    {
+                        var config = field.GetValue(tm) as SphereOrderDataConfig;
+                        if (config != null)
+                        {
+                            orderDataConfig = config;
+                            if (enableDebugLog)
+                            {
+                                Debug.Log($"OrderImageListController: 从TaskManager获取到SphereOrderDataConfig引用");
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // 如果仍然找不到，输出警告
+            if (orderDataConfig == null)
+            {
+                Debug.LogWarning("OrderImageListController: 未找到SphereOrderDataConfig，请确保Resources文件夹中有SphereOrderDataConfig资源，或手动指定引用");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 从SphereOrderDataConfig中加载VisitOrder为真的订单图片
+    /// </summary>
+    private void LoadVisitedOrderImages()
+    {
+        // 查找订单数据配置
+        if (orderDataConfig == null)
+        {
+            FindOrderDataConfig();
+        }
+        
+        if (orderDataConfig == null || orderDataConfig.orderDataList == null)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("OrderImageListController: 无法加载订单图片，orderDataConfig未配置！");
+            }
+            return;
+        }
+        
+        // 确保orderImageItems列表不为空
+        if (orderImageItems == null || orderImageItems.Count == 0)
+        {
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("OrderImageListController: orderImageItems列表为空，无法加载订单图片！");
+            }
+            return;
+        }
+        
+        // 收集所有VisitOrder为真的订单
+        List<Sprite> visitedOrderImages = new List<Sprite>();
+        foreach (var orderInfo in orderDataConfig.orderDataList)
+        {
+            if (orderInfo != null && orderInfo.VisitOrder && orderInfo.orderImage != null)
+            {
+                visitedOrderImages.Add(orderInfo.orderImage);
+            }
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"OrderImageListController: 从配置中找到 {visitedOrderImages.Count} 个已访问的订单图片");
+        }
+        
+        // 将订单图片设置到orderImageItems中
+        int count = Mathf.Min(visitedOrderImages.Count, orderImageItems.Count);
+        for (int i = 0; i < count; i++)
+        {
+            if (orderImageItems[i] != null && visitedOrderImages[i] != null)
+            {
+                orderImageItems[i].sprite = visitedOrderImages[i];
+                
+                if (enableDebugLog)
+                {
+                    Debug.Log($"OrderImageListController: 已设置订单图片到索引 {i}（{visitedOrderImages[i].name}）");
+                }
+            }
+        }
+        
+        // 如果已访问的订单数量超过Image组件数量，输出警告
+        if (visitedOrderImages.Count > orderImageItems.Count)
+        {
+            Debug.LogWarning($"OrderImageListController: 已访问的订单数量（{visitedOrderImages.Count}）超过Image组件数量（{orderImageItems.Count}），部分订单图片未显示");
         }
     }
     
@@ -350,6 +490,27 @@ public class OrderImageListController : MonoBehaviour
             }
             // 如果已经是最后一个，可以循环到第一个（可选）
             // ScrollToIndex(0);
+        }
+    }
+    
+    void OnEnable()
+    {
+        // 重新查找引用（场景重新加载后引用可能丢失）
+        if (autoFindOnStart)
+        {
+            // 重新查找订单数据配置和Image组件
+            FindOrderDataConfig();
+            
+            if (orderImageItems == null || orderImageItems.Count == 0)
+            {
+                AutoFindImageItems();
+            }
+        }
+        
+        // 从SphereOrderDataConfig中重新加载VisitOrder为真的订单图片
+        if (autoLoadVisitedOrders)
+        {
+            LoadVisitedOrderImages();
         }
     }
     
