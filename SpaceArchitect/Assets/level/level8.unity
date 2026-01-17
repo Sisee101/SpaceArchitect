@@ -846,6 +846,8 @@ GameObject:
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
   - component: {fileID: 330585549}
+  - component: {fileID: 330585551}
+  - component: {fileID: 330585550}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1083,6 +1085,61 @@ MonoBehaviour:
   vfxSpawnPoint: {fileID: 0}
   vfxDuration: 0
   targetShip: {fileID: 1966355610}
+--- !u!114 &330585550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5025cea38e6d86478f504156edb5e12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bgmClip: {fileID: 0}
+  audioSource: {fileID: 0}
+  autoPlayOnEnable: 1
+  loop: 1
+  volume: 1
+  useFade: 0
+  fadeTime: 1
+  showDebugLog: 0
+--- !u!114 &330585551
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60f30a3631415f4ba75edaba4370f23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetCamera: {fileID: 0}
+  enableMouseRotation: 1
+  mouseSensitivity: 2
+  mouseRotateKey: 323
+  lockRotationX: 0
+  lockRotationY: 0
+  enableMousePan: 1
+  panSensitivity: 0.1
+  enableMouseWheelZoom: 1
+  zoomSpeed: 5
+  minZoomDistance: 2
+  maxZoomDistance: 50
+  enableWASDMovement: 1
+  moveSpeed: 5
+  fastMoveMultiplier: 2
+  limitVerticalRotation: 1
+  minVerticalAngle: -80
+  maxVerticalAngle: 80
+  enableOrbitMode: 0
+  orbitTarget: {fileID: 0}
+  orbitTargetPosition: {x: 0, y: 0, z: 0}
+  orbitRadius: 10
+  autoCalculateRadius: 1
 --- !u!4 &379292183 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1013152613574996126, guid: 3b64a5805e6b87a468b662c36e5c2e6f,

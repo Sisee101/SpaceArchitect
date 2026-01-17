@@ -1126,6 +1126,7 @@ GameObject:
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
   - component: {fileID: 330585549}
+  - component: {fileID: 330585550}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1363,6 +1364,26 @@ MonoBehaviour:
   vfxSpawnPoint: {fileID: 0}
   vfxDuration: 0
   targetShip: {fileID: 1966355610}
+--- !u!114 &330585550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5025cea38e6d86478f504156edb5e12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bgmClip: {fileID: 0}
+  audioSource: {fileID: 0}
+  autoPlayOnEnable: 1
+  loop: 1
+  volume: 1
+  useFade: 0
+  fadeTime: 1
+  showDebugLog: 0
 --- !u!1001 &352600031
 PrefabInstance:
   m_ObjectHideFlags: 0

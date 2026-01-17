@@ -995,6 +995,7 @@ GameObject:
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
   - component: {fileID: 330585549}
+  - component: {fileID: 330585550}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1232,6 +1233,26 @@ MonoBehaviour:
   vfxSpawnPoint: {fileID: 0}
   vfxDuration: 0
   targetShip: {fileID: 1966355610}
+--- !u!114 &330585550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5025cea38e6d86478f504156edb5e12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bgmClip: {fileID: 0}
+  audioSource: {fileID: 0}
+  autoPlayOnEnable: 1
+  loop: 1
+  volume: 1
+  useFade: 0
+  fadeTime: 1
+  showDebugLog: 0
 --- !u!4 &379292183 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1013152613574996126, guid: 3b64a5805e6b87a468b662c36e5c2e6f,
@@ -4066,6 +4087,7 @@ MonoBehaviour:
   targetCamera: {fileID: 0}
   escapeCheckInterval: 0.5
   viewportMargin: 0.1
+  escapeCheckDelayAfterLaunch: 1
 --- !u!136 &1966355605
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -4146,7 +4168,8 @@ MonoBehaviour:
   playCrashSound: 1
   crashParticlesPrefab: {fileID: 1286973089002592906, guid: 9b08032d5214dbc46a55f5163ec72de8,
     type: 3}
-  crashSound: {fileID: 0}
+  crashSoundClip: {fileID: 0}
+  crashSoundSource: {fileID: 0}
   showDebugLogs: 1
 --- !u!4 &1966355610 stripped
 Transform:
@@ -4187,7 +4210,12 @@ MonoBehaviour:
   maxUsesPerRound: 1
   currentUses: 0
   boostParticles: {fileID: 0}
-  boostSound: {fileID: 0}
+  timeStopStartClip: {fileID: 0}
+  timeStopStartSource: {fileID: 0}
+  timeStopEndClip: {fileID: 0}
+  timeStopEndSource: {fileID: 0}
+  boostSoundClip: {fileID: 0}
+  boostSoundSource: {fileID: 0}
   shockwaveController: {fileID: 0}
 --- !u!114 &1966355612
 MonoBehaviour:
@@ -4207,6 +4235,8 @@ MonoBehaviour:
   arrowSprite: {fileID: 21300000, guid: 34bbbbffaee1e9a428f7083d1426eb2c, type: 3}
   arrowSize: {x: 0.3, y: 0.3}
   arrowSpacing: 0.6
+  launchSoundClip: {fileID: 0}
+  launchSoundSource: {fileID: 0}
   showDebugLog: 1
 --- !u!114 &1966355613
 MonoBehaviour:
@@ -4224,7 +4254,13 @@ MonoBehaviour:
   shieldDuration: 5
   cooldownDuration: 10
   shieldVFX: {fileID: 0}
-  followShipRotation: 1
+  activateSoundClip: {fileID: 0}
+  activateSoundSource: {fileID: 0}
+  deactivateSoundClip: {fileID: 0}
+  deactivateSoundSource: {fileID: 0}
+  passThroughObstacleClip: {fileID: 0}
+  passThroughObstacleSource: {fileID: 0}
+  passThroughSoundInterval: 0.5
   asteroidBeltTag: Obstacles
   showDebugLog: 1
 --- !u!114 &1966355614
@@ -4242,6 +4278,11 @@ MonoBehaviour:
   heatShieldKey: 104
   shieldDuration: 10
   cooldownDuration: 5
+  heatShieldVFX: {fileID: 0}
+  activateSoundClip: {fileID: 0}
+  activateSoundSource: {fileID: 0}
+  deactivateSoundClip: {fileID: 0}
+  deactivateSoundSource: {fileID: 0}
   showDebugLog: 1
 --- !u!114 &1966355615
 MonoBehaviour:
@@ -4279,6 +4320,10 @@ MonoBehaviour:
   warningDisplayDuration: 0
   warningFontSize: 36
   warningTextColor: {r: 1, g: 0, b: 0, a: 1}
+  overheatWarningClip: {fileID: 0}
+  overheatWarningSource: {fileID: 0}
+  burningClip: {fileID: 0}
+  burningSource: {fileID: 0}
   originalMaterials: []
   redMaterials:
   - {fileID: 2100000, guid: 0a9ba974431476a4a96dd852730825b1, type: 2}
@@ -4319,6 +4364,9 @@ MonoBehaviour:
   lineWidth: 0.1
   lineColor: {r: 0, g: 1, b: 0.5, a: 0.8}
   lineMaterial: {fileID: 0}
+  useDashedLine: 1
+  dashLength: 0.5
+  gapLength: 0.3
   showOnStart: 1
   toggleKey: 113
   updateInterval: 0.1
