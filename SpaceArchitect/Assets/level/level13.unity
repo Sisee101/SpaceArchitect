@@ -1544,6 +1544,23 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 247956470309902447, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 1c545891f287862409395ddee1c24b5c,
+        type: 3}
+    - target: {fileID: 517250024150789532, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 6a877b92224236c4a93935f2a7e95477,
+        type: 3}
+    - target: {fileID: 517250024150789532, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: m_PreserveAspect
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2098123625998708765, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
         type: 3}
       propertyPath: m_Pivot.x
@@ -1644,6 +1661,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2704741169772006720, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3212261800878524949, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
         type: 3}
       propertyPath: m_IsActive
@@ -1664,6 +1686,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 7498688779094135746, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: e85b062da44a74e41aeb914984e069cc,
+        type: 3}
     - target: {fileID: 8068943523410443713, guid: 2c4ce8a8e4c3c5a4592ffe97c5d16379,
         type: 3}
       propertyPath: selectedOrderIndex

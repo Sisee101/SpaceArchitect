@@ -345,3 +345,4 @@ public class AchievementSystem : MonoBehaviour
 2. 添加触发方法：`public void TriggerNewEvent(参数类型 param) { OnNewEvent?.Invoke(param); }`
 3. 在相关脚本中调用触发方法
 
+

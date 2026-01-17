@@ -569,7 +569,7 @@ public class MainHubMoneyTracker : MonoBehaviour
     private void UpdateTextDisplays(int moneyDifference, int orderCount, int unlockDifference)
     {
         // 更新订单金额差额文本
-        string moneyText = $"订单金额为：{moneyDifference}";
+        string moneyText = $"本月收支为：{moneyDifference}";
         if (moneyDifferenceText != null)
         {
             moneyDifferenceText.text = moneyText;
