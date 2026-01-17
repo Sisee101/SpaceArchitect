@@ -1376,7 +1376,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5025cea38e6d86478f504156edb5e12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bgmClip: {fileID: 0}
+  bgmClip: {fileID: 8300000, guid: d695518a4fb1d4e4db2f78905771c210, type: 3}
   audioSource: {fileID: 0}
   autoPlayOnEnable: 1
   loop: 1
