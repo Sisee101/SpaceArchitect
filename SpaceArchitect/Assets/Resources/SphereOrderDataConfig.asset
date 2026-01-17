@@ -20,7 +20,7 @@ MonoBehaviour:
     taskId: 1
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     planetIndex: 0
-    VisitOrder: 0
+    VisitOrder: 1
     CompleteOrder: 0
   - sphereName: "\u971C\u6CA7\u661F-1"
     orderImage: {fileID: 21300000, guid: 252dacd701940414688c8af5854ec5ce, type: 3}
@@ -155,7 +155,7 @@ MonoBehaviour:
     taskId: 16
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     planetIndex: 10
-    VisitOrder: 1
+    VisitOrder: 0
     CompleteOrder: 0
   - sphereName: "\u7487\u5E90\u661F-4"
     orderImage: {fileID: 21300000, guid: 75028df05ae56a041843470723bc2416, type: 3}
@@ -200,5 +200,41 @@ MonoBehaviour:
     taskId: 12
     victoryVideoClip: {fileID: 32900000, guid: be414b7bf56b70f48883bb93f3a6a440, type: 3}
     planetIndex: 11
+    VisitOrder: 0
+    CompleteOrder: 0
+  - sphereName: "\u53D1\u9001\u90AE\u4EF61"
+    orderImage: {fileID: 0}
+    targetSceneName: 
+    orderAmount: 0
+    taskId: 22
+    victoryVideoClip: {fileID: 0}
+    planetIndex: 0
+    VisitOrder: 0
+    CompleteOrder: 0
+  - sphereName: "\u53D1\u9001\u90AE\u4EF62"
+    orderImage: {fileID: 0}
+    targetSceneName: 
+    orderAmount: 0
+    taskId: 23
+    victoryVideoClip: {fileID: 0}
+    planetIndex: 0
+    VisitOrder: 0
+    CompleteOrder: 0
+  - sphereName: "\u53D1\u9001\u90AE\u4EF63"
+    orderImage: {fileID: 0}
+    targetSceneName: 
+    orderAmount: 0
+    taskId: 24
+    victoryVideoClip: {fileID: 0}
+    planetIndex: 0
+    VisitOrder: 0
+    CompleteOrder: 0
+  - sphereName: "\u53D1\u9001\u90AE\u4EF64"
+    orderImage: {fileID: 0}
+    targetSceneName: 
+    orderAmount: 0
+    taskId: 25
+    victoryVideoClip: {fileID: 0}
+    planetIndex: 0
     VisitOrder: 0
     CompleteOrder: 0

@@ -339,8 +339,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 105905375064311447, guid: 7fb99d23c55192446bee54d2b870e79d,
-          type: 3}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FuelManager, Assembly-CSharp
         m_MethodName: ResetFuel
         m_Mode: 1
@@ -472,12 +471,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   orderImageList: {fileID: 487867038655235824}
   textImageController: {fileID: 5932090723056734808}
-  dynamicTextController: {fileID: 6686257214349424101}
+  dynamicTextController: {fileID: 0}
   stampAnimation: {fileID: 5532783919538247361}
   resetVisitOrderButton: {fileID: 1528633754629100960}
   nextDayButton: {fileID: 1528633754629100960}
   orderDataConfig: {fileID: 11400000, guid: 9a3a4f761acee7c438b7de66204d4805, type: 2}
-  nextDaySceneName: 03_MainHub
+  nextDaySceneName: 02_MainHub
   mainHubCanvas: {fileID: 0}
   stampAnimationDelay: 0.5
   enableDebugLog: 1
@@ -734,6 +733,7 @@ MonoBehaviour:
   content: {fileID: 4797141506688987251}
   leftArrow: {fileID: 7670446617068417923}
   rightArrow: {fileID: 3428609055390978200}
+  orderDataConfig: {fileID: 0}
   orderImageItems:
   - {fileID: 6071453697701900537}
   - {fileID: 4890725262472217592}
@@ -746,6 +746,8 @@ MonoBehaviour:
   placeholderImage3: {fileID: 21300000, guid: e43306da0591fc241a8a198e91e5e95c, type: 3}
   scrollDuration: 0.3
   scrollStep: 0
+  autoFindOnStart: 1
+  autoLoadVisitedOrders: 1
   enableDebugLog: 1
 --- !u!1 &6342489219846001224
 GameObject:
@@ -758,6 +760,7 @@ GameObject:
   - component: {fileID: 6163648346986534025}
   - component: {fileID: 1340273044720952114}
   - component: {fileID: 3774832974522533518}
+  - component: {fileID: 54043325844817088}
   m_Layer: 5
   m_Name: OrderImageItem1 (2)
   m_TagString: Untagged
@@ -812,7 +815,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: e8cb1c06bf0c424449f68de7dcb80a52, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b9b3ff80710dd114b8d712c8b820b8b5, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -822,6 +825,26 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &54043325844817088
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6342489219846001224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 412
+  m_PreferredHeight: 526
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &6402563626847061998
 GameObject:
   m_ObjectHideFlags: 0
@@ -1028,6 +1051,7 @@ GameObject:
   - component: {fileID: 8087825325001853838}
   - component: {fileID: 216743932748187345}
   - component: {fileID: 4890725262472217592}
+  - component: {fileID: 6032460495224958565}
   m_Layer: 5
   m_Name: OrderImageItem1 (1)
   m_TagString: Untagged
@@ -1082,7 +1106,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: e8cb1c06bf0c424449f68de7dcb80a52, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b9b3ff80710dd114b8d712c8b820b8b5, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -1092,6 +1116,26 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6032460495224958565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7554975831809661927}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 412
+  m_PreferredHeight: 526
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &8235330964083879690
 GameObject:
   m_ObjectHideFlags: 0
@@ -1224,6 +1268,7 @@ GameObject:
   - component: {fileID: 1801039143933163342}
   - component: {fileID: 5471689674207313045}
   - component: {fileID: 6071453697701900537}
+  - component: {fileID: 6144474312713001883}
   m_Layer: 5
   m_Name: OrderImageItem1
   m_TagString: Untagged
@@ -1278,7 +1323,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: e8cb1c06bf0c424449f68de7dcb80a52, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b9b3ff80710dd114b8d712c8b820b8b5, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -1288,6 +1333,26 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6144474312713001883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8386804517781124497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 412
+  m_PreferredHeight: 526
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &8497353160241383373
 GameObject:
   m_ObjectHideFlags: 0
@@ -1627,7 +1692,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_Sprite: {fileID: 10917, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Type: 2
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4

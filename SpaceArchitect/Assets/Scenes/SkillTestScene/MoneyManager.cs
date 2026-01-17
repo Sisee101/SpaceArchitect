@@ -6,7 +6,10 @@ using TMPro;
 public class MoneyManager : MonoBehaviour
 {
     // 玩家余额，可在整个游戏项目中访问
-    public static int money = 0;
+    public static int money = 10000;
+    
+    // 静态标志：确保money只初始化一次
+    private static bool moneyInitialized = false;
 
     // TextMeshPro 文本组件引用
     private TextMeshProUGUI moneyText;
@@ -27,31 +30,79 @@ public class MoneyManager : MonoBehaviour
     
     [Header("调试")]
     [SerializeField] private bool enableDebugLog = true;
+    
+    // 标志：是否已经订阅过事件
+    private bool hasSubscribed = false;
 
-    // Start is called before the first frame update
-    void Start()
+    // 在Awake中提前初始化（比Start更早执行）
+    void Awake()
     {
-        // 获取同一GameObject上的TextMeshProUGUI组件
-        moneyText = GetComponent<TextMeshProUGUI>();
+        // 确保money只初始化一次
+        if (!moneyInitialized)
+        {
+            money = 10000;
+            moneyInitialized = true;
+            if (enableDebugLog)
+            {
+                Debug.Log($"MoneyManager: 初始化money值为 {money}");
+            }
+        }
         
-        // 如果找不到组件，尝试获取子对象上的组件
+        // 获取TextMeshProUGUI组件
+        moneyText = GetComponent<TextMeshProUGUI>();
         if (moneyText == null)
         {
             moneyText = GetComponentInChildren<TextMeshProUGUI>();
         }
         
-        // 自动查找丢失的引用
+        // 提前查找引用（在Awake中执行，确保在Start前完成）
         if (autoFindOnStart)
         {
             FindMissingReferences();
         }
-        
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
         // 初始化显示
         UpdateMoneyDisplay();
         lastMoneyValue = money;
         
-        // 订阅任务完成事件
+        // 在Start中订阅事件（确保TaskManager已经初始化）
+        if (autoFindOnStart && (taskManager == null || orderDataConfig == null))
+        {
+            FindMissingReferences();
+        }
         SubscribeToTaskManager();
+    }
+    
+    // 使用LateStart确保在所有Start执行完后再次检查订阅
+    void OnEnable()
+    {
+        // 延迟订阅，确保TaskManager已经完全初始化
+        StartCoroutine(LateSubscribe());
+    }
+    
+    private System.Collections.IEnumerator LateSubscribe()
+    {
+        // 等待一帧，确保所有Start都已执行
+        yield return null;
+        
+        // 如果还没有订阅成功，再次尝试
+        if (!hasSubscribed || taskManager == null)
+        {
+            if (enableDebugLog)
+            {
+                Debug.Log("MoneyManager: 延迟订阅，重新查找引用...");
+            }
+            
+            if (autoFindOnStart)
+            {
+                FindMissingReferences();
+            }
+            SubscribeToTaskManager();
+        }
     }
     
     void OnDestroy()
@@ -171,6 +222,8 @@ public class MoneyManager : MonoBehaviour
             // 重新订阅
             taskManager.OnTaskCompleted += OnTaskCompleted;
             
+            hasSubscribed = true;
+            
             if (enableDebugLog)
             {
                 Debug.Log("MoneyManager: 已订阅TaskManager的任务完成事件");
@@ -178,7 +231,11 @@ public class MoneyManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("MoneyManager: TaskManager引用未配置！无法监听任务完成事件");
+            hasSubscribed = false;
+            if (enableDebugLog)
+            {
+                Debug.LogWarning("MoneyManager: TaskManager引用未配置！无法监听任务完成事件");
+            }
         }
     }
     
@@ -188,21 +245,24 @@ public class MoneyManager : MonoBehaviour
     /// <param name="taskId">完成的任务ID</param>
     private void OnTaskCompleted(int taskId)
     {
+        if (enableDebugLog)
+        {
+            Debug.Log($"<color=cyan>MoneyManager: 收到任务完成事件，taskId={taskId}</color>");
+        }
+        
         // 如果orderDataConfig丢失，尝试重新查找
         if (orderDataConfig == null)
         {
-            if (enableDebugLog)
-            {
-                Debug.LogWarning($"MoneyManager: orderDataConfig引用丢失，尝试重新查找...");
-            }
+            Debug.LogWarning($"MoneyManager: orderDataConfig引用丢失，尝试重新查找...");
             FindMissingReferences();
-        }
-        
-        // 如果重新查找后仍然为空，输出错误并返回
-        if (orderDataConfig == null)
-        {
-            Debug.LogError($"MoneyManager: 无法处理任务 {taskId} 完成事件，orderDataConfig未配置！");
-            return;
+            
+            // 等待一帧后再次尝试
+            if (orderDataConfig == null)
+            {
+                Debug.LogError($"MoneyManager: 无法处理任务 {taskId} 完成事件，orderDataConfig未配置！");
+                Debug.LogError($"MoneyManager: 请检查 Resources/SphereOrderDataConfig.asset 是否存在！");
+                return;
+            }
         }
         
         // 根据taskId获取订单信息
@@ -211,29 +271,43 @@ public class MoneyManager : MonoBehaviour
         if (orderInfo == null)
         {
             Debug.LogError($"MoneyManager: 任务 {taskId} 对应的订单信息不存在！");
+            Debug.LogError($"MoneyManager: 请检查 SphereOrderDataConfig 中是否配置了 taskId={taskId} 的订单");
             return;
         }
         
         // 获取订单金额
         int orderAmount = orderInfo.orderAmount;
         
+        // 输出详细的调试信息（在金额变化前）
+        if (enableDebugLog)
+        {
+            Debug.Log($"<color=yellow>MoneyManager: 准备更新金额</color>");
+            Debug.Log($"  - 任务ID: {taskId}");
+            Debug.Log($"  - 订单名称: {orderInfo.sphereName}");
+            Debug.Log($"  - 订单金额: {orderAmount}");
+            Debug.Log($"  - 当前money值: {money}");
+        }
+        
         // 更新金钱
         int previousMoney = money;
         money += orderAmount;
         
-        // 输出调试信息
+        // 输出金额变化后的调试信息
         if (enableDebugLog)
         {
-            Debug.Log($"<color=green>MoneyManager: 任务完成！</color>");
-            Debug.Log($"  - 任务ID: {taskId}");
-            Debug.Log($"  - 订单名称: {orderInfo.sphereName}");
-            Debug.Log($"  - 订单金额: +{orderAmount}");
-            Debug.Log($"  - 金钱变化: {previousMoney} → {money}");
+            Debug.Log($"<color=green>MoneyManager: 任务完成！金额已更新</color>");
+            Debug.Log($"  - 金钱变化: {previousMoney} → {money} (增加: +{orderAmount})");
         }
         
         // 强制更新显示（立即响应）
         UpdateMoneyDisplay();
         lastMoneyValue = money;
+        
+        // 额外的验证：确保money值确实被更新了
+        if (money == previousMoney)
+        {
+            Debug.LogError($"MoneyManager: 警告！money值未更新！taskId={taskId}, orderAmount={orderAmount}");
+        }
     }
 
     // Update is called once per frame
@@ -254,5 +328,61 @@ public class MoneyManager : MonoBehaviour
         {
             moneyText.text = money.ToString();
         }
+    }
+    
+    /// <summary>
+    /// 诊断方法：打印当前状态（用于调试打包后的问题）
+    /// 可以在Unity编辑器的Inspector中通过按钮调用，或在代码中手动调用
+    /// </summary>
+    [ContextMenu("诊断MoneyManager状态")]
+    public void DiagnoseState()
+    {
+        Debug.Log("========== MoneyManager 诊断信息 ==========");
+        Debug.Log($"当前money值: {money}");
+        Debug.Log($"moneyInitialized: {moneyInitialized}");
+        Debug.Log($"lastMoneyValue: {lastMoneyValue}");
+        Debug.Log($"hasSubscribed: {hasSubscribed}");
+        Debug.Log($"taskManager: {(taskManager != null ? taskManager.name : "null")}");
+        Debug.Log($"orderDataConfig: {(orderDataConfig != null ? orderDataConfig.name : "null")}");
+        Debug.Log($"moneyText: {(moneyText != null ? moneyText.name : "null")}");
+        Debug.Log($"enableDebugLog: {enableDebugLog}");
+        
+        if (orderDataConfig != null)
+        {
+            Debug.Log($"orderDataConfig.orderDataList.Count: {orderDataConfig.orderDataList.Count}");
+            
+            // 检查taskId=1的订单
+            var order1 = orderDataConfig.GetOrderInfoByTaskId(1);
+            if (order1 != null)
+            {
+                Debug.Log($"taskId=1 的订单信息:");
+                Debug.Log($"  - sphereName: {order1.sphereName}");
+                Debug.Log($"  - orderAmount: {order1.orderAmount}");
+                Debug.Log($"  - CompleteOrder: {order1.CompleteOrder}");
+            }
+            else
+            {
+                Debug.LogError("taskId=1 的订单信息不存在！");
+            }
+        }
+        else
+        {
+            Debug.LogError("orderDataConfig 为 null！");
+        }
+        
+        Debug.Log("==========================================");
+    }
+    
+    /// <summary>
+    /// 重置money值（用于测试）
+    /// </summary>
+    [ContextMenu("重置Money为10000")]
+    public void ResetMoney()
+    {
+        money = 10000;
+        moneyInitialized = true;
+        UpdateMoneyDisplay();
+        lastMoneyValue = money;
+        Debug.Log($"MoneyManager: Money已重置为 {money}");
     }
 }

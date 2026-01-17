@@ -41,8 +41,29 @@ public class MailUnlockManager : MonoBehaviour
     [Tooltip("邮件面板（如果为空，会在每个场景中自动查找）")]
     [SerializeField] private MailPanel mailPanel;
     
+    [Header("自动解锁邮件配置")]
+    [Tooltip("场景加载时自动解锁的邮件配置")]
+    [SerializeField] private SceneMailUnlockConfig[] sceneMailUnlocks = new SceneMailUnlockConfig[]
+    {
+        new SceneMailUnlockConfig { sceneName = "02_MainHub", mailIds = new int[] { 23, 24 } },
+        new SceneMailUnlockConfig { sceneName = "04_MainHub", mailIds = new int[] { 25 } }
+    };
+    
     [Header("调试")]
     [SerializeField] private bool enableDebugLog = true;
+    
+    /// <summary>
+    /// 场景邮件自动解锁配置
+    /// </summary>
+    [System.Serializable]
+    public class SceneMailUnlockConfig
+    {
+        [Tooltip("场景名称")]
+        public string sceneName;
+        
+        [Tooltip("该场景加载时自动解锁的邮件ID列表")]
+        public int[] mailIds;
+    }
     
     void Awake()
     {
@@ -111,17 +132,22 @@ public class MailUnlockManager : MonoBehaviour
         }
         
         // 延迟重新订阅，确保场景完全加载
-        StartCoroutine(SubscribeAfterSceneLoad());
+        StartCoroutine(SubscribeAfterSceneLoad(scene.name));
     }
     
     /// <summary>
     /// 延迟订阅TaskManager（场景加载后）
     /// </summary>
-    private System.Collections.IEnumerator SubscribeAfterSceneLoad()
+    private System.Collections.IEnumerator SubscribeAfterSceneLoad(string sceneName)
     {
         yield return null;
         yield return null; // 等待两帧，确保场景完全加载
+        
+        // 重新订阅TaskManager
         SubscribeToTaskManager();
+        
+        // 检查是否需要自动解锁邮件
+        AutoUnlockMailsForScene(sceneName);
     }
     
     void OnDestroy()
@@ -289,5 +315,129 @@ public class MailUnlockManager : MonoBehaviour
         }
         
         return null;
+    }
+    
+    /// <summary>
+    /// 根据邮件ID查找对应的邮件
+    /// </summary>
+    /// <param name="mailId">邮件ID</param>
+    /// <returns>找到的邮件信息，如果不存在返回null</returns>
+    private MailDataConfig.MailInfo FindMailByMailId(int mailId)
+    {
+        if (mailDataConfig == null || mailDataConfig.mailDataList == null)
+        {
+            return null;
+        }
+        
+        foreach (var mailInfo in mailDataConfig.mailDataList)
+        {
+            if (mailInfo != null && mailInfo.mailId == mailId)
+            {
+                return mailInfo;
+            }
+        }
+        
+        return null;
+    }
+    
+    /// <summary>
+    /// 为指定场景自动解锁邮件
+    /// </summary>
+    /// <param name="sceneName">场景名称</param>
+    private void AutoUnlockMailsForScene(string sceneName)
+    {
+        if (sceneMailUnlocks == null || sceneMailUnlocks.Length == 0)
+        {
+            return;
+        }
+        
+        // 查找匹配的场景配置
+        SceneMailUnlockConfig matchedConfig = null;
+        foreach (var config in sceneMailUnlocks)
+        {
+            if (config != null && config.sceneName == sceneName)
+            {
+                matchedConfig = config;
+                break;
+            }
+        }
+        
+        if (matchedConfig == null || matchedConfig.mailIds == null || matchedConfig.mailIds.Length == 0)
+        {
+            // 当前场景没有需要自动解锁的邮件
+            return;
+        }
+        
+        // 确保mailPanel已找到
+        if (mailPanel == null)
+        {
+            MailPanel[] mailPanels = FindObjectsOfType<MailPanel>(true);
+            if (mailPanels.Length > 0)
+            {
+                mailPanel = mailPanels[0];
+                if (enableDebugLog)
+                {
+                    Debug.Log($"MailUnlockManager: 找到MailPanel: {mailPanel.gameObject.name}");
+                }
+            }
+        }
+        
+        if (mailPanel == null)
+        {
+            Debug.LogWarning($"MailUnlockManager: 场景 {sceneName} 需要自动解锁邮件，但未找到MailPanel！");
+            return;
+        }
+        
+        if (mailDataConfig == null)
+        {
+            Debug.LogError($"MailUnlockManager: 场景 {sceneName} 需要自动解锁邮件，但MailDataConfig未配置！");
+            return;
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"<color=cyan>MailUnlockManager: 场景 {sceneName} 开始自动解锁邮件...</color>");
+        }
+        
+        // 解锁所有配置的邮件
+        int successCount = 0;
+        int skippedCount = 0;
+        
+        foreach (int mailId in matchedConfig.mailIds)
+        {
+            // 查找邮件信息
+            var mailInfo = FindMailByMailId(mailId);
+            
+            if (mailInfo == null)
+            {
+                Debug.LogWarning($"MailUnlockManager: 邮件ID={mailId} 在MailDataConfig中不存在！");
+                continue;
+            }
+            
+            // 直接添加到邮件列表（使用InsertMailById方法）
+            bool success = mailPanel.InsertMailById(mailId);
+            
+            if (success)
+            {
+                successCount++;
+                if (enableDebugLog)
+                {
+                    Debug.Log($"<color=green>✅ MailUnlockManager: 成功自动解锁邮件 mailId={mailId}（场景: {sceneName}）</color>");
+                }
+            }
+            else
+            {
+                skippedCount++;
+                if (enableDebugLog)
+                {
+                    Debug.Log($"<color=yellow>⚠️ MailUnlockManager: 邮件 mailId={mailId} 已存在，跳过添加</color>");
+                }
+            }
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"<color=cyan>MailUnlockManager: 场景 {sceneName} 自动解锁完成 - 成功: {successCount}, 跳过: {skippedCount}</color>");
+        }
     }
 }

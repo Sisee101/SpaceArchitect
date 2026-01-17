@@ -1,0 +1,59 @@
+═══════════════════════════════════════════════════════════════
+  MoneyManager 修复 - 重要提示
+═══════════════════════════════════════════════════════════════
+
+✅ 核心修复已完成
+  - 修复了打包后无法找到TaskManager的问题
+  - 使用 FindObjectOfType 替代 Resources.FindObjectsOfTypeAll
+  - 编辑器和打包后都能正常工作
+
+⚠️ 关于 DontDestroyOnLoad（Persist Across Scenes）
+
+  你的项目情况：
+  - 每个MainHub场景都有自己的MoneyManager
+  - 这是正常且推荐的设计
+
+  配置建议：
+  ✅ 保持 "Persist Across Scenes" = false（默认值）
+  ✅ 不需要修改现有场景结构
+  ✅ 每个场景的MoneyManager独立工作
+
+  为什么不需要DontDestroyOnLoad？
+  - money 是静态变量，场景切换时自动保持
+  - 每个场景的MoneyManager只负责显示和监听
+  - 场景切换时旧实例销毁，新实例接管
+  - 金钱值不会丢失
+
+📋 推荐配置（每个MainHub场景）：
+
+  1. 保留MoneyManager GameObject
+  2. Persist Across Scenes = false（不要勾选）
+  3. Auto Find On Start = true
+  4. Enable Debug Log = true（测试时）
+  5. 手动指定引用（最可靠）：
+     - Task Manager → 拖拽场景中的TaskManager
+     - Order Data Config → 拖拽SphereOrderDataConfig资源
+
+🎯 核心要点：
+
+  修复的重点是：
+  ✅ 打包后能正确找到TaskManager（已修复）
+  ✅ 金钱值通过静态变量保持（无需DontDestroyOnLoad）
+  ✅ 每个场景独立配置（符合你的项目结构）
+
+  DontDestroyOnLoad 只是额外功能：
+  - 默认是关闭的
+  - 不影响核心修复
+  - 你的项目不需要启用它
+
+📖 详细文档：
+
+  - MoneyManager修复报告.md - 技术细节
+  - 快速修复指南.md - 快速参考
+  - MoneyManager配置说明-多场景兼容.md - 多场景配置详解
+
+═══════════════════════════════════════════════════════════════
+  修复日期：2026-01-17
+  状态：✅ 已完成并兼容多场景配置
+═══════════════════════════════════════════════════════════════
+

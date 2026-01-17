@@ -2545,6 +2545,11 @@ MonoBehaviour:
   taskManager: {fileID: 1962398847}
   mailDataConfig: {fileID: 11400000, guid: 4ab6ea80aa647524ebb5f7b81d70000e, type: 2}
   mailPanel: {fileID: 2139955148}
+  sceneMailUnlocks:
+  - sceneName: 02_MainHub
+    mailIds: 1700000018000000
+  - sceneName: 04_MainHub
+    mailIds: 19000000
   enableDebugLog: 1
 --- !u!4 &769045887
 Transform:
@@ -7591,85 +7596,15 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1937126109}
-    - target: {fileID: 1801039143933163342, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1801039143933163342, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1801039143933163342, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 412.2324
-      objectReference: {fileID: 0}
-    - target: {fileID: 1801039143933163342, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 526.1984
-      objectReference: {fileID: 0}
-    - target: {fileID: 1801039143933163342, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 206.1162
-      objectReference: {fileID: 0}
-    - target: {fileID: 1801039143933163342, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -263.0992
-      objectReference: {fileID: 0}
     - target: {fileID: 2511184009338534333, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
       propertyPath: mainHubCanvas
       value: 
       objectReference: {fileID: 1628459104}
-    - target: {fileID: 2511184009338534333, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: nextDaySceneName
-      value: 02_MainHub
-      objectReference: {fileID: 0}
-    - target: {fileID: 2511184009338534333, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: dynamicTextController
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 4535258302976596867, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
       propertyPath: m_Name
       value: SettlementPanel
-      objectReference: {fileID: 0}
-    - target: {fileID: 6163648346986534025, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6163648346986534025, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6163648346986534025, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 412.2324
-      objectReference: {fileID: 0}
-    - target: {fileID: 6163648346986534025, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 526.1984
-      objectReference: {fileID: 0}
-    - target: {fileID: 6163648346986534025, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 1070.5809
-      objectReference: {fileID: 0}
-    - target: {fileID: 6163648346986534025, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -263.0992
       objectReference: {fileID: 0}
     - target: {fileID: 6872845125968758340, guid: bb671b89f53e88d409a2efc8d3a4777d,
         type: 3}
@@ -7770,36 +7705,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8087825325001853838, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8087825325001853838, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8087825325001853838, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 412.2324
-      objectReference: {fileID: 0}
-    - target: {fileID: 8087825325001853838, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 526.1984
-      objectReference: {fileID: 0}
-    - target: {fileID: 8087825325001853838, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 638.3486
-      objectReference: {fileID: 0}
-    - target: {fileID: 8087825325001853838, guid: bb671b89f53e88d409a2efc8d3a4777d,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -263.0992
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
