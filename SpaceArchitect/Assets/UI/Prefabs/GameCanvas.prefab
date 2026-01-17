@@ -800,14 +800,14 @@ RectTransform:
   m_GameObject: {fileID: 3482859092069649031}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 2098123625998708765}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -174.24646, y: -71}
+  m_AnchoredPosition: {x: -131.7, y: -78.8}
   m_SizeDelta: {x: 206.1406, y: 83.674}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2467205634423372161
@@ -1902,6 +1902,78 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2098123625998708765}
     m_Modifications:
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites1.Array.data[1]
+      value: 
+      objectReference: {fileID: 21300000, guid: 5bc6e86d03f6bfa4db844ae4f8ed485e,
+        type: 3}
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites1.Array.data[2]
+      value: 
+      objectReference: {fileID: 21300000, guid: 303a5372af02b3b41b8aa52dcda3608a,
+        type: 3}
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites1.Array.data[3]
+      value: 
+      objectReference: {fileID: 21300000, guid: ab62deddcb99b574ab5ad27ba9f1e1a9,
+        type: 3}
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites2.Array.data[1]
+      value: 
+      objectReference: {fileID: 21300000, guid: 7210cdd790515c5479bfccbe22cc944f,
+        type: 3}
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites2.Array.data[2]
+      value: 
+      objectReference: {fileID: 21300000, guid: 6f856877c3dd35d4d974e6324ffb1d69,
+        type: 3}
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites2.Array.data[3]
+      value: 
+      objectReference: {fileID: 21300000, guid: 75925762fa80df54597bf992fece2ead,
+        type: 3}
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites3.Array.data[1]
+      value: 
+      objectReference: {fileID: 21300000, guid: 748221f601e70fc4b854005c14b28e81,
+        type: 3}
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites4.Array.data[1]
+      value: 
+      objectReference: {fileID: 21300000, guid: c4f82d342095c6740bcd160a9a4726ea,
+        type: 3}
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites4.Array.data[2]
+      value: 
+      objectReference: {fileID: 21300000, guid: f7fe8ccf2586b5c4e894312a42cd1838,
+        type: 3}
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites5.Array.data[0]
+      value: 
+      objectReference: {fileID: 21300000, guid: ef747965f7c4ab84a8e08cd4d9dff246,
+        type: 3}
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites5.Array.data[1]
+      value: 
+      objectReference: {fileID: 21300000, guid: 59de209ea186e864fa3d2758ded2ed87,
+        type: 3}
+    - target: {fileID: 3090988532495021526, guid: 7d0788a9f736533409dad0faa4798101,
+        type: 3}
+      propertyPath: skillSprites5.Array.data[2]
+      value: 
+      objectReference: {fileID: 21300000, guid: 23d5d1b2aeb8bc749af9212a16043a29,
+        type: 3}
     - target: {fileID: 3573498472490635319, guid: 7d0788a9f736533409dad0faa4798101,
         type: 3}
       propertyPath: m_Name
@@ -1955,17 +2027,17 @@ PrefabInstance:
     - target: {fileID: 4835429242803601409, guid: 7d0788a9f736533409dad0faa4798101,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.5
+      value: 1.4
       objectReference: {fileID: 0}
     - target: {fileID: 4835429242803601409, guid: 7d0788a9f736533409dad0faa4798101,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.5
+      value: 1.4
       objectReference: {fileID: 0}
     - target: {fileID: 4835429242803601409, guid: 7d0788a9f736533409dad0faa4798101,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.5
+      value: 1.4
       objectReference: {fileID: 0}
     - target: {fileID: 4835429242803601409, guid: 7d0788a9f736533409dad0faa4798101,
         type: 3}
@@ -2005,12 +2077,12 @@ PrefabInstance:
     - target: {fileID: 4835429242803601409, guid: 7d0788a9f736533409dad0faa4798101,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 829
+      value: 288
       objectReference: {fileID: 0}
     - target: {fileID: 4835429242803601409, guid: 7d0788a9f736533409dad0faa4798101,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -887
+      value: -1757
       objectReference: {fileID: 0}
     - target: {fileID: 4835429242803601409, guid: 7d0788a9f736533409dad0faa4798101,
         type: 3}
@@ -2134,12 +2206,12 @@ PrefabInstance:
     - target: {fileID: 3473368597936808537, guid: 9f0c483c278772349a9bdbf39c5e0d85,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 1555.9
+      value: 1625.8
       objectReference: {fileID: 0}
     - target: {fileID: 3473368597936808537, guid: 9f0c483c278772349a9bdbf39c5e0d85,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -69.55
+      value: -79.4
       objectReference: {fileID: 0}
     - target: {fileID: 3473368597936808537, guid: 9f0c483c278772349a9bdbf39c5e0d85,
         type: 3}
