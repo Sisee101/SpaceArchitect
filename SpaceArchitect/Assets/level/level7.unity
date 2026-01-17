@@ -635,7 +635,7 @@ PrefabInstance:
     - target: {fileID: 1909257191820424486, guid: 10c2497314ffd9449aec20aeb3382e5f,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 20.1
+      value: 21.9
       objectReference: {fileID: 0}
     - target: {fileID: 1909257191820424486, guid: 10c2497314ffd9449aec20aeb3382e5f,
         type: 3}
@@ -700,7 +700,7 @@ PrefabInstance:
     - target: {fileID: 5769718112031548175, guid: 10c2497314ffd9449aec20aeb3382e5f,
         type: 3}
       propertyPath: orbitGuidanceStrength
-      value: 0.115
+      value: 0.16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
