@@ -729,11 +729,11 @@ MonoBehaviour:
   maxXBoundary: 20
   xBoundaryPadding: 2
   enableManualMove: 1
-  manualMoveSpeed: 10
+  manualMoveSpeed: 20
   leftMoveKey: 97
   rightMoveKey: 100
   enableZoom: 1
-  zoomSpeed: 10
+  zoomSpeed: 20
   minZoom: 1
   maxZoom: 30
   overviewZoomScale: 3

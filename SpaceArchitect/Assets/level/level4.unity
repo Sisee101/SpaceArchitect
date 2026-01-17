@@ -876,15 +876,15 @@ MonoBehaviour:
   xOffset: 0
   yOffset: 0
   enableYBoundary: 1
-  minYBoundary: -50
-  maxYBoundary: 50
+  minYBoundary: -20
+  maxYBoundary: 20
   enableXBoundary: 1
   autoCalculateXBoundary: 1
-  minXBoundary: -50
-  maxXBoundary: 50
+  minXBoundary: -20
+  maxXBoundary: 20
   xBoundaryPadding: 2
   enableManualMove: 1
-  manualMoveSpeed: 10
+  manualMoveSpeed: 20
   leftMoveKey: 97
   rightMoveKey: 100
   enableZoom: 1
@@ -897,7 +897,7 @@ MonoBehaviour:
   stationTag: Station
   destinationTag: Destination
   overviewPadding: 10
-  zoomOutDuration: 3
+  zoomOutDuration: 1
   overviewHoldDuration: 1.5
   zoomInDuration: 1
   zoomCurve:

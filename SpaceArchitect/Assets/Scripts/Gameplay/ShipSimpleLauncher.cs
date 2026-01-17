@@ -104,6 +104,12 @@ public class ShipSimpleLauncher : MonoBehaviour
     {
         // 创建箭头可视化对象
         CreateArrowVisualization();
+        
+        // 订阅游戏重置事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnGameReset += HandleGameReset;
+        }
     }
 
     void Update()
@@ -363,14 +369,40 @@ public class ShipSimpleLauncher : MonoBehaviour
     {
         // 禁用时隐藏箭头
         HideArrows();
+        
+        // 取消订阅事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnGameReset -= HandleGameReset;
+        }
     }
 
     void OnDestroy()
     {
+        // 取消订阅事件
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.OnGameReset -= HandleGameReset;
+        }
+        
         // 清理箭头可视化对象
         if (arrowContainerObject != null)
         {
             Destroy(arrowContainerObject);
+        }
+    }
+    
+    /// <summary>
+    /// 游戏重置事件处理
+    /// </summary>
+    private void HandleGameReset()
+    {
+        // 立即隐藏箭头，防止重置时闪过
+        HideArrows();
+        
+        if (showDebugLog)
+        {
+            Debug.Log("ShipSimpleLauncher: 收到游戏重置事件，已隐藏箭头");
         }
     }
 }

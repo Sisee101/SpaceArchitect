@@ -1331,6 +1331,9 @@ public class ShipBoostAim : MonoBehaviour
     {
         Debug.Log($"ShipBoostAim: 收到游戏重置事件，重置前使用次数: {currentUses}/{maxUsesPerRound}");
         
+        // 关键修复：立即清理可视化元素，防止重置时闪过箭头
+        ClearVisualization();
+        
         // 重置使用次数
         ResetUsageCount();
         
@@ -1348,11 +1351,45 @@ public class ShipBoostAim : MonoBehaviour
             EndAiming(false);
         }
         
+        // 确保可视化元素已清理（双重保险）
+        ClearVisualization();
+        
         // 停止所有协程
         StopAllCoroutines();
         
         // 停止视觉效果
         StopBoostEffects();
+    }
+    
+    /// <summary>
+    /// 清理可视化元素（扇形和箭头）
+    /// </summary>
+    private void ClearVisualization()
+    {
+        // 禁用并清理扇形可视化
+        if (sectorLineRenderer != null)
+        {
+            sectorLineRenderer.enabled = false;
+            sectorLineRenderer.positionCount = 0;
+        }
+        if (sectorVisualObject != null)
+        {
+            sectorVisualObject.SetActive(false);
+        }
+        
+        // 禁用并清理箭头可视化
+        if (arrowLineRenderer != null)
+        {
+            arrowLineRenderer.enabled = false;
+            arrowLineRenderer.positionCount = 0;
+        }
+        if (arrowVisualObject != null)
+        {
+            arrowVisualObject.SetActive(false);
+        }
+        
+        // 重置瞄准状态
+        isAiming = false;
         
         // 确保时间缩放已恢复
         if (Time.timeScale != 1.0f)

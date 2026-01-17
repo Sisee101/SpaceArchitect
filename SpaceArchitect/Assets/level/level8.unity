@@ -996,8 +996,8 @@ MonoBehaviour:
   maxYBoundary: 20
   enableXBoundary: 1
   autoCalculateXBoundary: 1
-  minXBoundary: -50
-  maxXBoundary: 50
+  minXBoundary: -20
+  maxXBoundary: 20
   xBoundaryPadding: 2
   enableManualMove: 1
   manualMoveSpeed: 20
