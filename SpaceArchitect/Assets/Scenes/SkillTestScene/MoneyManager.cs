@@ -6,7 +6,7 @@ using TMPro;
 public class MoneyManager : MonoBehaviour
 {
     // 玩家余额，可在整个游戏项目中访问
-    public static int money = 20000;
+    public static int money = 0;
 
     // TextMeshPro 文本组件引用
     private TextMeshProUGUI moneyText;
