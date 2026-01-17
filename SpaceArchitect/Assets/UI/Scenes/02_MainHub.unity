@@ -2357,7 +2357,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   centerPoint: {fileID: 564867314}
-  radius: 6.5
+  radius: 8.9
   speed: 150
   tilt: {x: 22.5, y: 31.13, z: 0}
   showGizmo: 1
